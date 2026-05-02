@@ -172,9 +172,9 @@ const CustomerDashboard = () => {
         </div>
 
         {/* Right Column: Chatbot */}
-        <div className="w-full xl:w-96 flex flex-col gap-6">
+        <div className="w-full xl:w-96 flex flex-col gap-6 sticky top-0 h-[calc(100vh-12rem)]">
           <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Zilla Assistant</h2>
-          <div className="h-[600px] xl:h-full">
+          <div className="flex-1 min-h-0">
             <ChatbotFrame />
           </div>
         </div>

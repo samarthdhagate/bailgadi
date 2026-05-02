@@ -2,7 +2,6 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { LogOut, Calendar, User, Settings } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
-import TopCalendar from './TopCalendar';
 
 const DashboardLayout = ({ children, title }) => {
   const { logout, user, role } = useAuth();
@@ -21,14 +20,6 @@ const DashboardLayout = ({ children, title }) => {
       { label: 'Users', icon: User, path: '/admin/users' },
     ]
   };
-
-  // Mock events for the top calendar
-  const mockEvents = [
-    new Date(),
-    new Date(Date.now() + 86400000 * 2), // 2 days later
-    new Date(Date.now() - 86400000 * 3), // 3 days ago
-    new Date(Date.now() + 86400000 * 5)  // 5 days later
-  ];
 
   return (
     <div className="min-h-screen bg-background flex overflow-hidden">
@@ -76,10 +67,7 @@ const DashboardLayout = ({ children, title }) => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        {/* Top Calendar - Now above everything in the main view */}
-        <TopCalendar events={mockEvents} />
-
-        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 z-10">
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8 z-10 flex-shrink-0">
           <div className="flex items-center gap-4">
             <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
           </div>
