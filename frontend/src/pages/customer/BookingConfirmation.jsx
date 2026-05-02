@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { format } from 'date-fns';
-import { CheckCircle } from 'lucide-react';
+import { CheckCircle, Clock, MapPin, Users } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 
@@ -26,8 +26,14 @@ const BookingConfirmation = () => {
       <div className="max-w-4xl mx-auto bg-white rounded-[40px] p-12 shadow-sm border border-gray-100">
         <div className="flex flex-col gap-10">
           {/* Header */}
-          <div className="border-b border-gray-100 pb-8">
-            <h1 className="text-4xl font-bold text-gray-800">Appointment confirmed</h1>
+          <div className="border-b border-gray-100 pb-8 flex justify-between items-center">
+            <div>
+              <h1 className="text-4xl font-bold text-gray-800">Appointment confirmed</h1>
+              <p className="text-gray-500 mt-2">Confirmation Code: <span className="font-mono font-bold text-primary">{booking.confirmation_code || booking.id}</span></p>
+            </div>
+            <div className="bg-green-100 text-green-600 p-3 rounded-full">
+              <CheckCircle className="w-8 h-8" />
+            </div>
           </div>
 
           <div className="space-y-10">
@@ -36,7 +42,7 @@ const BookingConfirmation = () => {
               <span className="text-2xl font-bold text-gray-800">Time</span>
               <div className="md:col-span-3">
                 <p className="text-2xl font-medium text-gray-700 mb-4">
-                  {format(new Date(booking.date), 'MMM dd')}, {booking.time}
+                  {booking.date}, {booking.time}
                 </p>
                 <div className="flex gap-4">
                   <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
@@ -72,7 +78,7 @@ const BookingConfirmation = () => {
               <span className="text-2xl font-bold text-gray-800">Venue</span>
               <div className="md:col-span-3">
                 <p className="text-2xl font-medium text-gray-700 leading-relaxed">
-                  Doctor's Office<br />
+                  {booking.location || "Doctor's Office"}<br />
                   64 Doctor Street<br />
                   Springfield 380005<br />
                   Ahmedabad
@@ -94,13 +100,13 @@ const BookingConfirmation = () => {
                 onClick={() => navigate('/bookings')}
                 className="px-8 py-3 border border-gray-200 rounded-xl text-lg font-bold text-gray-600 hover:bg-gray-50 transition-colors uppercase"
               >
-                cancel
+                My Bookings
               </button>
               <button 
-                onClick={() => navigate(`/booking/${booking.serviceId}`, { state: { reschedulingBooking: booking } })}
-                className="px-8 py-3 border border-gray-200 rounded-xl text-lg font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                onClick={() => navigate('/dashboard')}
+                className="px-8 py-3 bg-primary text-white rounded-xl text-lg font-bold shadow-lg shadow-primary/20 hover:scale-105 transition-all"
               >
-                Reschedule
+                Dashboard
               </button>
             </div>
           </div>

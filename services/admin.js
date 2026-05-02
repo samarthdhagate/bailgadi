@@ -1,37 +1,59 @@
 import axiosInstance from './api/axiosInstance';
 
 export const adminService = {
+  /**
+   * Get admin dashboard stats.
+   * Derives stats from the bookings list since there's no dedicated stats endpoint.
+   * GET /api/bookings/all
+   */
   getStats: async () => {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return {
-      data: {
-        totalUsers: 1250,
-        totalBookings: 8432,
-        activeServices: 45,
-        revenue: 12540
-      }
-    };
+    try {
+      const response = await axiosInstance.get('/bookings/all');
+      const bookings = response.data.data || [];
+
+      const stats = {
+        totalUsers: new Set(bookings.map((b) => b.user_id)).size,
+        totalBookings: bookings.length,
+        activeServices: new Set(bookings.map((b) => b.service_id)).size,
+        revenue: bookings
+          .filter((b) => b.status === 'booked')
+          .reduce((sum, b) => sum + (b.amount || 0), 0),
+      };
+
+      return { data: stats };
+    } catch (err) {
+      // Fallback to zeros if endpoint fails
+      return {
+        data: { totalUsers: 0, totalBookings: 0, activeServices: 0, revenue: 0 },
+      };
+    }
   },
 
+  /**
+   * Get all users.
+   * Note: No dedicated admin user-list endpoint in backend yet.
+   * This is a placeholder that returns an empty list.
+   * TODO: Add GET /api/admin/users endpoint to the backend.
+   */
   getUsers: async () => {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return {
-      data: [
-        { id: 1, name: 'John Doe', email: 'john@example.com', role: 'customer', status: 'Active', joined: '2026-01-15' },
-        { id: 2, name: 'Alice Smith', email: 'alice@organiser.com', role: 'organiser', status: 'Active', joined: '2026-02-20' },
-        { id: 3, name: 'Bob Wilson', email: 'bob@example.com', role: 'customer', status: 'Inactive', joined: '2026-03-05' }
-      ]
-    };
+    // Placeholder — backend does not have a user-listing endpoint yet
+    return { data: [] };
   },
 
+  /**
+   * Get all bookings (admin view).
+   * GET /api/bookings/all
+   */
   getBookings: async () => {
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return {
-      data: [
-        { id: 'BK-1001', service: 'Haircut', user: 'John Doe', date: '2026-05-10', status: 'Confirmed', amount: 50 },
-        { id: 'BK-1002', service: 'Consultation', user: 'Jane Smith', date: '2026-05-11', status: 'Pending', amount: 0 },
-        { id: 'BK-1003', service: 'Personal Training', user: 'Mike Ross', date: '2026-05-12', status: 'Cancelled', amount: 80 }
-      ]
-    };
-  }
+    const response = await axiosInstance.get('/bookings/all');
+    const bookings = (response.data.data || []).map((b) => ({
+      id: b.confirmation_code || b.id,
+      service: b.service_name,
+      user: b.customer_name,
+      date: new Date(b.start_time).toLocaleDateString(),
+      status: b.status.charAt(0).toUpperCase() + b.status.slice(1),
+      amount: b.amount || 0,
+    }));
+    return { data: bookings };
+  },
 };

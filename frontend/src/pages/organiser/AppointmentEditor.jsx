@@ -58,29 +58,48 @@ const AppointmentEditor = () => {
 
   useEffect(() => {
     if (id && id !== 'new') {
-      const fetch = async () => {
+      const fetchService = async () => {
         try {
-          const res = await organiserService.getAppointmentById(id);
-          dispatch({ type: 'SET_DATA', value: res.data });
+          const res = await organiserService.getServices();
+          const service = (res.data || []).find(s => String(s.id) === String(id));
+          if (service) {
+            dispatch({ type: 'SET_DATA', value: {
+              title: service.name,
+              duration: service.duration_min ? String(service.duration_min).padStart(2,'0') + ':00' : '00:30',
+              location: service.location || '',
+              description: service.description || '',
+              manualConfirmation: service.manual_confirmation || false,
+              paidBooking: service.advance_payment || false,
+            }});
+          }
         } catch (err) {
           console.error(err);
         }
       };
-      fetch();
+      fetchService();
     }
   }, [id]);
 
   const handleSave = async () => {
     setIsLoading(true);
     try {
+      const payload = {
+        name: state.formData.title,
+        duration_min: parseInt(state.formData.duration) || 30,
+        location: state.formData.location,
+        description: state.formData.description,
+        manual_confirmation: state.formData.manualConfirmation,
+        advance_payment: state.formData.paidBooking,
+        capacity: 1,
+      };
       if (state.isNew) {
-        await organiserService.createAppointment(state.formData);
+        await organiserService.createService(payload);
       } else {
-        await organiserService.updateAppointment(id, state.formData);
+        await organiserService.updateService(id, payload);
       }
       navigate('/organiser');
     } catch (err) {
-      console.error(err);
+      alert(err.response?.data?.error?.message || 'Failed to save.');
     } finally {
       setIsLoading(false);
     }

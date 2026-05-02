@@ -38,16 +38,12 @@ const BookingWizard = () => {
   const [service, setService] = useState(null);
 
   useEffect(() => {
-    // Fetch service details initially
     const init = async () => {
       setIsLoading(true);
       try {
         const res = await bookingService.getServices();
-        const currentService = res.data.find(s => s.id === parseInt(serviceId));
+        const currentService = (res.data || []).find(s => String(s.id) === String(serviceId));
         setService(currentService);
-        
-        const resResources = await bookingService.getResources(serviceId);
-        setResources(resResources.data);
       } catch (err) {
         setError('Failed to load service details');
       } finally {
@@ -61,9 +57,10 @@ const BookingWizard = () => {
     if (step === 1 && bookingData.date) {
       const fetchSlots = async () => {
         setIsLoading(true);
+        setError('');
         try {
           const res = await bookingService.getSlots(serviceId, bookingData.date);
-          setSlots(res.data);
+          setSlots(res.data || []);
         } catch (err) {
           setError('Failed to load available slots');
         } finally {
@@ -98,11 +95,28 @@ const BookingWizard = () => {
 
   const submitBooking = async () => {
     setIsLoading(true);
+    setError('');
     try {
-      const res = await bookingService.createBooking(bookingData);
-      navigate('/confirmation', { state: { booking: res.data } });
+      // Lock the slot first
+      await bookingService.lockSlot(serviceId, bookingData.time);
+      // Create the booking
+      const res = await bookingService.createBooking({
+        serviceId,
+        startTime: bookingData.time,
+        notes: `${bookingData.userDetails.name} — ${bookingData.userDetails.phone}`,
+      });
+      navigate('/confirmation', {
+        state: {
+          booking: {
+            ...res.data,
+            date: new Date(res.data.start_time).toLocaleDateString(),
+            time: new Date(res.data.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            userDetails: bookingData.userDetails,
+          }
+        }
+      });
     } catch (err) {
-      setError('Failed to confirm booking');
+      setError(err.response?.data?.error?.message || 'Failed to confirm booking');
     } finally {
       setIsLoading(false);
     }
