@@ -25,7 +25,7 @@ const initialState = {
       { id: Date.now(), day: 'Monday', startTime: '09:00', endTime: '12:00' },
       { id: Date.now() + 1, day: 'Wednesday', startTime: '14:00', endTime: '17:00' }
     ],
-    selectedUsers: [1], // IDs of selected users
+    selectedUsers: [], // Empty by default
     manualConfirmation: false,
     capacityLimit: 50,
     paidBooking: false,
@@ -62,11 +62,8 @@ const AppointmentEditor = () => {
   const [isAddingUser, setIsAddingUser] = useState(false);
   const [newUserName, setNewUserName] = useState('');
 
-  // Local state for users/staff
-  const [staff, setStaff] = useState([
-    { id: 1, name: 'User 1', initial: 'A1' },
-    { id: 2, name: 'User 2', initial: 'A2' }
-  ]);
+  // Local state for users/staff - start empty
+  const [staff, setStaff] = useState([]);
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -183,6 +180,8 @@ const AppointmentEditor = () => {
       initial: newUserName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
     };
     setStaff([...staff, newUser]);
+    // Auto select new user
+    updateField('selectedUsers', [...state.formData.selectedUsers, newUser.id]);
     setNewUserName('');
     setIsAddingUser(false);
   };
@@ -332,7 +331,9 @@ const AppointmentEditor = () => {
                     <input 
                       type="text" 
                       placeholder="User Name..."
+                      autoFocus
                       value={newUserName}
+                      onKeyDown={(e) => e.key === 'Enter' && addNewUser()}
                       onChange={(e) => setNewUserName(e.target.value)}
                       className="flex-1 px-3 py-1 bg-white border border-primary/20 rounded-lg text-xs font-bold outline-none"
                     />
@@ -342,7 +343,7 @@ const AppointmentEditor = () => {
                 )}
 
                 <div className="flex flex-wrap gap-3">
-                  {staff.map(u => (
+                  {staff.length > 0 ? staff.map(u => (
                     <button
                       key={u.id}
                       onClick={() => toggleUserSelection(u.id)}
@@ -359,7 +360,9 @@ const AppointmentEditor = () => {
                       </div>
                       <span className="text-xs font-bold">{u.name}</span>
                     </button>
-                  ))}
+                  )) : (
+                    <p className="text-[10px] text-gray-400 font-bold italic py-2">No users added yet. Click + to add.</p>
+                  )}
                 </div>
               </div>
 
