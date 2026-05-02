@@ -4,17 +4,15 @@ import { Outlet } from 'react-router-dom';
 const AuthLayout = () => {
   return (
     <div className="min-h-screen bg-slate-900 flex items-center justify-center relative overflow-hidden font-['Inter',sans-serif]">
-      {/* Background Video with darker overlay for professional look */}
       <video
         autoPlay
         loop
         muted
         playsInline
-        className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-40"
+        className="absolute top-0 left-0 w-full h-full object-cover z-0"
       >
         <source src="/12676946_3840_2160_30fps.mp4" type="video/mp4" />
       </video>
-      <div className="absolute inset-0 bg-gradient-to-br from-slate-900/80 via-transparent to-slate-900/60 z-1"></div>
 
       <div className="container mx-auto px-6 lg:px-20 relative z-10">
         <div className="flex flex-col lg:flex-row items-center justify-between gap-16 lg:gap-24">
