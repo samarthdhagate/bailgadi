@@ -3,10 +3,9 @@
 
 @layer base {
   body {
-    @apply bg-dark-900 text-gray-100 font-sans selection:bg-primary/30;
+    @apply bg-gray-50 text-gray-900 font-sans selection:bg-primary/10;
   }
   
-  /* Scrollbar hide utility */
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
   }
@@ -22,10 +21,10 @@
   }
   
   .glass-card {
-    @apply bg-dark-800 border border-dark-700 rounded-[40px] shadow-2xl;
+    @apply bg-white border border-gray-100 rounded-[40px] shadow-sm;
   }
 
   .input-field {
-    @apply w-full px-6 py-4 bg-dark-700 border border-dark-600 rounded-2xl text-gray-200 outline-none focus:border-primary/50 transition-all;
+    @apply w-full px-6 py-4 bg-white border border-gray-200 rounded-2xl text-gray-900 outline-none focus:border-primary/50 transition-all;
   }
 }
