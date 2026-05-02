@@ -49,6 +49,16 @@ const AppointmentList = () => {
     }
   };
 
+  const handleDelete = async (id) => {
+    if (!window.confirm('Are you sure you want to delete this service?')) return;
+    try {
+      await organiserService.deleteService(id);
+      setAppointments(prev => prev.filter(app => app.id !== id));
+    } catch (err) {
+      alert(err.response?.data?.error?.message || 'Failed to delete.');
+    }
+  };
+
   return (
     <DashboardLayout title="Overview">
       <div className="flex flex-col xl:flex-row gap-8 h-[calc(100vh-8rem)] overflow-hidden">
@@ -124,7 +134,7 @@ const AppointmentList = () => {
                       <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-2 group-hover:translate-x-0">
                         <button className="p-2 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all duration-200"><Share2 className="w-4 h-4" /></button>
                         <button onClick={() => navigate(`/organiser/editor/${app.id}`)} className="p-2 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all duration-200"><Edit3 className="w-4 h-4" /></button>
-                        <button className="p-2 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"><Trash2 className="w-4 h-4" /></button>
+                        <button onClick={() => handleDelete(app.id)} className="p-2 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
                   </div>

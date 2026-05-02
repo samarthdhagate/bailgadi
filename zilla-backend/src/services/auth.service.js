@@ -58,21 +58,18 @@ const signup = async ({ full_name, email, password, role = 'customer' }) => {
   const otp = generateOTP();
   const otp_expires_at = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
-  // Insert user
+  // Insert user as verified by default
   const result = await query(
-    `INSERT INTO users (full_name, email, password_hash, role, otp_code, otp_expires_at, is_verified)
-     VALUES ($1, $2, $3, $4, $5, $6, FALSE)
+    `INSERT INTO users (full_name, email, password_hash, role, is_verified)
+     VALUES ($1, $2, $3, $4, TRUE)
      RETURNING id, full_name, email, role`,
-    [full_name, email, password_hash, role, otp, otp_expires_at]
+    [full_name, email, password_hash, role]
   );
 
   const user = result.rows[0];
 
-  // Send OTP email (fire-and-forget)
-  notificationService.sendOTP(email, otp);
-
   return {
-    message: 'Account created. Please verify your email using the OTP sent to you.',
+    message: 'Account created successfully. You can now log in.',
     user: user,
   };
 };

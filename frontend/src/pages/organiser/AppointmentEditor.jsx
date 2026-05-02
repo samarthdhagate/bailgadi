@@ -96,8 +96,8 @@ const AppointmentEditor = () => {
   const handleSave = async () => {
     dispatch({ type: 'SET_LOADING', value: true });
     try {
-      const durationParts = state.formData.duration.split(':');
-      const duration_min = (parseInt(durationParts[0]) * 60) + parseInt(durationParts[1]);
+      const durationParts = (state.formData.duration || '00:30').split(':');
+      const duration_min = (parseInt(durationParts[0] || 0) * 60) + parseInt(durationParts[1] || 0);
       
       const payload = {
         name: state.formData.title,
@@ -176,7 +176,7 @@ const AppointmentEditor = () => {
     const newUser = {
       id: Date.now(),
       name: newUserName,
-      initial: newUserName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+      initial: (newUserName || 'Staff').split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
     };
     setStaff([...staff, newUser]);
     updateField('selectedUsers', [...state.formData.selectedUsers, newUser.id]);

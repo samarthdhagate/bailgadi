@@ -15,7 +15,7 @@ const listPublished = async (req, res, next) => {
     const result = await query(
       `SELECT f.id, f.name, f.duration_mins AS duration_min, f.max_capacity AS capacity,
               f.advance_payment, f.manual_confirm AS manual_confirmation,
-              f.base_price, f.status, f.created_at,
+              f.base_price AS price, f.status, f.created_at,
               f.organiser_id, u.full_name AS provider_name
        FROM facilities f
        JOIN users u ON f.organiser_id = u.id
@@ -37,7 +37,7 @@ const listMine = async (req, res, next) => {
     const result = await query(
       `SELECT id, name, duration_mins AS duration_min, max_capacity AS capacity,
               status, advance_payment, manual_confirm AS manual_confirmation,
-              base_price, schedule_type, working_hours, working_tz,
+              base_price AS price, schedule_type, working_hours, working_tz,
               questions_schema, cancellation_hrs, intro_message, confirm_message,
               assignment_mode, booking_mode, created_at
        FROM facilities
@@ -68,7 +68,7 @@ const getById = async (req, res, next) => {
     const result = await query(
       `SELECT id, name, duration_mins AS duration_min, max_capacity AS capacity,
               status, advance_payment, manual_confirm AS manual_confirmation,
-              base_price, schedule_type, working_hours, working_tz,
+              base_price AS price, schedule_type, working_hours, working_tz,
               questions_schema, cancellation_hrs, intro_message, confirm_message,
               assignment_mode, booking_mode, created_at
        FROM facilities

@@ -68,10 +68,11 @@ export const bookingService = {
     };
   },
 
-  lockSlot: async (serviceId, startTime) => {
+  lockSlot: async (serviceId, startTime, attendeeCount) => {
     const response = await axiosInstance.post('/bookings/lock', {
       service_id: serviceId,
       start_time: startTime,
+      attendee_count: attendeeCount,
     });
     return response.data;
   },

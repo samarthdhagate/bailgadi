@@ -19,7 +19,7 @@ const generateConfirmationCode = () => {
  * Lock a slot via Redis and create a DB reservation.
  * Aligned with v5 schema: facilities -> time_slots -> reservations.
  */
-const lockSlot = async (user_id, facility_id, start_time) => {
+const lockSlot = async (user_id, facility_id, start_time, attendee_count = 1) => {
   const slotStart = new Date(start_time);
   if (slotStart <= new Date()) {
     throw new AppError('Cannot lock a slot in the past.', 400, 'SLOT_IN_PAST');
@@ -30,8 +30,6 @@ const lockSlot = async (user_id, facility_id, start_time) => {
     await dbClient.query('BEGIN');
 
     // 1. Get or create the time_slot for this facility/time
-    // Note: In v5, we might have pre-generated slots or we create them on demand if using dynamic scheduling.
-    // The schema allows us to insert time_slots.
     let slotResult = await dbClient.query(
       `SELECT id, total_capacity, confirmed_count, reserved_count, status, frozen_price 
        FROM time_slots 
@@ -41,7 +39,6 @@ const lockSlot = async (user_id, facility_id, start_time) => {
 
     let slot;
     if (slotResult.rows.length === 0) {
-      // Create slot on the fly if it doesn't exist (assuming dynamic generation fallback)
       const facilityRes = await dbClient.query(
         'SELECT duration_mins, max_capacity, base_price FROM facilities WHERE id = $1',
         [facility_id]
@@ -65,16 +62,35 @@ const lockSlot = async (user_id, facility_id, start_time) => {
       throw new AppError(`Slot is ${slot.status}.`, 409, 'SLOT_UNAVAILABLE');
     }
 
-    if (slot.confirmed_count + slot.reserved_count >= slot.total_capacity) {
-      throw new AppError('Slot is fully booked.', 409, 'SLOT_FULL');
+    // Check if user already has an active reservation for this slot
+    const existingRes = await dbClient.query(
+      'SELECT id, frozen_price, expires_at FROM reservations WHERE customer_id = $1 AND slot_id = $2 AND status = \'holding\'',
+      [user_id, slot.id]
+    );
+
+    if (existingRes.rows.length > 0) {
+      // User already has a hold, allow them to re-use it
+      const reservation = existingRes.rows[0];
+      await dbClient.query('COMMIT');
+      
+      return { 
+        locked: true, 
+        reservation_id: reservation.id, 
+        expires_in: Math.max(0, Math.floor((new Date(reservation.expires_at) - new Date()) / 1000)),
+        reused: true
+      };
     }
 
-    // 2. Redis Lock (optional but recommended for high concurrency)
+    if (slot.confirmed_count + slot.reserved_count + Number(attendee_count) > slot.total_capacity) {
+      throw new AppError('Slot is fully booked or insufficient capacity.', 409, 'SLOT_FULL');
+    }
+
+    // 2. Redis Lock
     const lockKey = `slot:lock:${slot.id}:${user_id}`;
     if (isRedisAvailable()) {
       const result = await redisSetNX(lockKey, user_id, LOCK_TTL_SECONDS);
       if (result === 0) {
-        throw new AppError('You already have a pending reservation for this slot.', 409, 'ALREADY_LOCKED');
+        // Safe to ignore if DB check passed
       }
     }
 
@@ -82,8 +98,8 @@ const lockSlot = async (user_id, facility_id, start_time) => {
     const idempotencyKey = `lock:${slot.id}:${user_id}:${Date.now()}`;
     const reservationRes = await dbClient.query(
       `INSERT INTO reservations (slot_id, customer_id, facility_id, attendee_count, idempotency_key, redis_key)
-       VALUES ($1, $2, $3, 1, $4, $5) RETURNING id, frozen_price`,
-      [slot.id, user_id, facility_id, idempotencyKey, lockKey]
+       VALUES ($1, $2, $3, $4, $5, $6) RETURNING id, frozen_price`,
+      [slot.id, user_id, facility_id, attendee_count, idempotencyKey, lockKey]
     );
 
     const reservation = reservationRes.rows[0];
@@ -255,10 +271,12 @@ const createBooking = async (user_id, facility_id, start_time, notes) => {
 
 const getMyBookings = async (user_id) => {
   const result = await query(
-    `SELECT b.*, f.name AS service_name, ts.slot_start, ts.slot_end
+    `SELECT b.*, f.name AS service_name, ts.slot_start, ts.slot_end,
+            p.gateway_txn_id, p.amount AS paid_amount, p.status AS payment_status
      FROM bookings b
      JOIN facilities f ON b.facility_id = f.id
      JOIN time_slots ts ON b.slot_id = ts.id
+     LEFT JOIN payments p ON p.booking_id = b.id
      WHERE b.customer_id = $1
      ORDER BY ts.slot_start DESC`,
     [user_id]
