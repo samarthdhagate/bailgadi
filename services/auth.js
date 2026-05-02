@@ -17,7 +17,15 @@ export const authService = {
       return mockLogin(credentials);
     }
   },
-  
+
+  signup: async (userData) => {
+    if (FORCE_MOCK) {
+      return { success: true, data: { message: "Mock registration successful" } };
+    }
+    const response = await axiosInstance.post('/auth/signup', userData);
+    return response.data;
+  },
+
   register: async (userData) => {
     if (FORCE_MOCK) {
       return { success: true, data: { message: "Mock registration successful" } };
@@ -26,14 +34,10 @@ export const authService = {
     return response.data;
   },
 
-  signup: async (userData) => {
-    const response = await axiosInstance.post('/auth/signup', userData);
-    return response.data;
-  },
-
   logout: () => {
     localStorage.removeItem('token');
     localStorage.removeItem('role');
+    localStorage.removeItem('user');
   },
 
   getProfile: async () => {
@@ -54,7 +58,7 @@ async function mockLogin(credentials) {
   return {
     success: true,
     data: {
-      token: 'mock-jwt-token-' + Math.random(),
+      access_token: 'mock-jwt-token-' + Math.random(),
       user: {
         id: 'mock-id',
         full_name: email.split('@')[0],
