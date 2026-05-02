@@ -547,7 +547,7 @@ const AppointmentEditor = () => {
           </div>
         </div>
       )}
-    </div>
+    </DashboardLayout>
   );
 };
 
