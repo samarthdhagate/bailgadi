@@ -101,7 +101,10 @@ const AppointmentEditor = () => {
             <Button className="bg-primary text-white">Publish</Button>
           </div>
           
-          <button className="flex items-center gap-2 px-6 py-2 bg-white border border-gray-100 rounded-xl font-bold text-gray-700 hover:shadow-sm transition-all">
+          <button 
+            onClick={() => navigate('/organiser/meetings')}
+            className="flex items-center gap-2 px-6 py-2 bg-white border border-gray-100 rounded-xl font-bold text-gray-700 hover:shadow-sm transition-all"
+          >
             <Calendar className="w-5 h-5 text-primary" />
             Meetings
           </button>

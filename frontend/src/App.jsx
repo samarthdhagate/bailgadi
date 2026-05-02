@@ -22,6 +22,9 @@ import AppointmentEditor from './pages/organiser/AppointmentEditor';
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import SettingsPage from './pages/SettingsPage';
+import Meetings from './pages/organiser/Meetings';
+import ResourceEditor from './pages/organiser/ResourceEditor';
+import UserEditor from './pages/organiser/UserEditor';
 
 function App() {
   return (
@@ -45,6 +48,9 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['organiser']} />}>
           <Route path="/organiser" element={<AppointmentList />} />
           <Route path="/organiser/editor/:id" element={<AppointmentEditor />} />
+          <Route path="/organiser/meetings" element={<Meetings />} />
+          <Route path="/organiser/resource/:id" element={<ResourceEditor />} />
+          <Route path="/organiser/user/:id" element={<UserEditor />} />
         </Route>
 
         {/* Protected Admin Routes */}
