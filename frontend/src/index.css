@@ -1,23 +1,31 @@
 @import "tailwindcss";
 @config "../tailwind.config.js";
 
-
 @layer base {
   body {
-    @apply bg-background text-text font-sans;
+    @apply bg-dark-900 text-gray-100 font-sans selection:bg-primary/30;
+  }
+  
+  /* Scrollbar hide utility */
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
   }
 }
 
 @layer components {
   .btn-primary {
-    @apply bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-hover transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply bg-primary text-white px-6 py-3 rounded-2xl font-bold hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20;
   }
   
-  .card {
-    @apply bg-white p-6 rounded-xl shadow-sm border border-gray-100;
+  .glass-card {
+    @apply bg-dark-800 border border-dark-700 rounded-[40px] shadow-2xl;
   }
 
   .input-field {
-    @apply w-full px-4 py-2 border border-gray-300 rounded-xl focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all;
+    @apply w-full px-6 py-4 bg-dark-700 border border-dark-600 rounded-2xl text-gray-200 outline-none focus:border-primary/50 transition-all;
   }
 }
