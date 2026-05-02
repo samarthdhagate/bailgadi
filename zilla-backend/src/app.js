@@ -18,6 +18,7 @@ const availabilityRoutes = require('./routes/availability.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const paymentRoutes = require('./routes/payment.routes');
 const aiRoutes = require('./routes/ai.routes');
+const resourceRoutes = require('./routes/resource.routes');
 
 const app = express();
 
@@ -38,15 +39,18 @@ if (env.NODE_ENV === 'development') {
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow non-browser requests (no Origin header) and configured origins.
+    if (env.NODE_ENV === 'development') {
+      return callback(null, true);
+    }
     if (!origin || allowedOrigins.has(origin)) {
       return callback(null, true);
     }
+    console.warn(`CORS blocked origin: ${origin}`);
     return callback(new Error(`CORS blocked origin: ${origin}`));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
 }));
 
 // ─── Body Parsing ───────────────────────────────────────────────────
@@ -82,6 +86,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/resources', resourceRoutes);
 app.use('/api/ai', aiRoutes);
 
 // ─── 404 Handler ────────────────────────────────────────────────────

@@ -8,8 +8,8 @@ const { GoogleGenerativeAI } = require("@google/generative-ai");
 // Initialize Gemini with the API Key from environment variables
 const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
 const model = genAI.getGenerativeModel({ 
-  model: "gemini-1.5-flash",
-  systemInstruction: "You are Zilla AI, a premium assistant for Zilla, a SaaS booking platform. You help users (organisers and customers) manage appointments, schedule meetings, and navigate the platform. Your tone is professional, efficient, and friendly. Keep responses concise and focused on productivity. If a user asks about their schedule, remind them they can see it in the 'Upcoming Appointments' section on their dashboard."
+  model: "gemini-flash-latest",
+  systemInstruction: "You are Zilla AI, a premium assistant for Zilla, a SaaS booking platform. You help users manage appointments and navigate the platform. Keep responses concise and professional."
 });
 
 const chat = async (req, res, next) => {

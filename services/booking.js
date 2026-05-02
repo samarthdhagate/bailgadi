@@ -5,35 +5,27 @@ const FORCE_MOCK = false;
 
 export const bookingService = {
   getServices: async () => {
-    if (!FORCE_MOCK) {
-      try {
-        const response = await axiosInstance.get('/services');
-        return response.data;
-      } catch (e) { console.warn("API failed, using mock services"); }
+    try {
+      const response = await axiosInstance.get('/services');
+      return response.data;
+    } catch (e) {
+      console.warn("API failed, using mock services");
+      await new Promise(resolve => setTimeout(resolve, 800));
+      return {
+        data: [
+          {
+            id: 1,
+            title: 'Haircut & Styling',
+            location: 'Downtown Salon',
+            description: 'Get a fresh new look with our professional stylists.',
+            image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400',
+            price: 50,
+            duration: 45,
+          }
+        ]
+      };
     }
-    await new Promise(resolve => setTimeout(resolve, 800));
-    return {
-      data: [
-        {
-          id: '82a5264d-e4fc-4e36-8bcb-701fdcc658ab',
-          title: 'Haircut & Styling',
-          location: 'Downtown Salon',
-          description: 'Get a fresh new look with our professional stylists.',
-          image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400',
-          price: 50,
-          duration: 45,
-        },
-        {
-          id: 'b8e9f2a1-c3d4-4e5f-a6b7-c8d9e0f1a2b3',
-          title: 'Dental Consultation',
-          location: 'City Medical Center',
-          description: 'Expert dental checkup and consultation.',
-          image: 'https://images.unsplash.com/photo-1629909613654-28e377c37b09?auto=format&fit=crop&q=80&w=400',
-          price: 0,
-          duration: 30
-        },
-      ]
-    };
+
   },
 
   getSlots: async (serviceId, date) => {
@@ -59,13 +51,19 @@ export const bookingService = {
   },
 
   getResources: async (serviceId) => {
-    await new Promise(resolve => setTimeout(resolve, 500));
-    return {
-      data: [
-        { id: 1, name: 'Dr. John Smith', role: 'Senior Stylist' },
-        { id: 2, name: 'Sarah Wilson', role: 'Stylist' }
-      ]
-    };
+    try {
+      const response = await axiosInstance.get(`/resources/${serviceId}`);
+      return response.data;
+    } catch (e) {
+      console.warn("API failed, using mock resources");
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return {
+        data: [
+          { id: 1, name: 'Dr. John Smith', role: 'Senior Stylist' },
+          { id: 2, name: 'Sarah Wilson', role: 'Stylist' }
+        ]
+      };
+    }
   },
 
   lockSlot: async (serviceId, startTime) => {

@@ -56,6 +56,23 @@ router.post(
   authController.login
 );
 
+// GET /api/auth/google — initiate Google redirection flow
+router.get('/google', authController.initGoogleAuth);
+
+// GET /api/auth/google/callback — handle Google callback
+router.get('/google/callback', authController.googleCallback);
+
+// POST /api/auth/google — verify Google token from frontend
+router.post(
+  '/google',
+  [
+    body('token').notEmpty().withMessage('Google token is required.'),
+    validateRequest,
+  ],
+  authController.googleLogin
+);
+
+
 // POST /api/auth/refresh
 router.post('/refresh', authController.refresh);
 

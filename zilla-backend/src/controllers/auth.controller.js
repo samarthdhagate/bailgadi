@@ -3,6 +3,7 @@
  */
 
 const authService = require('../services/auth.service');
+const googleAuthService = require('../services/googleAuth.service');
 const { env } = require('../config/env');
 
 const signup = async (req, res, next) => {
@@ -99,9 +100,28 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
-const googleAuthService = require('../services/googleAuth.service');
-
 const googleLogin = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    const result = await authService.googleLogin(token);
+
+    // Set refresh token as HttpOnly cookie
+    res.cookie('refreshToken', result.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    });
+
+    const { refresh_token, ...responseData } = result;
+    res.json({ success: true, data: responseData });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const initGoogleAuth = async (req, res, next) => {
   try {
     if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
       return res.status(503).json({
@@ -130,6 +150,7 @@ const googleCallback = async (req, res, next) => {
       email: payload.email,
       full_name: payload.name,
       google_id: payload.sub,
+      picture: payload.picture
     });
 
     // Set refresh token as HttpOnly cookie
@@ -142,7 +163,7 @@ const googleCallback = async (req, res, next) => {
     });
 
     // Redirect to frontend callback page
-    // Access token is NOT sent in URL for security. 
+    // Access token is NOT sent in URL for security.
     // Frontend will use the refresh cookie to get a fresh access token.
     const frontendRedirectUrl = `${env.FRONTEND_URL}/auth/callback`;
     res.redirect(frontendRedirectUrl);
@@ -150,14 +171,18 @@ const googleCallback = async (req, res, next) => {
     next(err);
   }
 };
+
 module.exports = {
   signup,
   verifyOTP,
   login,
+  googleLogin,
+  initGoogleAuth,
+  googleCallback,
   refresh,
   logout,
   forgotPassword,
   resetPassword,
-  googleLogin,
-  googleCallback,
 };
+
+
