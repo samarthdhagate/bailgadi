@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Clock, ArrowRight, Search, Filter, Sparkles, Calendar as CalendarIcon } from 'lucide-react';
+import { MapPin, Clock, ArrowRight, Search, Filter, Sparkles, Calendar as CalendarIcon, Bell } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -18,6 +18,13 @@ const CustomerDashboard = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const navigate = useNavigate();
+
+  // Mock events for the mini calendar
+  const mockEvents = [
+    new Date(Date.now() + 86400000 * 2), // 2 days later
+    new Date(Date.now() + 86400000 * 5), // 5 days later
+    new Date(Date.now() + 86400000 * 8)  // 8 days later
+  ];
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -59,14 +66,18 @@ const CustomerDashboard = () => {
         {/* Left Column: Mini Calendar */}
         <div className="w-full xl:w-80 flex flex-col gap-6">
           <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Your Schedule</h2>
-          <MiniCalendar />
+          <MiniCalendar events={mockEvents} />
           
-          <div className="bg-primary/5 rounded-[30px] p-8 border border-primary/10 relative overflow-hidden group">
-            <Sparkles className="w-12 h-12 text-primary/10 absolute -right-2 -top-2 rotate-12 group-hover:scale-110 transition-transform" />
-            <h4 className="text-sm font-black text-primary uppercase tracking-widest mb-2">Pro Tip</h4>
-            <p className="text-xs font-bold text-gray-500 italic leading-relaxed">
-              Book your appointments early in the week to get the best slots with top providers.
-            </p>
+          <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 relative overflow-hidden group">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Bell className="w-4 h-4 animate-bounce" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-0.5">Next Appointment</h4>
+                <p className="text-xs font-bold text-gray-700 truncate italic">Hair Cut with Mike — Tomorrow, 10:00 AM</p>
+              </div>
+            </div>
           </div>
         </div>
 
