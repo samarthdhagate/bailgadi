@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useReducer, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, Trash2, Plus, ArrowRight, Save, Eye, Send, Upload, X } from 'lucide-react';
+import { Calendar, Trash2, Plus, ArrowRight, Save, Eye, Send, Upload, X, UserPlus, Users as UsersIcon, MapPin, Clock } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -25,6 +25,7 @@ const initialState = {
       { id: Date.now(), day: 'Monday', startTime: '09:00', endTime: '12:00' },
       { id: Date.now() + 1, day: 'Wednesday', startTime: '14:00', endTime: '17:00' }
     ],
+    selectedUsers: [1], // IDs of selected users
     manualConfirmation: false,
     capacityLimit: 50,
     paidBooking: false,
@@ -58,6 +59,14 @@ const AppointmentEditor = () => {
   const [state, dispatch] = useReducer(reducer, initialState);
   const [activeTab, setActiveTab] = useState('schedule');
   const [isPreviewOpen, setIsPreviewOpen] = useState(false);
+  const [isAddingUser, setIsAddingUser] = useState(false);
+  const [newUserName, setNewUserName] = useState('');
+
+  // Local state for users/staff
+  const [staff, setStaff] = useState([
+    { id: 1, name: 'User 1', initial: 'A1' },
+    { id: 2, name: 'User 2', initial: 'A2' }
+  ]);
 
   useEffect(() => {
     if (id && id !== 'new') {
@@ -104,7 +113,8 @@ const AppointmentEditor = () => {
         capacity: 1,
         price: state.formData.price,
         image: state.formData.image,
-        questions: state.formData.questions
+        questions: state.formData.questions,
+        assigned_users: state.formData.selectedUsers
       };
 
       if (state.isNew) {
@@ -154,6 +164,27 @@ const AppointmentEditor = () => {
       a.id === id ? { ...a, [field]: value } : a
     );
     updateField('availability', updated);
+  };
+
+  const toggleUserSelection = (userId) => {
+    const selected = state.formData.selectedUsers;
+    if (selected.includes(userId)) {
+      updateField('selectedUsers', selected.filter(id => id !== userId));
+    } else {
+      updateField('selectedUsers', [...selected, userId]);
+    }
+  };
+
+  const addNewUser = () => {
+    if (!newUserName) return;
+    const newUser = {
+      id: Date.now(),
+      name: newUserName,
+      initial: newUserName.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2)
+    };
+    setStaff([...staff, newUser]);
+    setNewUserName('');
+    setIsAddingUser(false);
   };
 
   return (
@@ -281,6 +312,54 @@ const AppointmentEditor = () => {
                   <label className="flex items-center gap-2 cursor-pointer font-bold text-sm text-gray-700">
                     <input type="radio" name="bookType" className="accent-primary" /> Resources
                   </label>
+                </div>
+              </div>
+
+              {/* User Selection with Add User Option */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-bold text-gray-400 uppercase">Users</span>
+                  <button 
+                    onClick={() => setIsAddingUser(true)}
+                    className="p-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all"
+                  >
+                    <UserPlus className="w-4 h-4" />
+                  </button>
+                </div>
+                
+                {isAddingUser && (
+                  <div className="flex gap-2 animate-in slide-in-from-top-2 duration-300">
+                    <input 
+                      type="text" 
+                      placeholder="User Name..."
+                      value={newUserName}
+                      onChange={(e) => setNewUserName(e.target.value)}
+                      className="flex-1 px-3 py-1 bg-white border border-primary/20 rounded-lg text-xs font-bold outline-none"
+                    />
+                    <button onClick={addNewUser} className="px-2 bg-primary text-white rounded-lg text-xs font-bold">Add</button>
+                    <button onClick={() => setIsAddingUser(false)} className="px-2 bg-gray-200 text-gray-500 rounded-lg text-xs font-bold">X</button>
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-3">
+                  {staff.map(u => (
+                    <button
+                      key={u.id}
+                      onClick={() => toggleUserSelection(u.id)}
+                      className={`px-3 py-1.5 border rounded-xl flex items-center gap-2 transition-all ${
+                        state.formData.selectedUsers.includes(u.id) 
+                        ? 'bg-primary/5 border-primary text-primary shadow-sm' 
+                        : 'bg-white border-gray-100 text-gray-400 opacity-60 grayscale'
+                      }`}
+                    >
+                      <div className={`w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black ${
+                        state.formData.selectedUsers.includes(u.id) ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
+                      }`}>
+                        {u.initial}
+                      </div>
+                      <span className="text-xs font-bold">{u.name}</span>
+                    </button>
+                  ))}
                 </div>
               </div>
 
@@ -578,7 +657,7 @@ const AppointmentEditor = () => {
                        </div>
                     </div>
                     <div className="bg-gray-50 rounded-3xl p-8 flex flex-col items-center justify-center text-center border border-gray-100">
-                       <Calendar className="w-16 h-16 text-primary/20 mb-6" />
+                       <UsersIcon className="w-16 h-16 text-primary/20 mb-6" />
                        <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">Select a date and time to see the full booking flow.</p>
                        <Button disabled className="mt-8">Book Appointment</Button>
                     </div>
