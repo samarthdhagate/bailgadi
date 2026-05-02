@@ -1,34 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Outlet, useNavigate } from 'react-router-dom';
-import { ChevronDown } from 'lucide-react';
-
-const screenshots = [
-  { 
-    title: "Share your booking page", 
-    image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=2000",
-    content: "Let clients pick a time that works for everyone in seconds."
-  },
-  { 
-    title: "Manage your meetings", 
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2000",
-    content: "Keep track of all your upcoming appointments in one place."
-  }
-];
 
 const AuthLayout = () => {
   const navigate = useNavigate();
-  const [activeSlide, setActiveSlide] = useState(0);
-
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActiveSlide((prev) => (prev + 1) % screenshots.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, []);
 
   return (
-    <div className="min-h-screen bg-white flex flex-col relative overflow-hidden font-['Inter',sans-serif]">
-      {/* Background Video with subtle tint */}
+    <div className="min-h-screen bg-slate-900 flex items-center justify-center p-4 relative overflow-hidden font-['Inter',sans-serif]">
+      {/* Shared Background Video */}
       <div className="absolute inset-0 z-0">
         <video
           autoPlay
@@ -39,100 +17,27 @@ const AuthLayout = () => {
         >
           <source src="/12676946_3840_2160_30fps.mp4" type="video/mp4" />
         </video>
-        <div className="absolute inset-0 bg-slate-900/30 backdrop-blur-[2px]"></div>
+        <div className="absolute inset-0 bg-slate-900/40 backdrop-blur-[2px]"></div>
       </div>
 
-      {/* Top Sidebar (Navigation) */}
-      <header className="relative z-20 h-20 px-6 lg:px-20 flex items-center justify-between bg-white/10 backdrop-blur-md border-b border-white/10">
-        <div className="flex items-center gap-12">
-          <div className="flex items-center gap-3 cursor-pointer" onClick={() => navigate('/')}>
-            <img src="/zilla_logo.png" alt="Zilla" className="w-10 h-10" />
-            <span className="text-2xl font-black text-white tracking-tighter">zilla</span>
-          </div>
-          
-          <nav className="hidden xl:flex items-center gap-8 text-sm font-bold text-white/80">
-            {['Product', 'Solutions', 'Resources', 'Pricing'].map(item => (
-              <button key={item} className="flex items-center gap-1 hover:text-white transition-colors">
-                {item} <ChevronDown className="w-4 h-4 opacity-50" />
-              </button>
-            ))}
-          </nav>
+      <div className="w-full max-w-md relative z-10">
+        {/* Simple Branding Header */}
+        <div 
+          className="flex flex-col items-center mb-8 cursor-pointer group" 
+          onClick={() => navigate('/')}
+        >
+          <img src="/zilla_logo.png" alt="Zilla" className="w-16 h-16 mb-2 group-hover:scale-110 transition-transform" />
+          <h1 className="text-4xl font-black text-white tracking-tighter drop-shadow-lg">zilla</h1>
         </div>
 
-        <div className="flex items-center gap-6">
-          <button onClick={() => navigate('/login')} className="text-sm font-bold text-white hover:text-primary transition-colors">Log In</button>
-          <button onClick={() => navigate('/signup')} className="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-primary/20 transition-all">
-            Get started
-          </button>
+        {/* Auth Form Card */}
+        <div className="bg-white/95 backdrop-blur-xl p-8 lg:p-10 rounded-[32px] shadow-2xl shadow-black/40 border border-white/20">
+          <Outlet />
         </div>
-      </header>
 
-      {/* Main Content Area */}
-      <div className="flex-1 container mx-auto px-6 lg:px-20 relative z-10 flex items-center">
-        <div className="grid lg:grid-cols-2 gap-16 lg:gap-32 items-center w-full py-20">
-          
-          {/* Left Column: Text & Auth Form */}
-          <div className="space-y-12">
-            <div className="space-y-8">
-              <h2 className="text-6xl lg:text-8xl font-black text-white leading-[0.9] tracking-tighter drop-shadow-2xl">
-                Easy <br/>
-                <span className="text-primary italic">scheduling</span> <br/>
-                ahead
-              </h2>
-              <p className="text-xl lg:text-2xl text-white/90 font-medium leading-relaxed max-w-xl drop-shadow-md">
-                Join 20 million professionals who easily book meetings with the #1 scheduling tool.
-              </p>
-            </div>
-
-            {/* Auth Form (Outlet) renders here like the Google sign-in area */}
-            <div className="w-full max-w-md animate-in fade-in slide-in-from-bottom-8 duration-700">
-              <div className="bg-white/95 backdrop-blur-xl p-8 lg:p-10 rounded-[32px] shadow-2xl shadow-black/30 border border-white/20">
-                <Outlet />
-              </div>
-            </div>
-          </div>
-
-          {/* Right Column: Rotating Screenshots Card */}
-          <div className="hidden lg:block relative">
-            <div className="relative z-10 bg-white rounded-[40px] shadow-2xl shadow-black/40 border border-gray-100 overflow-hidden aspect-[4/3] transform hover:scale-[1.02] transition-all duration-700">
-              {screenshots.map((slide, i) => (
-                <div 
-                  key={i}
-                  className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col ${
-                    activeSlide === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
-                  }`}
-                >
-                  <div className="p-8 border-b border-gray-100">
-                    <h3 className="text-2xl font-bold text-gray-800 tracking-tight">{slide.title}</h3>
-                  </div>
-                  <div className="flex-1 bg-gray-50 p-8 flex flex-col gap-6">
-                    <div className="flex-1 rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-white">
-                      <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
-                    </div>
-                    <p className="text-gray-500 font-medium text-lg leading-relaxed">{slide.content}</p>
-                  </div>
-                </div>
-              ))}
-
-              {/* Progress Bars */}
-              <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-2">
-                {screenshots.map((_, i) => (
-                  <div 
-                    key={i} 
-                    className={`h-1 rounded-full transition-all duration-500 ${
-                      activeSlide === i ? 'w-8 bg-primary' : 'w-2 bg-gray-200'
-                    }`}
-                  />
-                ))}
-              </div>
-            </div>
-
-            {/* Decorative Background Shapes */}
-            <div className="absolute -top-20 -right-20 w-80 h-80 bg-fuchsia-500/30 blur-[100px] rounded-full animate-pulse"></div>
-            <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-blue-500/30 blur-[100px] rounded-full animate-pulse"></div>
-          </div>
-
-        </div>
+        <p className="text-center mt-8 text-white/60 text-sm font-medium drop-shadow-md">
+          Return to <span className="text-white underline cursor-pointer" onClick={() => navigate('/')}>Home</span>
+        </p>
       </div>
     </div>
   );

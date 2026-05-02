@@ -5,6 +5,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 // Auth Pages
 import AuthLayout from './pages/auth/AuthLayout';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 
@@ -67,8 +68,8 @@ function App() {
         </Route>
 
         {/* Default Redirects */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   );
