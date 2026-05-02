@@ -239,17 +239,17 @@ const BookingWizard = () => {
                   className={`flex items-center gap-3 px-4 py-2 rounded-xl border-2 transition-all ${
                     bookingData.resourceId === r.id
                       ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
-                    bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    U{r.id}
-                  </div>
-                  <span className="font-semibold">{r.name}</span>
-                </button>
-              ))}
+                    : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
+                  bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {r.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <span className="font-bold">{r.name}</span>
+              </button>
+            ))}
             </div>
           </div>
         )}
@@ -324,7 +324,7 @@ const BookingWizard = () => {
         {/* Footer Actions */}
         <div className="flex justify-end pt-6">
           <Button 
-            disabled={!bookingData.resourceId || !bookingData.time || isLoading} 
+            disabled={!bookingData.time || (resources.length > 0 && !bookingData.resourceId) || isLoading}
             onClick={handleNext}
             className="px-12 py-5 text-lg rounded-2xl shadow-2xl shadow-primary/30"
           >

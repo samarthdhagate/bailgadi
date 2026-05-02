@@ -12,8 +12,10 @@ const requiredVars = [
 const optionalVars = {
   PORT: '5000',
   NODE_ENV: 'development',
-  UPSTASH_REDIS_URL: '',
-  UPSTASH_REDIS_TOKEN: '',
+  REDIS_URL: '',
+  REDIS_HOST: 'localhost',
+  REDIS_PORT: '6379',
+  REDIS_PASSWORD: '',
   RAZORPAY_KEY_ID: '',
   RAZORPAY_KEY_SECRET: '',
   RAZORPAY_WEBHOOK_SECRET: '',
