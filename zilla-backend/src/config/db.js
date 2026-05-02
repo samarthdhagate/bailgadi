@@ -1,0 +1,39 @@
+/**
+ * PostgreSQL connection pool using node-postgres (pg).
+ * Connects to Neon serverless PostgreSQL with SSL.
+ */
+
+const { Pool } = require('pg');
+const { env } = require('./env');
+
+const pool = new Pool({
+  connectionString: env.DATABASE_URL,
+  ssl: {
+    rejectUnauthorized: false, // Required for Neon serverless
+  },
+  max: 20,
+  idleTimeoutMillis: 30000,
+  connectionTimeoutMillis: 10000,
+});
+
+pool.on('error', (err) => {
+  console.error('Unexpected PostgreSQL pool error:', err);
+});
+
+pool.on('connect', () => {
+  if (env.NODE_ENV === 'development') {
+    console.log('📦 New PostgreSQL client connected');
+  }
+});
+
+/**
+ * Execute a parameterized SQL query.
+ * @param {string} text - SQL query with $1, $2 placeholders
+ * @param {Array} params - Parameter values
+ * @returns {Promise<import('pg').QueryResult>}
+ */
+const query = (text, params) => {
+  return pool.query(text, params);
+};
+
+module.exports = { pool, query };

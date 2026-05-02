@@ -4,6 +4,6 @@
   "workspaces": [
     "frontend",
     "services",
-    "backend"
+    "zilla-backend"
   ]
 }
