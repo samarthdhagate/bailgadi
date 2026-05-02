@@ -4,6 +4,7 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
 import ErrorMessage from '../../components/ErrorMessage';
+import { authService } from '@services/auth';
 
 const LoginPage = () => {
   const [email, setEmail] = useState('');
@@ -18,24 +19,15 @@ const LoginPage = () => {
     setError('');
 
     try {
-      // Mock API call
-      // In a real app: const response = await authService.login({ email, password });
+      const response = await authService.login({ email, password });
       
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1000));
-
-      // Mock roles based on email for testing
-      let role = 'customer';
-      if (email.includes('organiser')) role = 'organiser';
-      if (email.includes('admin')) role = 'admin';
-
       login({
-        token: 'mock-jwt-token',
-        role,
-        user: { email, name: email.split('@')[0] }
+        token: response.data.token,
+        role: response.data.user.role,
+        user: response.data.user
       });
     } catch (err) {
-      setError('Invalid email or password');
+      setError(err.response?.data?.error?.message || 'Invalid email or password');
     } finally {
       setIsLoading(false);
     }
