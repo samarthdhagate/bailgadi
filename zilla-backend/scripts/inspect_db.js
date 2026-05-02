@@ -9,4 +9,4 @@ async function inspectTable(name) {
   await client.end();
 }
 
-inspectTable('availability');
+inspectTable('bookings');

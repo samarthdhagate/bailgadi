@@ -9,6 +9,9 @@ const { env } = require('./env');
 let redis = null;
 let redisAvailable = false;
 
+// Enabled only when the user actually configured Redis (don’t treat env defaults as “enabled”).
+const redisEnabled = Boolean(process.env.REDIS_URL || process.env.REDIS_HOST || process.env.REDIS_PORT);
+
 const redisConfig = env.REDIS_URL || {
   host: env.REDIS_HOST,
   port: parseInt(env.REDIS_PORT, 10),
@@ -37,10 +40,16 @@ try {
 }
 
 /**
+ * Whether Redis is currently usable for reads/writes.
+ * Exported as a function so callers don’t get a stale snapshot.
+ */
+const isRedisAvailable = () => redisAvailable && Boolean(redis);
+
+/**
  * GET a key from Redis.
  */
 const redisGet = async (key) => {
-  if (!redisAvailable) return null;
+  if (!isRedisAvailable()) return null;
   try {
     return await redis.get(key);
   } catch (err) {
@@ -49,15 +58,30 @@ const redisGet = async (key) => {
 };
 
 /**
+ * MGET multiple keys from Redis.
+ * Returns an array aligned to the input keys.
+ */
+const redisMGet = async (keys) => {
+  if (!isRedisAvailable()) return keys.map(() => null);
+  if (!Array.isArray(keys) || keys.length === 0) return [];
+
+  try {
+    return await redis.mget(keys);
+  } catch (_err) {
+    return keys.map(() => null);
+  }
+};
+
+/**
  * SET a key with NX and EX.
  */
 const redisSetNX = async (key, value, ttlSeconds) => {
-  if (!redisAvailable) return 'OK';
+  if (!isRedisAvailable()) return null;
   try {
     const result = await redis.set(key, value, 'EX', ttlSeconds, 'NX');
     return result;
   } catch (err) {
-    return 'OK';
+    return null;
   }
 };
 
@@ -65,7 +89,7 @@ const redisSetNX = async (key, value, ttlSeconds) => {
  * DEL a key from Redis.
  */
 const redisDel = async (key) => {
-  if (!redisAvailable) return;
+  if (!isRedisAvailable()) return;
   try {
     await redis.del(key);
   } catch (err) {}
@@ -75,7 +99,7 @@ const redisDel = async (key) => {
  * Check if a key exists.
  */
 const redisExists = async (key) => {
-  if (!redisAvailable) return false;
+  if (!isRedisAvailable()) return false;
   try {
     const result = await redis.exists(key);
     return result === 1;
@@ -86,8 +110,10 @@ const redisExists = async (key) => {
 
 module.exports = {
   redis,
-  redisAvailable,
+  redisEnabled,
+  isRedisAvailable,
   redisGet,
+  redisMGet,
   redisSetNX,
   redisDel,
   redisExists,

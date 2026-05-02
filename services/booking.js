@@ -1,7 +1,7 @@
 import axiosInstance from './api/axiosInstance';
 
 // Toggle this to true to force mock mode if your backend is not ready
-const FORCE_MOCK = true;
+const FORCE_MOCK = false;
 
 export const bookingService = {
   getServices: async () => {

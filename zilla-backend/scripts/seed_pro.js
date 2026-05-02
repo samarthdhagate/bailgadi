@@ -84,9 +84,9 @@ async function seed() {
 
       for (const s of p.services) {
         await client.query(`
-          INSERT INTO services (provider_id, name, duration_min, capacity, is_published)
-          VALUES ($1, $2, $3, $4, $5)
-        `, [providerId, s.name, s.duration, s.capacity, true]);
+          INSERT INTO services (provider_id, name, duration_min, capacity, is_published, price, advance_payment)
+          VALUES ($1, $2, $3, $4, $5, $6, $7)
+        `, [providerId, s.name, s.duration, s.capacity, true, s.price || 0, (s.price > 0)]);
       }
 
       for (const h of p.hours) {
