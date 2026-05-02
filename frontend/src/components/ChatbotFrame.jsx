@@ -17,8 +17,8 @@ const ChatbotFrame = () => {
         <Sparkles className="w-5 h-5 ml-auto text-white/50" />
       </div>
 
-      {/* Messages Area */}
-      <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-gray-50/30">
+      {/* Messages Area - Non-scrollable as requested */}
+      <div className="flex-1 p-6 overflow-hidden space-y-6 bg-gray-50/30">
         <div className="flex items-start gap-3">
           <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
             <Bot className="w-4 h-4" />
@@ -30,7 +30,7 @@ const ChatbotFrame = () => {
 
         <div className="flex items-start gap-3 flex-row-reverse">
           <div className="w-8 h-8 rounded-xl bg-gray-200 flex items-center justify-center text-gray-500">
-            <User className="w-4 h-4" />
+            <UserIcon className="w-4 h-4" />
           </div>
           <div className="max-w-[80%] p-4 bg-primary text-white rounded-2xl rounded-tr-none shadow-lg shadow-primary/20 text-sm font-medium">
             Show me my schedule for tomorrow.
@@ -68,7 +68,7 @@ const ChatbotFrame = () => {
 };
 
 // Mock User icon for Chatbot
-const User = ({ className }) => (
+const UserIcon = ({ className }) => (
   <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
   </svg>
