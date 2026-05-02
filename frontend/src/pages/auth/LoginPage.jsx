@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
 import { useAuth } from '../../context/AuthContext';
@@ -11,7 +11,28 @@ const LoginPage = () => {
   const [password, setPassword] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const { login } = useAuth();
+  const { login, token, role } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (token && token !== 'bypass-token') {
+      if (role === 'customer') navigate('/dashboard');
+      else if (role === 'organiser') navigate('/organiser');
+      else if (role === 'admin') navigate('/admin');
+    }
+  }, [token, role, navigate]);
+
+  const handleDemoAccess = (roleType) => {
+    login({
+      access_token: 'bypass-token',
+      user: {
+        id: 'bypass-id',
+        full_name: `Demo ${roleType.charAt(0).toUpperCase() + roleType.slice(1)}`,
+        email: `${roleType}@zilla.com`,
+        role: roleType
+      }
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,6 +104,12 @@ const LoginPage = () => {
         </svg>
         Sign in with Google
       </button>
+
+      <div className="grid grid-cols-3 gap-2 mt-2">
+        <button type="button" onClick={() => handleDemoAccess('customer')} className="py-2 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all">Customer</button>
+        <button type="button" onClick={() => handleDemoAccess('organiser')} className="py-2 bg-purple-50 text-purple-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-purple-100 hover:bg-purple-100 transition-all">Organiser</button>
+        <button type="button" onClick={() => handleDemoAccess('admin')} className="py-2 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-100 hover:bg-red-100 transition-all">Admin</button>
+      </div>
       <p className="text-center text-sm text-gray-600 mt-4">
         Don't have an account?{' '}
         <Link to="/signup" className="text-primary font-medium hover:underline">
