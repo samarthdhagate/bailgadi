@@ -20,7 +20,7 @@ export const authService = {
   
   register: async (userData) => {
     if (FORCE_MOCK) {
-      return { success: true, message: "Mock registration successful" };
+      return { success: true, data: { message: "Mock registration successful" } };
     }
     const response = await axiosInstance.post('/auth/register', userData);
     return response.data;
@@ -52,6 +52,7 @@ async function mockLogin(credentials) {
   if (email.includes('admin')) role = 'admin';
 
   return {
+    success: true,
     data: {
       token: 'mock-jwt-token-' + Math.random(),
       user: {
