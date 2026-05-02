@@ -5,14 +5,14 @@ const AuthLayout = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4 relative overflow-hidden">
       {/* Background Video */}
-      <video 
-        autoPlay 
-        loop 
-        muted 
+      <video
+        autoPlay
+        loop
+        muted
         playsInline
         className="absolute top-0 left-0 w-full h-full object-cover z-0 opacity-20"
       >
-        <source src="https://assets.mixkit.co/videos/preview/mixkit-abstract-waves-of-light-3142-large.mp4" type="video/mp4" />
+        <source src="/12676946_3840_2160_30fps.mp4" type="video/mp4" />
       </video>
 
       <div className="w-full max-w-md relative z-10">
