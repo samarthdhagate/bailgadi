@@ -75,18 +75,14 @@ const DashboardLayout = ({ children, title }) => {
           </div>
           
           <div className="flex gap-2">
-            <button 
-              onClick={() => navigate('/organiser/reporting')}
-              className="px-4 py-1.5 text-sm font-bold text-gray-600 border border-gray-100 rounded-lg hover:border-primary hover:text-primary transition-all"
-            >
-              Reporting
-            </button>
-            <button 
-              onClick={() => navigate('/settings')}
-              className="px-4 py-1.5 text-sm font-bold text-gray-600 border border-gray-100 rounded-lg hover:border-primary hover:text-primary transition-all"
-            >
-              Settings
-            </button>
+            {role === 'organiser' && (
+              <button 
+                onClick={() => navigate('/organiser/reporting')}
+                className="px-4 py-1.5 text-sm font-bold text-gray-600 border border-gray-100 rounded-lg hover:border-primary hover:text-primary transition-all"
+              >
+                Reporting
+              </button>
+            )}
           </div>
         </header>
         
