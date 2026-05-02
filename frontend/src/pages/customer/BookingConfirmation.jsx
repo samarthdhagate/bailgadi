@@ -80,7 +80,9 @@ const BookingConfirmation = () => {
               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Date & Time</p>
               <div className="flex items-center gap-3">
                 <Clock className="w-5 h-5 text-primary" />
-                <p className="text-lg font-bold text-gray-800">{booking.date} at {booking.time}</p>
+                <p className="text-lg font-bold text-gray-800">
+                  {format(new Date(booking.date), 'MMMM do, yyyy')} at {format(new Date(booking.time), 'hh:mm a')}
+                </p>
               </div>
             </div>
             

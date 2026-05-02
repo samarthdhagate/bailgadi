@@ -15,14 +15,9 @@ const listPublished = async (req, res, next) => {
     const result = await query(
       `SELECT f.id, f.name, f.duration_mins AS duration_min, f.max_capacity AS capacity,
               f.advance_payment, f.manual_confirm AS manual_confirmation,
-<<<<<<< HEAD
               f.base_price AS price, f.status, f.created_at,
-              f.organiser_id, u.full_name AS provider_name
-=======
-              f.base_price, f.status, f.created_at,
               f.organiser_id, u.full_name AS provider_name,
               f.type, f.description
->>>>>>> ee9c71e2d56dba14f2302bcd2e2e58cd8b6b8b93
        FROM facilities f
        JOIN users u ON f.organiser_id = u.id
        WHERE f.status = 'published' AND f.deleted_at IS NULL

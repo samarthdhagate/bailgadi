@@ -1,15 +1,15 @@
 require('dotenv').config();
-const { query } = require('../src/config/db');
+const { pool } = require('../src/config/db');
 
-async function check() {
+async function checkUsers() {
   try {
-    const res = await query('SELECT id, name FROM facilities LIMIT 5');
-    console.log('Facilities:', res.rows);
+    const result = await pool.query('SELECT id, email, full_name, role, is_verified, google_id FROM users ORDER BY created_at DESC LIMIT 5');
+    console.log('Last 5 users:', result.rows);
+    process.exit(0);
   } catch (err) {
-    console.error('Error:', err.message);
-  } finally {
-    process.exit();
+    console.error('Error checking users:', err);
+    process.exit(1);
   }
 }
 
-check();
+checkUsers();

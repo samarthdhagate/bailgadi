@@ -121,6 +121,8 @@ const BookingWizard = () => {
     }
   };
 
+  const [isProcessing, setIsProcessing] = useState(false);
+
   const submitBooking = async () => {
     setIsLoading(true);
     setError('');
@@ -142,8 +144,9 @@ const BookingWizard = () => {
       }
 
       // 1. Lock the slot
-      const lockRes = await bookingService.lockSlot(serviceId, bookingData.time);
-      const { reservation_id, payment_order } = lockRes.data;
+      const lockRes = await bookingService.lockSlot(serviceId, bookingData.time, bookingData.capacity);
+
+      const { payment_order, reservation_id } = lockRes.data;
 
       // 2. Handle Payment if required
       if (payment_order) {
@@ -163,6 +166,7 @@ const BookingWizard = () => {
           order_id: payment_order.id,
           handler: async (response) => {
             try {
+              setIsProcessing(true);
               setIsLoading(true);
               // 3. Verify Payment and Confirm Booking
               const verifyRes = await bookingService.verifyPayment({
@@ -185,6 +189,7 @@ const BookingWizard = () => {
                 });
               }
             } catch (err) {
+              setIsProcessing(false);
               setError(err.response?.data?.error?.message || 'Payment verification failed');
             } finally {
               setIsLoading(false);
@@ -624,6 +629,21 @@ const BookingWizard = () => {
       <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px]"></div>
 
       <div className="max-w-6xl mx-auto relative z-10">
+        {/* Processing Overlay */}
+        {isProcessing && (
+          <div className="fixed inset-0 z-[100] bg-white/80 backdrop-blur-2xl flex flex-col items-center justify-center animate-in fade-in duration-500">
+             <div className="w-32 h-32 relative mb-8">
+                <div className="absolute inset-0 rounded-full border-8 border-primary/10"></div>
+                <div className="absolute inset-0 rounded-full border-8 border-primary border-t-transparent animate-spin"></div>
+                <div className="absolute inset-0 flex items-center justify-center">
+                   <ShieldCheck className="w-12 h-12 text-primary" />
+                </div>
+             </div>
+             <h2 className="text-3xl font-black text-gray-800 tracking-tighter mb-2">Verifying Payment</h2>
+             <p className="text-gray-500 font-medium">Securing your premium slot at ZILLA...</p>
+          </div>
+        )}
+
         {/* Floating Glass Header */}
         <header className="flex items-center justify-between mb-16 px-8 py-6 bg-white/50 backdrop-blur-2xl border border-white/20 rounded-[32px] shadow-2xl shadow-black/5">
           <button 

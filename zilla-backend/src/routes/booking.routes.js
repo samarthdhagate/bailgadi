@@ -18,7 +18,7 @@ router.post(
   requireRole('customer'),
   bookingLockLimiter,
   [
-    body('service_id').isUUID().withMessage('Valid service_id is required.'),
+    body('service_id').notEmpty().withMessage('Valid service_id is required.'),
     body('start_time').isISO8601().withMessage('start_time must be a valid ISO 8601 date.'),
     body('attendee_count').optional().isInt({ min: 1 }).withMessage('attendee_count must be at least 1.'),
     validateRequest,
@@ -32,7 +32,7 @@ router.post(
   verifyToken,
   requireRole('customer'),
   [
-    body('service_id').isUUID().withMessage('Valid service_id is required.'),
+    body('service_id').notEmpty().withMessage('Valid service_id is required.'),
     body('start_time').isISO8601().withMessage('start_time must be a valid ISO 8601 date.'),
     body('notes').optional().isString().isLength({ max: 500 }),
     validateRequest,

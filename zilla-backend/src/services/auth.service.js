@@ -45,8 +45,9 @@ const generateRefreshToken = (user_id, role) => {
  * Signup — create user, generate OTP, send email.
  */
 const signup = async ({ full_name, email, password, role = 'customer' }) => {
+  const cleanEmail = email.toLowerCase().trim();
   // Check if user exists
-  const existing = await query('SELECT id FROM users WHERE email = $1', [email]);
+  const existing = await query('SELECT id FROM users WHERE email = $1', [cleanEmail]);
   if (existing.rows.length > 0) {
     throw new AppError('An account with this email already exists.', 409, 'EMAIL_EXISTS');
   }
@@ -60,15 +61,10 @@ const signup = async ({ full_name, email, password, role = 'customer' }) => {
 
   // Insert user as verified by default
   const result = await query(
-<<<<<<< HEAD
     `INSERT INTO users (full_name, email, password_hash, role, is_verified)
      VALUES ($1, $2, $3, $4, TRUE)
-=======
-    `INSERT INTO users (full_name, email, password_hash, role, otp_token, otp_expires_at, is_verified)
-     VALUES ($1, $2, $3, $4, $5, $6, FALSE)
->>>>>>> ee9c71e2d56dba14f2302bcd2e2e58cd8b6b8b93
      RETURNING id, full_name, email, role`,
-    [full_name, email, password_hash, role]
+    [full_name, cleanEmail, password_hash, role]
   );
 
   const user = result.rows[0];
@@ -120,9 +116,10 @@ const verifyOTP = async ({ email, otp }) => {
  * Login — verify credentials, issue tokens, set refresh cookie.
  */
 const login = async ({ email, password }) => {
+  const cleanEmail = email.toLowerCase().trim();
   const result = await query(
     'SELECT id, full_name, email, password_hash, role, is_verified FROM users WHERE email = $1',
-    [email]
+    [cleanEmail]
   );
 
   if (result.rows.length === 0) {
