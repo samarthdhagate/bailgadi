@@ -5,6 +5,7 @@ import ProtectedRoute from './routes/ProtectedRoute';
 
 // Auth Pages
 import AuthLayout from './pages/auth/AuthLayout';
+import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
 
@@ -21,6 +22,11 @@ import AppointmentEditor from './pages/organiser/AppointmentEditor';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
+import SettingsPage from './pages/SettingsPage';
+import Meetings from './pages/organiser/Meetings';
+import Reporting from './pages/organiser/Reporting';
+import ResourceEditor from './pages/organiser/ResourceEditor';
+import UserEditor from './pages/organiser/UserEditor';
 
 function App() {
   return (
@@ -44,6 +50,10 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['organiser']} />}>
           <Route path="/organiser" element={<AppointmentList />} />
           <Route path="/organiser/editor/:id" element={<AppointmentEditor />} />
+          <Route path="/organiser/meetings" element={<Meetings />} />
+          <Route path="/organiser/reporting" element={<Reporting />} />
+          <Route path="/organiser/resource/:id" element={<ResourceEditor />} />
+          <Route path="/organiser/user/:id" element={<UserEditor />} />
         </Route>
 
         {/* Protected Admin Routes */}
@@ -52,9 +62,14 @@ function App() {
           <Route path="/admin/users" element={<UserManagement />} />
         </Route>
 
+        {/* Shared Protected Routes */}
+        <Route element={<ProtectedRoute allowedRoles={['customer', 'organiser', 'admin']} />}>
+          <Route path="/settings" element={<SettingsPage />} />
+        </Route>
+
         {/* Default Redirects */}
-        <Route path="/" element={<Navigate to="/login" replace />} />
-        <Route path="*" element={<Navigate to="/login" replace />} />
+        <Route path="/" element={<LandingPage />} />
+        <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </AuthProvider>
   );

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Search, Filter, Mail, Shield, UserX, UserCheck } from 'lucide-react';
+import { Search, Filter, Mail, Shield, UserX, UserCheck, MoreHorizontal } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';

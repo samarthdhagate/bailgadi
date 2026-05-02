@@ -99,7 +99,10 @@ const MyBookings = () => {
                       {booking.status}
                     </div>
                     <div className="flex gap-2">
-                      <button className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors">
+                      <button 
+                        onClick={() => navigate(`/booking/${booking.serviceId || 1}`, { state: { reschedulingBooking: booking } })}
+                        className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+                      >
                         Reschedule
                       </button>
                       <button className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors">

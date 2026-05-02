@@ -13,7 +13,11 @@ export const bookingService = {
           description: 'Get a fresh new look with our professional stylists.',
           image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400',
           price: 50,
-          duration: 45
+          duration: 45,
+          questions: [
+            { id: 101, label: 'Hair type', type: 'text', required: true },
+            { id: 102, label: 'Preferred Style', type: 'textarea', required: false }
+          ]
         },
         {
           id: 2,

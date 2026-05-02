@@ -14,7 +14,6 @@ const DashboardLayout = ({ children, title }) => {
     ],
     organiser: [
       { label: 'Appointments', icon: Calendar, path: '/organiser' },
-      { label: 'Settings', icon: Settings, path: '/organiser/settings' },
     ],
     admin: [
       { label: 'Dashboard', icon: Calendar, path: '/admin' },
@@ -26,8 +25,9 @@ const DashboardLayout = ({ children, title }) => {
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-primary">Appointify</h2>
+        <div className="p-6 flex items-center gap-3">
+          <img src="/zilla_logo.png" alt="Zilla" className="w-10 h-10" />
+          <h2 className="text-2xl font-bold text-primary tracking-tighter">zilla</h2>
         </div>
         
         <nav className="flex-1 px-4 py-4 flex flex-col gap-1">
@@ -44,15 +44,19 @@ const DashboardLayout = ({ children, title }) => {
         </nav>
 
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3 px-4 py-3 mb-2">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+          <button
+            onClick={() => navigate('/settings')}
+            className="w-full flex items-center gap-3 px-4 py-3 mb-2 hover:bg-gray-50 rounded-xl transition-all text-left group"
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-white transition-all">
               {user?.name?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{user?.name || 'User'}</p>
+              <p className="text-sm font-bold text-gray-900 truncate">{user?.name || 'User'}</p>
               <p className="text-xs text-gray-500 truncate capitalize">{role}</p>
             </div>
-          </div>
+            <Settings className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+          </button>
           <button
             onClick={logout}
             className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
@@ -66,7 +70,24 @@ const DashboardLayout = ({ children, title }) => {
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
         <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-8">
-          <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
+          <div className="flex items-center gap-4">
+            <h1 className="text-xl font-semibold text-gray-800">{title}</h1>
+          </div>
+          
+          <div className="flex gap-2">
+            <button 
+              onClick={() => navigate('/organiser/reporting')}
+              className="px-4 py-1.5 text-sm font-bold text-gray-600 border border-gray-100 rounded-lg hover:border-primary hover:text-primary transition-all"
+            >
+              Reporting
+            </button>
+            <button 
+              onClick={() => navigate('/settings')}
+              className="px-4 py-1.5 text-sm font-bold text-gray-600 border border-gray-100 rounded-lg hover:border-primary hover:text-primary transition-all"
+            >
+              Settings
+            </button>
+          </div>
         </header>
         
         <div className="flex-1 overflow-y-auto p-8">
