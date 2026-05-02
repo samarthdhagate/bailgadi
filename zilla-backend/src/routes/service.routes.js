@@ -16,6 +16,18 @@ router.get('/', serviceController.listPublished);
 // GET /api/services/my — organiser's own services
 router.get('/my', verifyToken, requireRole('organiser'), serviceController.listMine);
 
+// GET /api/services/:id — organiser-owned service detail
+router.get(
+  '/:id',
+  verifyToken,
+  requireRole('organiser'),
+  [
+    param('id').isUUID().withMessage('Invalid service ID.'),
+    validateRequest,
+  ],
+  serviceController.getById
+);
+
 // POST /api/services — create a service
 router.post(
   '/',

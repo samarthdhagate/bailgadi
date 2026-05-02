@@ -22,6 +22,10 @@ if (env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET) {
  * Create a Razorpay order for a booking.
  */
 const createOrder = async (user_id, booking_id, amount) => {
+  if (!Number.isInteger(amount) || amount <= 0) {
+    throw new AppError('Amount must be a positive integer in INR.', 400, 'INVALID_AMOUNT');
+  }
+
   if (!razorpay) {
     throw new AppError('Payment gateway is not configured.', 503, 'PAYMENT_NOT_CONFIGURED');
   }
@@ -65,7 +69,7 @@ const createOrder = async (user_id, booking_id, amount) => {
     // Return existing order
     return {
       order_id: existingPayment.rows[0].razorpay_order_id,
-      amount,
+      amount: existingPayment.rows[0].amount,
       currency: 'INR',
       key_id: env.RAZORPAY_KEY_ID,
     };
@@ -108,7 +112,12 @@ const verifyPayment = async (razorpay_order_id, razorpay_payment_id, razorpay_si
     .update(body)
     .digest('hex');
 
-  if (expectedSignature !== razorpay_signature) {
+  const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+  const receivedBuffer = Buffer.from(razorpay_signature, 'hex');
+  if (
+    expectedBuffer.length !== receivedBuffer.length ||
+    !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+  ) {
     throw new AppError('Invalid payment signature.', 400, 'INVALID_SIGNATURE');
   }
 
@@ -146,7 +155,12 @@ const handleWebhook = async (rawBody, signature) => {
     .update(rawBody)
     .digest('hex');
 
-  if (expectedSignature !== signature) {
+  const expectedBuffer = Buffer.from(expectedSignature, 'hex');
+  const receivedBuffer = Buffer.from(signature, 'hex');
+  if (
+    expectedBuffer.length !== receivedBuffer.length ||
+    !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)
+  ) {
     throw new AppError('Invalid webhook signature.', 400, 'INVALID_WEBHOOK_SIGNATURE');
   }
 

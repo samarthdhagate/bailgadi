@@ -41,7 +41,7 @@ const SignupPage = () => {
       });
 
       if (response.success) {
-        setSuccess(response.data.message || 'Account created! Check your email for the OTP.');
+        setSuccess(response.data.message || 'Account created successfully. You can log in now.');
         setTimeout(() => navigate('/login'), 3000);
       } else {
         setError(response.error?.message || 'Signup failed. Please try again.');
@@ -88,8 +88,6 @@ const SignupPage = () => {
               Organiser
             </button>
           </div>
-
-          <ErrorMessage message={error} />
 
           <div className="space-y-4">
             {role === 'organiser' && (

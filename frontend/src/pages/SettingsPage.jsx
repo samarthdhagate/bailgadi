@@ -13,7 +13,7 @@ const SettingsPage = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const [profileData, setProfileData] = useState({
-    name: user?.name || '',
+    name: user?.full_name || user?.name || '',
     email: user?.email || '',
     phone: '+1 234 567 890' // Mock data
   });

@@ -25,6 +25,14 @@ axiosInstance.interceptors.request.use(
 // Response interceptor: handle 401 with token refresh
 let isRefreshing = false;
 let failedQueue = [];
+const AUTH_ROUTES_TO_SKIP_REFRESH = [
+  '/auth/login',
+  '/auth/signup',
+  '/auth/refresh',
+  '/auth/verify-otp',
+  '/auth/forgot-password',
+  '/auth/reset-password',
+];
 
 const processQueue = (error, token = null) => {
   failedQueue.forEach((prom) => {
@@ -41,9 +49,11 @@ axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
     const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
+    const skipRefresh = AUTH_ROUTES_TO_SKIP_REFRESH.some((route) => requestUrl.includes(route));
 
     // If 401 and not already retrying, attempt token refresh
-    if (error.response?.status === 401 && !originalRequest._retry) {
+    if (error.response?.status === 401 && !originalRequest?._retry && !skipRefresh) {
       if (isRefreshing) {
         // Queue this request until refresh completes
         return new Promise((resolve, reject) => {
@@ -78,6 +88,7 @@ axiosInstance.interceptors.response.use(
         // Refresh failed — clear auth state and redirect to login
         localStorage.removeItem('token');
         localStorage.removeItem('role');
+        localStorage.removeItem('user');
         window.location.href = '/login';
         return Promise.reject(refreshError);
       } finally {

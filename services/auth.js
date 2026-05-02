@@ -1,23 +1,55 @@
 import axiosInstance from './api/axiosInstance';
 
 export const authService = {
-  login: async (credentials) => {
-    const response = await axiosInstance.post('/auth/login', credentials);
+  signup: async ({ full_name, email, password, role = 'customer' }) => {
+    const response = await axiosInstance.post('/auth/signup', {
+      full_name,
+      email,
+      password,
+      role,
+    });
     return response.data;
   },
 
-  signup: async (userData) => {
-    const response = await axiosInstance.post('/auth/signup', userData);
+  verifyOtp: async ({ email, otp }) => {
+    const response = await axiosInstance.post('/auth/verify-otp', {
+      email,
+      otp,
+    });
     return response.data;
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
+  login: async ({ email, password }) => {
+    const response = await axiosInstance.post('/auth/login', {
+      email,
+      password,
+    });
+    return response.data;
   },
 
-  getProfile: async () => {
-    const response = await axiosInstance.get('/auth/profile');
+  refresh: async () => {
+    const response = await axiosInstance.post('/auth/refresh');
     return response.data;
-  }
+  },
+
+  logout: async () => {
+    const response = await axiosInstance.post('/auth/logout');
+    return response.data;
+  },
+
+  forgotPassword: async ({ email }) => {
+    const response = await axiosInstance.post('/auth/forgot-password', {
+      email,
+    });
+    return response.data;
+  },
+
+  resetPassword: async ({ email, otp, new_password }) => {
+    const response = await axiosInstance.post('/auth/reset-password', {
+      email,
+      otp,
+      new_password,
+    });
+    return response.data;
+  },
 };
