@@ -1,11 +1,48 @@
-import React from 'react';
-import { Send, Bot, MessageSquare, Sparkles } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { Send, Bot, Sparkles, User as UserIcon, Loader2 } from 'lucide-react';
 
 const ChatbotFrame = () => {
+  const [messages, setMessages] = useState([
+    { role: 'bot', content: "Hi! I'm Zilla AI. How can I help you manage your appointments today?" }
+  ]);
+  const [input, setInput] = useState('');
+  const [isTyping, setIsTyping] = useState(false);
+  const messagesEndRef = useRef(null);
+
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
+
+  const handleSend = async () => {
+    if (!input.trim()) return;
+
+    const userMessage = { role: 'user', content: input };
+    setMessages(prev => [...prev, userMessage]);
+    setInput('');
+    setIsTyping(true);
+
+    // TODO: Connect to backend API
+    // Example: const response = await api.post('/chat', { message: input });
+    
+    // Simulating Bot Response
+    setTimeout(() => {
+      const botResponse = { 
+        role: 'bot', 
+        content: "I've received your message. My backend logic is being connected, but I'm ready to help you manage your schedule!" 
+      };
+      setMessages(prev => [...prev, botResponse]);
+      setIsTyping(false);
+    }, 1500);
+  };
+
   return (
     <div className="bg-white rounded-[30px] border border-gray-100 flex flex-col h-full overflow-hidden shadow-2xl shadow-black/5">
       {/* Header */}
-      <div className="p-6 border-b border-gray-50 flex items-center gap-4 bg-gradient-to-r from-primary to-primary/80 text-white">
+      <div className="p-6 border-b border-gray-50 flex items-center gap-4 bg-gradient-to-r from-primary to-primary/80 text-white flex-shrink-0">
         <div className="w-12 h-12 rounded-2xl bg-white/20 backdrop-blur-md flex items-center justify-center border border-white/30 relative">
           <Bot className="w-6 h-6" />
           <div className="absolute -top-1 -right-1 w-3 h-3 bg-green-400 rounded-full border-2 border-primary" />
@@ -17,45 +54,57 @@ const ChatbotFrame = () => {
         <Sparkles className="w-5 h-5 ml-auto text-white/50" />
       </div>
 
-      {/* Messages Area - Non-scrollable as requested */}
-      <div className="flex-1 p-6 overflow-hidden space-y-6 bg-gray-50/30">
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
-            <Bot className="w-4 h-4" />
+      {/* Messages Area - Now truly functional with scrolling support for new messages */}
+      <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-gray-50/30 scrollbar-hide">
+        {messages.map((msg, idx) => (
+          <div key={idx} className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>
+            <div className={`w-8 h-8 rounded-xl flex items-center justify-center ${
+              msg.role === 'bot' 
+              ? 'bg-primary/10 text-primary border border-primary/10' 
+              : 'bg-gray-200 text-gray-500'
+            }`}>
+              {msg.role === 'bot' ? <Bot className="w-4 h-4" /> : <UserIcon className="w-4 h-4" />}
+            </div>
+            <div className={`max-w-[80%] p-4 rounded-2xl shadow-sm border text-sm font-medium ${
+              msg.role === 'bot' 
+              ? 'bg-white rounded-tl-none border-gray-100 text-gray-700 italic' 
+              : 'bg-primary text-white rounded-tr-none border-primary shadow-lg shadow-primary/20'
+            }`}>
+              {msg.content}
+            </div>
           </div>
-          <div className="max-w-[80%] p-4 bg-white rounded-2xl rounded-tl-none shadow-sm border border-gray-100 text-sm font-medium text-gray-700 italic">
-            Hi! I'm Zilla AI. How can I help you manage your appointments today?
+        ))}
+        
+        {isTyping && (
+          <div className="flex items-start gap-3 animate-pulse">
+            <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
+              <Bot className="w-4 h-4" />
+            </div>
+            <div className="p-4 bg-white rounded-2xl rounded-tl-none border border-gray-100 flex gap-1">
+              <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce" />
+              <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:0.2s]" />
+              <div className="w-1.5 h-1.5 bg-primary/40 rounded-full animate-bounce [animation-delay:0.4s]" />
+            </div>
           </div>
-        </div>
-
-        <div className="flex items-start gap-3 flex-row-reverse">
-          <div className="w-8 h-8 rounded-xl bg-gray-200 flex items-center justify-center text-gray-500">
-            <UserIcon className="w-4 h-4" />
-          </div>
-          <div className="max-w-[80%] p-4 bg-primary text-white rounded-2xl rounded-tr-none shadow-lg shadow-primary/20 text-sm font-medium">
-            Show me my schedule for tomorrow.
-          </div>
-        </div>
-
-        <div className="flex items-start gap-3">
-          <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary border border-primary/10">
-            <Bot className="w-4 h-4" />
-          </div>
-          <div className="max-w-[80%] p-4 bg-white rounded-2xl rounded-tl-none shadow-sm border border-gray-100 text-sm font-medium text-gray-700 italic">
-            You have 3 appointments scheduled for tomorrow starting at 9:00 AM.
-          </div>
-        </div>
+        )}
+        <div ref={messagesEndRef} />
       </div>
 
       {/* Input Area */}
-      <div className="p-6 border-t border-gray-50 bg-white">
+      <div className="p-6 border-t border-gray-50 bg-white flex-shrink-0">
         <div className="relative group">
           <input 
             type="text" 
             placeholder="Type your message..."
-            className="w-full pl-6 pr-14 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all transition-duration-300"
+            value={input}
+            onChange={(e) => setInput(e.target.value)}
+            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            className="w-full pl-6 pr-14 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all"
           />
-          <button className="absolute right-2 top-2 p-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary/30 hover:scale-110 active:scale-95 transition-all">
+          <button 
+            onClick={handleSend}
+            className="absolute right-2 top-2 p-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary/30 hover:scale-110 active:scale-95 transition-all"
+          >
             <Send className="w-4 h-4" />
           </button>
         </div>
@@ -66,12 +115,5 @@ const ChatbotFrame = () => {
     </div>
   );
 };
-
-// Mock User icon for Chatbot
-const UserIcon = ({ className }) => (
-  <svg className={className} fill="none" stroke="currentColor" viewBox="0 0 24 24">
-    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-  </svg>
-);
 
 export default ChatbotFrame;
