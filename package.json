@@ -1,0 +1,9 @@
+{
+  "name": "appointify-monorepo",
+  "private": true,
+  "workspaces": [
+    "frontend",
+    "services",
+    "backend"
+  ]
+}
