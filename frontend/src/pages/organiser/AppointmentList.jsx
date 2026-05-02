@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter, MoreHorizontal, Calendar as CalendarIcon, Clock, Share2, Edit3, Trash2 } from 'lucide-react';
+import { Search, Plus, Filter, MoreHorizontal, Calendar as CalendarIcon, Clock, Share2, Edit3, Trash2, Bell } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -15,6 +15,13 @@ const AppointmentList = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
   const navigate = useNavigate();
+
+  // Mock events for the mini calendar
+  const mockEvents = [
+    new Date(Date.now() + 86400000 * 1), // Tomorrow
+    new Date(Date.now() + 86400000 * 3), 
+    new Date(Date.now() + 86400000 * 6)  
+  ];
 
   useEffect(() => {
     const fetchAppointments = async () => {
@@ -49,18 +56,16 @@ const AppointmentList = () => {
         {/* Left Column: Mini Calendar */}
         <div className="w-full xl:w-80 flex flex-col gap-6">
           <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Calendar</h2>
-          <MiniCalendar />
+          <MiniCalendar events={mockEvents} />
           
-          <div className="bg-primary/5 rounded-[30px] p-6 border border-primary/10">
-            <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-4">Quick Stats</h4>
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-gray-500 italic">Total Bookings</span>
-                <span className="text-xl font-black text-primary">24</span>
+          <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 relative overflow-hidden group">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
+                <Bell className="w-4 h-4 animate-bounce" />
               </div>
-              <div className="flex justify-between items-center">
-                <span className="text-xs font-bold text-gray-500 italic">Conversion</span>
-                <span className="text-xl font-black text-primary">12%</span>
+              <div className="flex-1 min-w-0">
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-0.5">Next Meeting</h4>
+                <p className="text-xs font-bold text-gray-700 truncate italic">Consultation — Tomorrow, 2:00 PM</p>
               </div>
             </div>
           </div>

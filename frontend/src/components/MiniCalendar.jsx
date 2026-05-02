@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { format, startOfMonth, endOfMonth, startOfWeek, endOfWeek, eachDayOfInterval, isSameMonth, isSameDay, addMonths, subMonths } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
-const MiniCalendar = () => {
+const MiniCalendar = ({ events = [] }) => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
 
   const days = eachDayOfInterval({
@@ -38,17 +38,21 @@ const MiniCalendar = () => {
         {days.map((day, i) => {
           const isSelected = isSameDay(day, new Date());
           const isCurrentMonth = isSameMonth(day, currentMonth);
+          const hasEvent = events.some(eventDate => isSameDay(new Date(eventDate), day));
           
           return (
             <div
               key={i}
-              className={`h-8 flex items-center justify-center rounded-lg text-xs font-bold transition-all cursor-pointer ${
+              className={`h-8 flex flex-col items-center justify-center rounded-lg text-xs font-bold transition-all cursor-pointer relative ${
                 !isCurrentMonth ? 'text-gray-200' : 
                 isSelected ? 'bg-primary text-white shadow-lg shadow-primary/30' : 
                 'text-gray-500 hover:bg-gray-50'
               }`}
             >
               {format(day, 'd')}
+              {hasEvent && (
+                <div className={`w-1 h-1 rounded-full absolute bottom-1 ${isSelected ? 'bg-white' : 'bg-green-500'}`} />
+              )}
             </div>
           );
         })}
