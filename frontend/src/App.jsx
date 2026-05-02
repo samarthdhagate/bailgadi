@@ -23,6 +23,7 @@ import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
 import SettingsPage from './pages/SettingsPage';
 import Meetings from './pages/organiser/Meetings';
+import Reporting from './pages/organiser/Reporting';
 import ResourceEditor from './pages/organiser/ResourceEditor';
 import UserEditor from './pages/organiser/UserEditor';
 
@@ -49,6 +50,7 @@ function App() {
           <Route path="/organiser" element={<AppointmentList />} />
           <Route path="/organiser/editor/:id" element={<AppointmentEditor />} />
           <Route path="/organiser/meetings" element={<Meetings />} />
+          <Route path="/organiser/reporting" element={<Reporting />} />
           <Route path="/organiser/resource/:id" element={<ResourceEditor />} />
           <Route path="/organiser/user/:id" element={<UserEditor />} />
         </Route>
