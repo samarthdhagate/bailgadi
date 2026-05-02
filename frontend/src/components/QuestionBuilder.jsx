@@ -1,16 +1,24 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, GripVertical, ChevronRight } from 'lucide-react';
+import { Plus, Trash2, GripVertical, ChevronRight, MessageSquare, Type, Phone, Radio, CheckSquare } from 'lucide-react';
 import Button from './Button';
 import Input from './Input';
 
 const QuestionBuilder = ({ questions = [], onChange }) => {
   const [isAdding, setIsAdding] = useState(false);
-  const [newQ, setNewQ] = useState({ label: '', type: 'text', required: false });
+  const [newQ, setNewQ] = useState({ label: '', type: 'text', required: false, options: [] });
+
+  const questionTypes = [
+    { id: 'text', label: 'Single line text', icon: Type },
+    { id: 'textarea', label: 'Multi-line text', icon: MessageSquare },
+    { id: 'phone', label: 'Phone Number', icon: Phone },
+    { id: 'radio', label: 'Radio(One Answer)', icon: Radio },
+    { id: 'checkbox', label: 'Checkboxes(Multiple Answers)', icon: CheckSquare }
+  ];
 
   const addQuestion = () => {
     if (!newQ.label) return;
     onChange([...questions, { ...newQ, id: Date.now() }]);
-    setNewQ({ label: '', type: 'text', required: false });
+    setNewQ({ label: '', type: 'text', required: false, options: [] });
     setIsAdding(false);
   };
 
@@ -23,108 +31,124 @@ const QuestionBuilder = ({ questions = [], onChange }) => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <div className="w-full">
         {/* Table Header */}
-        <div className="grid grid-cols-12 px-6 py-3 bg-gray-50 rounded-xl text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-4">
+        <div className="grid grid-cols-12 px-8 py-4 bg-gray-50/50 rounded-2xl text-[10px] font-black uppercase text-gray-400 tracking-[0.2em] mb-6">
           <div className="col-span-4">Question</div>
           <div className="col-span-3">Answer type</div>
-          <div className="col-span-3">Answer</div>
+          <div className="col-span-3">Preview</div>
           <div className="col-span-1 text-center">Mandatory</div>
           <div className="col-span-1"></div>
         </div>
 
         {/* Table Body */}
-        <div className="space-y-1">
+        <div className="space-y-2">
           {questions.map((q) => (
-            <div key={q.id} className="grid grid-cols-12 px-6 py-4 border-b border-gray-100 items-center group hover:bg-gray-50 transition-colors">
-              <div className="col-span-4 font-bold text-gray-700 italic">{q.label}</div>
-              <div className="col-span-3 text-sm text-gray-400">
-                {q.type === 'text' && 'Single line text'}
-                {q.type === 'textarea' && 'Multi-line text'}
-                {q.type === 'phone' && 'Phone Number'}
-                {q.type === 'radio' && 'Radio(One Answer)'}
-                {q.type === 'checkbox' && 'Checkboxes(Multiple Answers)'}
+            <div key={q.id} className="grid grid-cols-12 px-8 py-5 border border-transparent border-b-gray-100 items-center group hover:border-gray-100 hover:bg-white hover:shadow-xl hover:shadow-black/5 hover:rounded-2xl transition-all duration-300">
+              <div className="col-span-4 font-bold text-gray-800 italic">{q.label}</div>
+              <div className="col-span-3">
+                <span className="px-3 py-1 bg-gray-100 rounded-lg text-xs font-bold text-gray-500 uppercase tracking-tighter">
+                  {questionTypes.find(t => t.id === q.type)?.label || q.type}
+                </span>
               </div>
-              <div className="col-span-3 text-sm text-gray-300 italic">
+              <div className="col-span-3 text-sm text-gray-300 font-medium">
                 {q.type === 'text' && 'Sample text answer...'}
-                {q.type === 'phone' && '9874563210'}
-                {q.type === 'textarea' && 'Detailed message...'}
+                {q.type === 'phone' && '+91 98765 43210'}
+                {q.type === 'textarea' && 'Detailed multi-line message...'}
+                {q.type === 'radio' && 'Option A, Option B...'}
+                {q.type === 'checkbox' && 'Multiple selections...'}
               </div>
               <div className="col-span-1 flex justify-center">
                 <input
                   type="checkbox"
                   checked={q.required}
                   onChange={(e) => updateQuestion(q.id, 'required', e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary"
+                  className="w-5 h-5 rounded-lg border-gray-200 text-primary focus:ring-primary cursor-pointer transition-all"
                 />
               </div>
               <div className="col-span-1 flex justify-end">
                 <button
                   onClick={() => removeQuestion(q.id)}
-                  className="p-1 text-gray-200 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100"
+                  className="p-2 text-gray-200 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all opacity-0 group-hover:opacity-100"
                 >
-                  <Trash2 className="w-4 h-4" />
+                  <Trash2 className="w-5 h-5" />
                 </button>
               </div>
             </div>
           ))}
         </div>
 
-        {/* Inline Add Question */}
+        {/* Add Question UI */}
         {isAdding ? (
-          <div className="mt-8 p-8 bg-gray-50 rounded-[30px] border-2 border-primary/20 space-y-6">
-            <div className="flex gap-2 overflow-x-auto pb-4 scrollbar-hide">
-              {[
-                { id: 'text', label: 'Single line text' },
-                { id: 'textarea', label: 'Multi-line text' },
-                { id: 'phone', label: 'Phone Number' },
-                { id: 'radio', label: 'Radio(One Answer)' },
-                { id: 'checkbox', label: 'Checkboxes(Multiple Answers)' }
-              ].map(type => (
-                <button
-                  key={type.id}
-                  onClick={() => setNewQ({ ...newQ, type: type.id })}
-                  className={`px-4 py-2 rounded-lg text-xs font-bold whitespace-nowrap transition-all border-2 ${
-                    newQ.type === type.id ? 'border-primary bg-primary/10 text-primary' : 'border-gray-200 text-gray-400 hover:border-gray-300'
-                  }`}
-                >
-                  {type.label}
-                </button>
-              ))}
+          <div className="mt-10 p-10 bg-white border-2 border-primary/20 rounded-[40px] shadow-2xl shadow-primary/5 animate-in slide-in-from-top-4 duration-500 space-y-10">
+            {/* Type Selector (Matching Image) */}
+            <div className="space-y-4">
+               <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Select Answer Type</p>
+               <div className="flex gap-3 overflow-x-auto pb-4 scrollbar-hide">
+                {questionTypes.map(type => {
+                  const Icon = type.icon;
+                  return (
+                    <button
+                      key={type.id}
+                      type="button"
+                      onClick={() => setNewQ({ ...newQ, type: type.id })}
+                      className={`flex items-center gap-3 px-6 py-4 rounded-2xl font-bold text-sm transition-all border-2 ${
+                        newQ.type === type.id 
+                        ? 'border-primary bg-primary/5 text-primary shadow-lg shadow-primary/5' 
+                        : 'border-gray-50 bg-gray-50/50 text-gray-400 hover:border-gray-100 hover:text-gray-600'
+                      }`}
+                    >
+                      <Icon className={`w-5 h-5 ${newQ.type === type.id ? 'text-primary' : 'text-gray-300'}`} />
+                      {type.label}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             
-            <div className="space-y-4">
-              <p className="text-xs font-bold text-gray-400 uppercase tracking-widest">Question</p>
-              <input
-                type="text"
-                autoFocus
-                placeholder="Anything else we should know?"
-                value={newQ.label}
-                onChange={(e) => setNewQ({ ...newQ, label: e.target.value })}
-                className="w-full text-2xl font-bold text-gray-800 border-b-2 border-gray-200 bg-transparent outline-none focus:border-primary transition-colors pb-2"
-              />
-              <label className="flex items-center gap-3 cursor-pointer group">
+            <div className="space-y-8">
+              <div className="space-y-2">
+                <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-2">Question Title</p>
                 <input
-                  type="checkbox"
-                  checked={newQ.required}
-                  onChange={(e) => setNewQ({ ...newQ, required: e.target.checked })}
-                  className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary"
+                  type="text"
+                  autoFocus
+                  placeholder="e.g. Any specific requests for your visit?"
+                  value={newQ.label}
+                  onChange={(e) => setNewQ({ ...newQ, label: e.target.value })}
+                  className="w-full text-3xl font-bold text-gray-800 border-b-2 border-gray-100 bg-transparent outline-none focus:border-primary transition-all pb-4 placeholder:text-gray-100"
                 />
-                <span className="font-bold text-gray-700 italic group-hover:text-primary transition-colors">Mandatory Answer</span>
-              </label>
-            </div>
+              </div>
 
-            <div className="flex gap-3 justify-end">
-              <Button variant="secondary" onClick={() => setIsAdding(false)}>Cancel</Button>
-              <Button onClick={addQuestion}>Add Question</Button>
+              <div className="flex items-center justify-between">
+                <label className="flex items-center gap-4 cursor-pointer group">
+                  <div className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all ${
+                    newQ.required ? 'bg-primary border-primary' : 'border-gray-200 group-hover:border-primary/50'
+                  }`}>
+                    {newQ.required && <Plus className="w-4 h-4 text-white rotate-45" />}
+                    <input
+                      type="checkbox"
+                      className="hidden"
+                      checked={newQ.required}
+                      onChange={(e) => setNewQ({ ...newQ, required: e.target.checked })}
+                    />
+                  </div>
+                  <span className="font-bold text-gray-700 italic group-hover:text-primary transition-colors">Mandatory Answer</span>
+                </label>
+
+                <div className="flex gap-4">
+                  <Button variant="secondary" className="px-8" onClick={() => setIsAdding(false)}>Cancel</Button>
+                  <Button className="px-10" onClick={addQuestion}>Add Question</Button>
+                </div>
+              </div>
             </div>
           </div>
         ) : (
           <button
             onClick={() => setIsAdding(true)}
-            className="mt-6 px-6 py-3 font-bold text-primary hover:bg-primary/5 rounded-xl transition-all italic underline"
+            className="mt-8 group flex items-center gap-3 px-8 py-4 bg-primary/5 text-primary rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
           >
+            <Plus className="w-5 h-5 transition-transform group-hover:rotate-90" />
             Add a question
           </button>
         )}
