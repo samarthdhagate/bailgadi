@@ -38,16 +38,15 @@ const BookingWizard = () => {
   const [service, setService] = useState(null);
 
   useEffect(() => {
-    // Fetch service details initially
     const init = async () => {
       setIsLoading(true);
       try {
         const res = await bookingService.getServices();
-        const currentService = res.data.find(s => s.id === parseInt(serviceId));
+        const currentService = (res.data || []).find(s => String(s.id) === String(serviceId));
         setService(currentService);
         
         const resResources = await bookingService.getResources(serviceId);
-        setResources(resResources.data);
+        setResources(resResources.data || []);
       } catch (err) {
         setError('Failed to load service details');
       } finally {
@@ -61,9 +60,10 @@ const BookingWizard = () => {
     if (step === 1 && bookingData.date) {
       const fetchSlots = async () => {
         setIsLoading(true);
+        setError('');
         try {
           const res = await bookingService.getSlots(serviceId, bookingData.date);
-          setSlots(res.data);
+          setSlots(res.data || []);
         } catch (err) {
           setError('Failed to load available slots');
         } finally {
@@ -76,7 +76,6 @@ const BookingWizard = () => {
 
   const handleNext = () => {
     if (isRescheduling && step === 1) {
-      // If rescheduling, skip details and payment
       submitBooking();
       return;
     }
@@ -98,16 +97,34 @@ const BookingWizard = () => {
 
   const submitBooking = async () => {
     setIsLoading(true);
+    setError('');
     try {
       let res;
       if (isRescheduling && existingBooking?.id) {
         res = await bookingService.rescheduleBooking(existingBooking.id, bookingData);
       } else {
+        // Try to lock slot if not in mock mode
+        try {
+          await bookingService.lockSlot(serviceId, bookingData.time);
+        } catch (e) { console.warn("Slot locking failed or not supported by backend yet"); }
+
         res = await bookingService.createBooking(bookingData);
       }
-      navigate('/confirmation', { state: { booking: res.data, isRescheduling } });
+      
+      const responseData = res.data || res;
+      navigate('/confirmation', { 
+        state: { 
+          booking: {
+            ...responseData,
+            date: responseData.start_time ? new Date(responseData.start_time).toLocaleDateString() : bookingData.date,
+            time: responseData.start_time ? new Date(responseData.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : bookingData.time,
+            userDetails: bookingData.userDetails,
+          }, 
+          isRescheduling 
+        } 
+      });
     } catch (err) {
-      setError('Failed to confirm booking');
+      setError(err.response?.data?.error?.message || 'Failed to confirm booking');
     } finally {
       setIsLoading(false);
     }
@@ -147,7 +164,6 @@ const BookingWizard = () => {
           <div className="flex flex-col gap-4">
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Date picker</h3>
             <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-              {/* Simplistic Calendar UI Mockup */}
               <div className="flex items-center justify-between mb-6">
                 <button className="p-2 hover:bg-gray-50 rounded-lg"><ChevronLeft className="w-5 h-5 text-gray-400" /></button>
                 <span className="font-bold text-gray-800">{format(new Date(bookingData.date), 'MMMM yyyy')}</span>
@@ -188,7 +204,6 @@ const BookingWizard = () => {
                 ))}
               </div>
 
-              {/* Conditional Capacity Selector */}
               {service?.capacityEnabled !== false && (
                 <div className="pt-6 border-t border-gray-50 mt-auto">
                   <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Number of people</p>
@@ -226,7 +241,7 @@ const BookingWizard = () => {
     if (step === 1) return renderUnifiedSelection();
     
     switch (step) {
-      case 2: // Details (originally step 4)
+      case 2:
         return (
           <div className="flex flex-col gap-8 max-w-4xl mx-auto">
             <div className="border-b border-gray-100 pb-6">
@@ -235,7 +250,6 @@ const BookingWizard = () => {
             </div>
 
             <div className="space-y-8 py-4">
-              {/* Standard Fields */}
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
                 <label className="font-bold text-gray-700">Full Name</label>
                 <div className="md:col-span-2">
@@ -282,7 +296,6 @@ const BookingWizard = () => {
                 </div>
               </div>
 
-              {/* Dynamic Questions from Organiser */}
               {service?.questions?.map((q) => (
                 <div key={q.id} className="grid grid-cols-1 md:grid-cols-3 items-start gap-4">
                   <label className="font-bold text-gray-700 pt-3">{q.label}{q.required && '*'}</label>
@@ -331,21 +344,18 @@ const BookingWizard = () => {
             </div>
           </div>
         );
-      case 3: // Payment (originally step 5)
+      case 3:
         return (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
-            {/* Left: Payment Method Selection */}
             <div className="lg:col-span-2 space-y-10">
               <div>
                 <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-6">Choose a payment method</h3>
                 <div className="space-y-6">
-                  {/* Credit Card Option */}
                   <div className="space-y-6">
                     <label className="flex items-center gap-3 cursor-pointer group">
                       <input type="radio" name="paymentMethod" defaultChecked className="w-5 h-5 accent-primary" />
                       <span className="font-bold text-gray-700 group-hover:text-primary transition-colors">Credit Card</span>
                     </label>
-                    
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-8">
                       <div className="md:col-span-2">
                         <label className="block text-sm font-bold text-gray-500 mb-2">Name on Card</label>
@@ -365,8 +375,6 @@ const BookingWizard = () => {
                       </div>
                     </div>
                   </div>
-
-                  {/* Other Options (Placeholders) */}
                   {['Debit Card', 'UPI Pay', 'PayPal'].map(method => (
                     <label key={method} className="flex items-center gap-3 cursor-pointer group pl-0">
                       <input type="radio" name="paymentMethod" className="w-5 h-5 accent-primary" />
@@ -375,7 +383,6 @@ const BookingWizard = () => {
                   ))}
                 </div>
               </div>
-
               <div className="pt-6 border-t border-gray-50">
                 <button 
                   onClick={() => setStep(2)}
@@ -386,11 +393,9 @@ const BookingWizard = () => {
               </div>
             </div>
 
-            {/* Right: Order Summary */}
             <div>
               <Card className="p-8 sticky top-8">
                 <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Order Summary</h3>
-                
                 <div className="space-y-4 mb-8">
                   <div className="flex justify-between items-center">
                     <span className="text-gray-800 font-medium">{service?.title}</span>
@@ -405,17 +410,11 @@ const BookingWizard = () => {
                     <span className="font-medium text-gray-800">${(service?.price * 0.1).toFixed(2)}</span>
                   </div>
                 </div>
-
                 <div className="pt-6 border-t border-gray-100 mb-8 flex justify-between items-center">
                   <span className="text-xl font-bold text-gray-800">Total</span>
                   <span className="text-2xl font-black text-primary">${(service?.price * 1.1).toFixed(2)}</span>
                 </div>
-
-                <Button 
-                  isLoading={isLoading} 
-                  onClick={submitBooking}
-                  className="w-full py-4 text-lg"
-                >
+                <Button isLoading={isLoading} onClick={submitBooking} className="w-full py-4 text-lg">
                   Pay Now
                 </Button>
               </Card>

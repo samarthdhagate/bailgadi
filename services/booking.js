@@ -1,8 +1,16 @@
 import axiosInstance from './api/axiosInstance';
 
+// Toggle this to true to force mock mode if your backend is not ready
+const FORCE_MOCK = true;
+
 export const bookingService = {
   getServices: async () => {
-    // In a real app: return axiosInstance.get('/services');
+    if (!FORCE_MOCK) {
+      try {
+        const response = await axiosInstance.get('/services');
+        return response.data;
+      } catch (e) { console.warn("API failed, using mock services"); }
+    }
     await new Promise(resolve => setTimeout(resolve, 800));
     return {
       data: [
@@ -42,6 +50,14 @@ export const bookingService = {
   },
 
   getSlots: async (serviceId, date) => {
+    if (!FORCE_MOCK) {
+      try {
+        const response = await axiosInstance.get('/availability', {
+          params: { service_id: serviceId, date },
+        });
+        return response.data;
+      } catch (e) { console.warn("API failed, using mock slots"); }
+    }
     await new Promise(resolve => setTimeout(resolve, 500));
     return {
       data: [
@@ -66,22 +82,54 @@ export const bookingService = {
     };
   },
 
+  lockSlot: async (serviceId, startTime) => {
+    const response = await axiosInstance.post('/bookings/lock', {
+      service_id: serviceId,
+      start_time: startTime,
+    });
+    return response.data;
+  },
+
   createBooking: async (bookingData) => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    return { data: { id: 'BK-' + Math.floor(Math.random() * 100000), ...bookingData, status: 'Confirmed' } };
+    if (FORCE_MOCK) {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return { data: { id: 'BK-' + Math.floor(Math.random() * 100000), ...bookingData, status: 'Confirmed' } };
+    }
+    const response = await axiosInstance.post('/bookings', {
+      service_id: bookingData.serviceId,
+      start_time: bookingData.time,
+      notes: JSON.stringify(bookingData.userDetails),
+    });
+    return response.data;
   },
 
   rescheduleBooking: async (bookingId, bookingData) => {
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    return { data: { id: bookingId, ...bookingData, status: 'Confirmed' } };
+    if (FORCE_MOCK) {
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      return { data: { id: bookingId, ...bookingData, status: 'Confirmed' } };
+    }
+    const response = await axiosInstance.patch(`/bookings/${bookingId}/reschedule`, {
+      new_start_time: bookingData.time,
+    });
+    return response.data;
   },
 
   cancelBooking: async (bookingId) => {
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    return { success: true };
+    if (FORCE_MOCK) {
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      return { success: true };
+    }
+    const response = await axiosInstance.patch(`/bookings/${bookingId}/cancel`);
+    return response.data;
   },
 
   getMyBookings: async () => {
+    if (!FORCE_MOCK) {
+      try {
+        const response = await axiosInstance.get('/bookings/my');
+        return response.data;
+      } catch (e) { console.warn("API failed, using mock bookings"); }
+    }
     await new Promise(resolve => setTimeout(resolve, 1000));
     return {
       data: [
@@ -105,5 +153,22 @@ export const bookingService = {
         }
       ]
     };
+  },
+
+  createPaymentOrder: async (bookingId, amount) => {
+    const response = await axiosInstance.post('/payments/create-order', {
+      booking_id: bookingId,
+      amount,
+    });
+    return response.data;
+  },
+
+  verifyPayment: async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) => {
+    const response = await axiosInstance.post('/payments/verify', {
+      razorpay_order_id,
+      razorpay_payment_id,
+      razorpay_signature,
+    });
+    return response.data;
   }
 };

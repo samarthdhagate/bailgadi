@@ -21,8 +21,14 @@ const CustomerDashboard = () => {
     const fetchServices = async () => {
       try {
         const response = await bookingService.getServices();
+<<<<<<< HEAD
         setServices(response.data);
         setFilteredServices(response.data);
+=======
+        const data = response.data || [];
+        setServices(data);
+        setFilteredServices(data);
+>>>>>>> 6af9674e4e07653f1a53c81caa8afe0546e9dba3
       } catch (err) {
         setError('Failed to load services. Please try again later.');
       } finally {
@@ -37,13 +43,13 @@ const CustomerDashboard = () => {
     let result = services;
     if (searchTerm) {
       result = result.filter(s => 
-        s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.description.toLowerCase().includes(searchTerm.toLowerCase())
+        (s.name || '').toLowerCase().includes(searchTerm.toLowerCase()) ||
+        (s.provider_name || '').toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     if (typeFilter !== 'all') {
       result = result.filter(s => 
-        typeFilter === 'free' ? s.price === 0 : s.price > 0
+        typeFilter === 'free' ? !s.advance_payment : s.advance_payment
       );
     }
     setFilteredServices(result);
@@ -96,48 +102,45 @@ const CustomerDashboard = () => {
             {filteredServices.map((service) => (
               <Card key={service.id} className="p-8 hover:shadow-md transition-shadow group flex flex-col gap-6 cursor-pointer" onClick={() => navigate(`/booking/${service.id}`)}>
                 <div className="flex flex-col md:flex-row gap-8">
-                  {/* Left: Picture */}
-                  <div className="w-full md:w-48 h-48 rounded-2xl overflow-hidden shadow-inner flex-shrink-0 bg-gray-50 border border-gray-100">
-                    <img 
-                      src={service.image} 
-                      alt={service.title} 
-                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
-                    />
+                  {/* Left: Icon placeholder */}
+                  <div className="w-full md:w-48 h-48 rounded-2xl overflow-hidden shadow-inner flex-shrink-0 bg-gradient-to-br from-primary/10 to-primary/5 border border-gray-100 flex items-center justify-center">
+                    <span className="text-6xl font-bold text-primary/30">{(service.name || 'S')[0]}</span>
                   </div>
 
                   {/* Right: Details */}
                   <div className="flex-1 flex flex-col">
-                    <h3 className="text-2xl font-bold text-gray-800 mb-6">{service.title}</h3>
+                    <h3 className="text-2xl font-bold text-gray-800 mb-6">{service.name}</h3>
                     
                     <div className="space-y-4">
                       <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Resource/Users</p>
-                        <div className="flex flex-wrap gap-2">
-                          {['Dr. John Smith', 'Sarah Wilson'].map((res, i) => (
-                            <span key={i} className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">
-                              {res}
-                            </span>
-                          ))}
-                        </div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Provider</p>
+                        <span className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">
+                          {service.provider_name || 'Unknown'}
+                        </span>
                       </div>
 
                       <div>
-                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Location</p>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Duration</p>
                         <p className="text-gray-700 font-medium flex items-center gap-2">
-                          <MapPin className="w-4 h-4 text-primary" />
-                          {service.location}
+                          <Clock className="w-4 h-4 text-primary" />
+                          {service.duration_min} mins
                         </p>
                       </div>
                     </div>
                   </div>
                 </div>
 
-                {/* Bottom: Introduction Message */}
-                <div className="pt-6 border-t border-gray-50">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Introduction message</p>
-                  <p className="text-gray-600 line-clamp-2">
-                    {service.description}
-                  </p>
+                {/* Bottom: Capacity & Payment Info */}
+                <div className="pt-6 border-t border-gray-50 flex items-center justify-between">
+                  <div className="flex items-center gap-4 text-sm text-gray-500">
+                    <span>Capacity: {service.capacity || 1}</span>
+                    {service.advance_payment && (
+                      <span className="text-primary font-medium">Paid booking</span>
+                    )}
+                  </div>
+                  <Button onClick={(e) => { e.stopPropagation(); navigate(`/booking/${service.id}`); }}>
+                    Book Now
+                  </Button>
                 </div>
               </Card>
             ))}

@@ -17,8 +17,8 @@ const AppointmentList = () => {
   useEffect(() => {
     const fetchAppointments = async () => {
       try {
-        const response = await organiserService.getAppointments();
-        setAppointments(response.data);
+        const response = await organiserService.getServices();
+        setAppointments(response.data || []);
       } catch (err) {
         setError('Failed to load appointments.');
       } finally {
@@ -28,6 +28,17 @@ const AppointmentList = () => {
 
     fetchAppointments();
   }, []);
+
+  const handleTogglePublish = async (id) => {
+    try {
+      const res = await organiserService.togglePublish(id);
+      setAppointments(prev =>
+        prev.map(app => app.id === id ? { ...app, is_published: res.data?.is_published } : app)
+      );
+    } catch (err) {
+      alert(err.response?.data?.error?.message || 'Failed to update.');
+    }
+  };
 
   return (
     <DashboardLayout title="Appointments">
@@ -67,7 +78,7 @@ const AppointmentList = () => {
             appointments.map((app) => (
               <Card key={app.id} className="p-6 hover:shadow-md transition-all relative overflow-hidden group">
                 {/* Published Badge */}
-                {app.status?.toLowerCase() === 'published' && (
+                {app.is_published && (
                   <div className="absolute top-4 -right-10 bg-orange-100 text-orange-600 text-[10px] font-black uppercase px-12 py-1 rotate-45 shadow-sm border border-orange-200">
                     Published
                   </div>
@@ -77,9 +88,9 @@ const AppointmentList = () => {
                   {/* Name & Duration */}
                   <div className="flex items-center gap-12 min-w-[300px]">
                     <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-800 mb-1">{app.title}</h3>
+                      <h3 className="text-xl font-bold text-gray-800 mb-1">{app.name}</h3>
                       <p className="text-sm font-bold text-red-500 uppercase tracking-tighter">
-                        {app.duration} Min <span className="text-gray-400 font-medium lowercase">Duration</span>
+                        {app.duration_min} Min <span className="text-gray-400 font-medium lowercase">Duration</span>
                       </p>
                     </div>
 

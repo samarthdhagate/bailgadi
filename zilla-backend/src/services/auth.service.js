@@ -58,22 +58,32 @@ const signup = async ({ full_name, email, password, role = 'customer' }) => {
   const otp = generateOTP();
   const otp_expires_at = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
-  // Insert user
+  // Insert user, auto-verifying for demo purposes since we lack an OTP UI
   const result = await query(
-    `INSERT INTO users (full_name, email, password_hash, role, otp_code, otp_expires_at)
-     VALUES ($1, $2, $3, $4, $5, $6)
+    `INSERT INTO users (full_name, email, password_hash, role, otp_code, otp_expires_at, is_verified)
+     VALUES ($1, $2, $3, $4, $5, $6, TRUE)
      RETURNING id, full_name, email, role`,
     [full_name, email, password_hash, role, otp, otp_expires_at]
   );
 
-  // Send OTP email (fire-and-forget)
+  const user = result.rows[0];
+
+  // Auto-create provider record if organiser
+  if (user.role === 'organiser') {
+    await query(
+      'INSERT INTO providers (user_id) VALUES ($1) ON CONFLICT DO NOTHING',
+      [user.id]
+    );
+  }
+
+  // Send OTP email (fire-and-forget) - kept just for the email notification
   sendOTPEmail(email, otp).catch((err) => {
     console.error('Failed to send OTP email:', err.message);
   });
 
   return {
-    message: 'Account created. Please verify your email with the OTP sent.',
-    user: result.rows[0],
+    message: 'Account created and verified automatically for demo purposes.',
+    user: user,
   };
 };
 
