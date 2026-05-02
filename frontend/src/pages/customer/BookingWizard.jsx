@@ -228,7 +228,6 @@ const BookingWizard = () => {
   const renderUnifiedSelection = () => {
     return (
       <div className="flex flex-col gap-10">
-<<<<<<< HEAD
         {resources.length > 0 && (
           <div>
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">With</h3>
@@ -240,30 +239,6 @@ const BookingWizard = () => {
                   className={`flex items-center gap-3 px-4 py-2 rounded-xl border-2 transition-all ${
                     bookingData.resourceId === r.id
                       ? 'border-primary bg-primary/5 text-primary'
-                      : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
-                  }`}
-                >
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
-                    bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
-                  }`}>
-                    U{r.id}
-                  </div>
-                  <span className="font-semibold">{r.name}</span>
-                </button>
-              ))}
-            </div>
-=======
-        {/* Section: "With" */}
-        <div>
-          <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">With</h3>
-          <div className="flex flex-wrap gap-4">
-            {resources.map(r => (
-              <button
-                key={r.id}
-                onClick={() => setBookingData(prev => ({ ...prev, resourceId: r.id }))}
-                className={`flex items-center gap-3 px-5 py-3 rounded-2xl border-2 transition-all ${
-                  bookingData.resourceId === r.id 
-                    ? 'border-primary bg-primary/5 text-primary' 
                     : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
                 }`}
               >
@@ -275,7 +250,7 @@ const BookingWizard = () => {
                 <span className="font-bold">{r.name}</span>
               </button>
             ))}
->>>>>>> ce7ad0561f56b64529f514d909b393c3232ee07b
+            </div>
           </div>
         )}
 
@@ -349,11 +324,7 @@ const BookingWizard = () => {
         {/* Footer Actions */}
         <div className="flex justify-end pt-6">
           <Button 
-<<<<<<< HEAD
-            disabled={!bookingData.time} 
-=======
-            disabled={!bookingData.resourceId || !bookingData.time || isLoading} 
->>>>>>> ce7ad0561f56b64529f514d909b393c3232ee07b
+            disabled={!bookingData.time || (resources.length > 0 && !bookingData.resourceId) || isLoading}
             onClick={handleNext}
             className="px-12 py-5 text-lg rounded-2xl shadow-2xl shadow-primary/30"
           >

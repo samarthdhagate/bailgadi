@@ -48,13 +48,8 @@ const DashboardLayout = ({ children, title }) => {
           <div
             className="w-full flex items-center gap-3 px-4 py-3 mb-2 hover:bg-gray-50 rounded-xl transition-all text-left group"
           >
-<<<<<<< HEAD
             <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-white transition-all">
               {displayName?.[0]?.toUpperCase() || 'U'}
-=======
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold transition-all">
-              {user?.name?.[0]?.toUpperCase() || 'U'}
->>>>>>> ce7ad0561f56b64529f514d909b393c3232ee07b
             </div>
             <div className="flex-1 min-w-0">
               <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
