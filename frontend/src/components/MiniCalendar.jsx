@@ -27,8 +27,8 @@ const MiniCalendar = ({ events = [] }) => {
       </div>
 
       <div className="grid grid-cols-7 gap-1 mb-2">
-        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map(d => (
-          <div key={d} className="text-[10px] font-black text-gray-300 text-center uppercase tracking-widest">
+        {['S', 'M', 'T', 'W', 'T', 'F', 'S'].map((d, i) => (
+          <div key={i} className="text-[10px] font-black text-gray-300 text-center uppercase tracking-widest">
             {d}
           </div>
         ))}

@@ -6,7 +6,7 @@ const bookingService = require('../services/booking.service');
 
 const lockSlot = async (req, res, next) => {
   try {
-    const { service_id, start_time } = req.body;
+    const { service_id, start_time, attendee_count } = req.body;
 
     if (!service_id || !start_time) {
       return res.status(400).json({
@@ -18,7 +18,7 @@ const lockSlot = async (req, res, next) => {
       });
     }
 
-    const result = await bookingService.lockSlot(req.user.user_id, service_id, start_time);
+    const result = await bookingService.lockSlot(req.user.user_id, service_id, start_time, attendee_count || 1);
     res.json({ success: true, data: result });
   } catch (err) {
     next(err);

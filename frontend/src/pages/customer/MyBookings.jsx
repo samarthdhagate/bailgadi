@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Calendar, Clock, User, CheckCircle, Clock3, XCircle } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle, Clock3, XCircle, CreditCard } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -133,6 +133,14 @@ const MyBookings = () => {
                         {booking.confirmation_code && (
                           <div className="font-mono text-primary font-medium">
                             #{booking.confirmation_code}
+                          </div>
+                        )}
+                        {booking.gateway_txn_id && (
+                          <div className="flex items-center gap-1.5 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-lg border border-gray-100">
+                            <CreditCard className="w-3 h-3" />
+                            <span>{booking.gateway_txn_id}</span>
+                            <span className="opacity-50">|</span>
+                            <span className="font-black text-gray-600">₹{booking.paid_amount}</span>
                           </div>
                         )}
                       </div>

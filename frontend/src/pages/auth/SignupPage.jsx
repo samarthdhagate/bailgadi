@@ -64,7 +64,8 @@ const SignupPage = () => {
 
       if (response.success) {
         setSuccess(response.data.message || 'Account created successfully. You can log in now.');
-        setTimeout(() => navigate('/login'), 3000);
+        const timer = setTimeout(() => navigate('/login'), 3000);
+        return () => clearTimeout(timer);
       } else {
         setError(response.error?.message || 'Signup failed. Please try again.');
       }

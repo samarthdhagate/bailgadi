@@ -3,12 +3,15 @@ import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ChevronLeft, 
   ChevronRight, 
-  Calendar as CalendarIcon, 
+  Calendar, 
   Clock, 
   Users, 
   CreditCard, 
-  CheckCircle 
-} from 'lucide-react';
+  CheckCircle,
+  ShieldCheck,
+  Tag,
+  Zap,
+  ArrowRight} from 'lucide-react';
 import { 
   format, 
   addMonths, 
@@ -108,7 +111,7 @@ const BookingWizard = () => {
     }
 
     if (step === 2) {
-      if (service?.price > 0) {
+      if (Number(service?.price) > 0) {
         setStep(3);
       } else {
         submitBooking();
@@ -122,19 +125,42 @@ const BookingWizard = () => {
     setIsLoading(true);
     setError('');
     try {
+      if (isRescheduling) {
+        await bookingService.rescheduleBooking(existingBooking.id, bookingData);
+        navigate('/confirmation', {
+          state: {
+            booking: {
+              ...existingBooking,
+              date: bookingData.date,
+              time: bookingData.time,
+              status: 'Rescheduled'
+            },
+            isRescheduled: true
+          }
+        });
+        return;
+      }
+
       // 1. Lock the slot
       const lockRes = await bookingService.lockSlot(serviceId, bookingData.time);
-      const { reservation_id, razorpay_order } = lockRes.data;
+      const { reservation_id, payment_order } = lockRes.data;
 
       // 2. Handle Payment if required
-      if (razorpay_order) {
+      if (payment_order) {
+        if (!window.Razorpay) {
+          setError('Razorpay SDK failed to load. Please refresh the page.');
+          setIsLoading(false);
+          return;
+        }
+
         const options = {
-          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SkaqCSkJRNkpUX',
-          amount: razorpay_order.amount,
-          currency: razorpay_order.currency,
-          name: 'Zilla Booking',
-          description: `Booking for ${service?.name || 'Service'}`,
-          order_id: razorpay_order.id,
+          key: payment_order.key_id || import.meta.env.VITE_RAZORPAY_KEY_ID,
+          amount: payment_order.amount,
+          currency: payment_order.currency,
+          name: 'ZILLA',
+          description: `Premium Booking: ${service?.name || 'Appointment'}`,
+          image: '/zilla_logo.png', // Ensure this exists in public folder
+          order_id: payment_order.id,
           handler: async (response) => {
             try {
               setIsLoading(true);
@@ -169,149 +195,162 @@ const BookingWizard = () => {
             email: bookingData.userDetails.email,
             contact: bookingData.userDetails.phone
           },
-          theme: { color: '#000000' }
+          notes: {
+             service_id: serviceId,
+             customer_id: bookingData.userDetails.email
+          },
+          theme: { 
+            color: '#875A7B', // Primary brand color
+            backdrop_color: '#fafafa'
+          },
+          modal: {
+            ondismiss: () => {
+              setIsLoading(false);
+              setError('Payment process was interrupted.');
+            },
+            escape: true,
+            confirm_close: true
+          },
+          retry: {
+            enabled: true,
+            max_count: 3
+          }
         };
 
         const rzp = new window.Razorpay(options);
         rzp.on('payment.failed', (response) => {
           setError(`Payment failed: ${response.error.description}`);
+          setIsLoading(false);
         });
         rzp.open();
-        setIsLoading(false);
         return; // Wait for handler
       }
-
-      // 3. If no payment, create booking directly
-      const res = await bookingService.createBooking({
-        ...bookingData,
-        serviceId,
-        startTime: bookingData.time,
-      });
-      
-      navigate('/confirmation', {
-        state: {
-          booking: {
-            ...res.data,
-            serviceName: service?.name || service?.title,
-            date: bookingData.date,
-            time: bookingData.time,
-            userDetails: bookingData.userDetails,
+  
+        // 3. If no payment, create booking directly
+        const res = await bookingService.createBooking({
+          ...bookingData,
+          serviceId,
+          startTime: bookingData.time,
+        });
+        
+        navigate('/confirmation', {
+          state: {
+            booking: {
+              ...res.data,
+              serviceName: service?.name || service?.title,
+              date: bookingData.date,
+              time: bookingData.time,
+              userDetails: bookingData.userDetails,
+            }
           }
-        }
+        });
+      } catch (err) {
+        setError(err.response?.data?.error?.message || 'Failed to confirm booking');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+  
+    // --- Calendar Helpers ---
+    const renderCalendar = () => {
+      const monthStart = startOfMonth(currentMonth);
+      const monthEnd = endOfMonth(monthStart);
+      const startDate = startOfWeek(monthStart);
+      const endDate = endOfWeek(monthEnd);
+  
+      const calendarDays = eachDayOfInterval({
+        start: startDate,
+        end: endDate
       });
-    } catch (err) {
-      setError(err.response?.data?.error?.message || 'Failed to confirm booking');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // --- Calendar Helpers ---
-  const renderCalendar = () => {
-    const monthStart = startOfMonth(currentMonth);
-    const monthEnd = endOfMonth(monthStart);
-    const startDate = startOfWeek(monthStart);
-    const endDate = endOfWeek(monthEnd);
-
-    const dateFormat = "d";
-    const rows = [];
-    let days = [];
-    let day = startDate;
-    let formattedDate = "";
-
-    const calendarDays = eachDayOfInterval({
-      start: startDate,
-      end: endDate
-    });
-
-    const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-
-    return (
-      <div className="w-full">
-        {/* Calendar Header */}
-        <div className="flex items-center justify-between mb-8">
-          <button 
-            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-          >
-            <ChevronLeft className="w-5 h-5 text-gray-400" />
-          </button>
-          <span className="text-lg font-bold text-gray-800">
-            {format(currentMonth, 'MMMM yyyy')}
-          </span>
-          <button 
-            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
-            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
-          >
-            <ChevronRight className="w-5 h-5 text-gray-400" />
-          </button>
-        </div>
-
-        {/* Days of Week */}
-        <div className="grid grid-cols-7 mb-4">
-          {daysOfWeek.map(d => (
-            <div key={d} className="text-center text-xs font-bold text-gray-400 uppercase">
-              {d}
-            </div>
-          ))}
-        </div>
-
-        {/* Days Grid */}
-        <div className="grid grid-cols-7 gap-1">
-          {calendarDays.map((date, i) => {
-            const isCurrentMonth = isSameMonth(date, monthStart);
-            const isSelected = isSameDay(date, new Date(bookingData.date));
-            const isDisabled = isPast(date) && !isToday(date);
-
-            return (
-              <button
-                key={i}
-                disabled={isDisabled}
-                onClick={() => setBookingData(prev => ({ ...prev, date: format(date, 'yyyy-MM-dd') }))}
-                className={`aspect-square flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 ${
-                  !isCurrentMonth ? 'text-gray-200' :
-                  isSelected ? 'bg-black text-white' :
-                  isDisabled ? 'text-gray-200 opacity-40 cursor-not-allowed' :
-                  'text-gray-700 hover:bg-gray-100'
-                }`}
-              >
-                {format(date, 'd')}
-              </button>
-            );
-          })}
-        </div>
-      </div>
-    );
-  };
-
-  const renderUnifiedSelection = () => {
-    return (
-      <div className="flex flex-col gap-10">
-        {resources.length > 0 && (
-          <div>
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">With</h3>
-            <div className="flex flex-wrap gap-4">
-              {resources.map(r => (
-                <button
-                  key={r.id}
-                  onClick={() => setBookingData(prev => ({ ...prev, resourceId: r.id }))}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-xl border-2 transition-all duration-200 ${
-                    bookingData.resourceId === r.id
-                      ? 'border-primary bg-primary/5 text-primary'
-                    : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
-                }`}
-                >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                  bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
-                }`}>
-                  {r.name.split(' ').map(n => n[0]).join('')}
-                </div>
-                <span className="font-bold">{r.name}</span>
-              </button>
-            ))}
-            </div>
+  
+      const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+  
+      return (
+        <div className="w-full">
+          {/* Calendar Header */}
+          <div className="flex items-center justify-between mb-8">
+            <button 
+              onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              <ChevronLeft className="w-5 h-5 text-gray-400" />
+            </button>
+            <span className="text-lg font-bold text-gray-800">
+              {format(currentMonth, 'MMMM yyyy')}
+            </span>
+            <button 
+              onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+              className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+            >
+              <ChevronRight className="w-5 h-5 text-gray-400" />
+            </button>
           </div>
-        )}
+  
+          {/* Days of Week */}
+          <div className="grid grid-cols-7 mb-4">
+            {daysOfWeek.map((d, idx) => (
+              <div key={idx} className="text-center text-xs font-bold text-gray-400 uppercase">
+                {d}
+              </div>
+            ))}
+          </div>
+  
+          {/* Days Grid */}
+          <div className="grid grid-cols-7 gap-1">
+            {calendarDays.map((date, i) => {
+              const isCurrentMonth = isSameMonth(date, monthStart);
+              const isSelected = isSameDay(date, new Date(bookingData.date));
+              const isDisabled = (isPast(date) && !isToday(date));
+  
+              return (
+                <button
+                  key={i}
+                  disabled={isDisabled}
+                  onClick={() => setBookingData(prev => ({ ...prev, date: format(date, 'yyyy-MM-dd') }))}
+                  className={`aspect-square flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 ${
+                    !isCurrentMonth ? 'text-gray-200' :
+                    isSelected ? 'bg-black text-white' :
+                    isDisabled ? 'text-gray-200 opacity-40 cursor-not-allowed' :
+                    'text-gray-700 hover:bg-gray-100'
+                  }`}
+                >
+                  {format(date, 'd')}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      );
+    };
+  
+    const renderUnifiedSelection = () => {
+      return (
+        <div className="flex flex-col gap-10">
+          {resources.length > 0 && (
+            <div>
+              <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">With</h3>
+              <div className="flex flex-wrap gap-4">
+                {resources.map(r => (
+                  <button
+                    key={r.id}
+                    onClick={() => setBookingData(prev => ({ ...prev, resourceId: r.id }))}
+                    className={`flex items-center gap-3 px-4 py-2 rounded-xl border-2 transition-all duration-200 ${
+                      bookingData.resourceId === r.id
+                        ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
+                  }`}
+                  >
+                  <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
+                    bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    {(r.name || 'Staff').split(' ').map(n => n[0]).join('')}
+                  </div>
+                  <span className="font-bold">{r.name}</span>
+                </button>
+              ))}
+              </div>
+            </div>
+          )}
 
         {/* Section: Main Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
@@ -460,7 +499,7 @@ const BookingWizard = () => {
                 disabled={!bookingData.userDetails.name || !bookingData.userDetails.email}
                 className="px-20 py-5 text-xl min-w-[300px] rounded-2xl shadow-2xl shadow-primary/30"
               >
-                {service?.price > 0 ? 'Proceed to payment' : 'Confirm Appointment'}
+                {Number(service?.price) > 0 ? 'Proceed to payment' : 'Confirm Appointment'}
               </Button>
               <button 
                 onClick={() => setStep(1)}
@@ -473,73 +512,103 @@ const BookingWizard = () => {
         );
       case 3:
         return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
-            <div className="lg:col-span-2 space-y-10">
-              <div>
-                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-8">Choose a payment method</h3>
-                <div className="space-y-6">
-                  <div className="space-y-8 p-8 bg-gray-50 rounded-[32px] border border-gray-100">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <input type="radio" name="paymentMethod" defaultChecked className="w-6 h-6 accent-primary" />
-                      <span className="font-black text-xl text-gray-800">Credit / Debit Card</span>
-                    </label>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="md:col-span-2">
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Card Number</label>
-                        <Input placeholder="0000 0000 0000 0000" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Expiry</label>
-                        <Input placeholder="MM / YY" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">CVV</label>
-                        <Input placeholder="•••" />
-                      </div>
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-16">
+              <div className="inline-flex items-center gap-2 px-4 py-2 bg-primary/5 rounded-full text-primary text-[10px] font-black uppercase tracking-widest mb-6 border border-primary/10">
+                <ShieldCheck className="w-4 h-4" />
+                SECURE CHECKOUT
+              </div>
+              <h2 className="text-5xl font-black text-gray-800 tracking-tighter mb-4">Complete Booking</h2>
+              <p className="text-gray-500 font-medium text-lg">Finalize your premium appointment with Zilla.</p>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-10 items-stretch">
+              {/* Service Details Card */}
+              <div className="bg-[#fcfcfc] rounded-[50px] p-12 border border-gray-100 flex flex-col relative overflow-hidden group shadow-sm hover:shadow-xl hover:shadow-black/[0.02] transition-all duration-500">
+                <div className="absolute top-0 left-0 w-2 h-full bg-primary opacity-20"></div>
+                
+                <div className="w-24 h-24 bg-primary/10 rounded-[32px] flex items-center justify-center text-primary mb-10 group-hover:scale-110 transition-transform duration-500">
+                  <CreditCard className="w-12 h-12" />
+                </div>
+                
+                <h3 className="text-3xl font-black text-gray-800 mb-3">{service?.name}</h3>
+                <div className="space-y-4 mb-10">
+                  <div className="flex items-center gap-3 text-gray-500 font-bold">
+                    <Calendar className="w-5 h-5 text-primary" />
+                    {format(new Date(bookingData.date), 'MMMM do, yyyy')}
+                  </div>
+                  <div className="flex items-center gap-3 text-gray-500 font-bold">
+                    <Clock className="w-5 h-5 text-primary" />
+                    {format(new Date(bookingData.time), 'hh:mm a')}
+                  </div>
+                </div>
+
+                <div className="mt-auto pt-8 border-t border-gray-100 flex items-center gap-3">
+                   <div className="flex -space-x-3">
+                      {[1,2,3].map(i => (
+                        <div key={i} className="w-8 h-8 rounded-full bg-gray-200 border-2 border-white flex items-center justify-center text-[10px] font-black text-gray-400">
+                           {String.fromCharCode(64 + i)}
+                        </div>
+                      ))}
+                   </div>
+                   <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Verified Merchant</span>
+                </div>
+              </div>
+
+              {/* Order Summary Card */}
+              <div className="bg-white rounded-[50px] p-12 border border-gray-100 shadow-[0_32px_64px_-16px_rgba(0,0,0,0.06)] flex flex-col relative">
+                <h4 className="text-xs font-black text-gray-400 uppercase tracking-[0.3em] mb-10">Order Summary</h4>
+                
+                <div className="space-y-8 flex-1">
+                  <div className="flex justify-between items-center group/item">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover/item:text-primary transition-colors">
+                          <Tag className="w-4 h-4" />
+                       </div>
+                       <span className="text-gray-500 font-bold">Base Service</span>
+                    </div>
+                    <span className="font-black text-gray-800 text-lg">₹{service?.price}</span>
+                  </div>
+                  
+                  <div className="flex justify-between items-center group/item">
+                    <div className="flex items-center gap-3">
+                       <div className="w-10 h-10 rounded-xl bg-gray-50 flex items-center justify-center text-gray-400 group-hover/item:text-primary transition-colors">
+                          <Zap className="w-4 h-4" />
+                       </div>
+                       <span className="text-gray-500 font-bold">Platform Fee</span>
+                    </div>
+                    <span className="font-black text-gray-800 text-lg">₹40</span>
+                  </div>
+
+                  <div className="pt-10 mt-10 border-t-2 border-dashed border-gray-100 flex justify-between items-end">
+                    <div>
+                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest block mb-2">Grand Total</span>
+                       <span className="text-5xl font-black text-gray-800 tracking-tighter">₹{Number(service?.price || 0) + 40}</span>
+                    </div>
+                    <div className="text-primary animate-bounce">
+                       <ArrowRight className="w-8 h-8" />
                     </div>
                   </div>
                 </div>
-              </div>
 
-              <div className="pt-6">
-                <button 
-                  onClick={() => setStep(2)}
-                  className="text-gray-400 hover:text-primary font-bold uppercase tracking-widest text-xs"
+                <Button 
+                  isLoading={isLoading}
+                  onClick={submitBooking}
+                  className="w-full py-7 text-2xl font-black rounded-3xl shadow-2xl shadow-primary/40 mt-12 transform hover:scale-[1.02] active:scale-95 transition-all"
                 >
-                  ← Go back to details
-                </button>
+                  Confirm & Pay Now
+                </Button>
               </div>
             </div>
 
-            <div>
-              <Card className="p-10 sticky top-8 bg-white border border-gray-100 rounded-[40px] shadow-2xl shadow-black/5">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8 text-center">Summary</h3>
-                
-                <div className="space-y-6 mb-10">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-bold">{service?.name || service?.title}</span>
-                    <span className="font-black text-gray-800">₹{service?.price}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-400">Convenience Fee</span>
-                    <span className="font-bold text-gray-800">₹40</span>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-gray-100 mb-10 flex justify-between items-center">
-                  <span className="text-2xl font-black text-gray-800">Total</span>
-                  <span className="text-3xl font-black text-primary">₹{Number(service?.price || 0) + 40}</span>
-                </div>
-
-                <Button 
-                  isLoading={isLoading} 
-                  onClick={submitBooking}
-                  className="w-full py-5 text-xl rounded-2xl shadow-2xl shadow-primary/30"
-                >
-                  Pay & Confirm
-                </Button>
-              </Card>
+            <div className="mt-12 text-center">
+              <button 
+                onClick={() => setStep(2)}
+                className="text-gray-400 hover:text-primary font-bold uppercase tracking-widest text-xs transition-all flex items-center gap-2 mx-auto"
+              >
+                <ChevronLeft className="w-4 h-4" />
+                Back to details
+              </button>
             </div>
           </div>
         );
@@ -549,34 +618,63 @@ const BookingWizard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 py-12 px-4 font-['Inter',sans-serif]">
-      <div className="max-w-6xl mx-auto">
-        <header className="flex items-center justify-between mb-12">
+    <div className="min-h-screen bg-[#fafafa] py-12 px-4 font-['Inter',sans-serif] relative overflow-hidden">
+      {/* Cinematic Background Decorations */}
+      <div className="absolute top-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 rounded-full blur-[120px] animate-pulse"></div>
+      <div className="absolute bottom-[-10%] left-[-10%] w-[30%] h-[30%] bg-blue-500/5 rounded-full blur-[100px]"></div>
+
+      <div className="max-w-6xl mx-auto relative z-10">
+        {/* Floating Glass Header */}
+        <header className="flex items-center justify-between mb-16 px-8 py-6 bg-white/50 backdrop-blur-2xl border border-white/20 rounded-[32px] shadow-2xl shadow-black/5">
           <button 
             onClick={() => navigate('/dashboard')}
-            className="flex items-center gap-2 text-gray-400 hover:text-primary font-bold uppercase tracking-widest text-xs transition-colors"
+            className="group flex items-center gap-3 text-gray-400 hover:text-primary font-black uppercase tracking-[0.2em] text-[10px] transition-all"
           >
-            <ChevronLeft className="w-5 h-5" />
-            Back to Dashboard
+            <div className="w-8 h-8 rounded-xl bg-gray-50 flex items-center justify-center group-hover:bg-primary/10 group-hover:scale-110 transition-all">
+              <ChevronLeft className="w-4 h-4" />
+            </div>
+            Back
           </button>
 
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-6">
             {[1, 2, 3].filter(s => s < 3 || service?.price > 0).map((s) => (
-              <div key={s} className={`w-3 h-3 rounded-full transition-all duration-500 ${
-                step === s ? 'bg-primary w-8' : 
-                step > s ? 'bg-green-500' : 'bg-gray-200'
-              }`} />
+              <div key={s} className="flex items-center gap-3">
+                <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs transition-all duration-500 ${
+                  step === s ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' : 
+                  step > s ? 'bg-green-500 text-white' : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {step > s ? <CheckCircle className="w-4 h-4" /> : s}
+                </div>
+                {s < (service?.price > 0 ? 3 : 2) && (
+                  <div className={`w-12 h-1 rounded-full transition-all duration-700 ${
+                    step > s ? 'bg-green-200' : 'bg-gray-100'
+                  }`} />
+                )}
+              </div>
             ))}
+          </div>
+
+          <div className="hidden md:flex items-center gap-4 text-right">
+             <div className="text-[10px] font-black text-gray-400 uppercase tracking-widest leading-none">Booking For</div>
+             <div className="text-sm font-bold text-gray-800 leading-none">{service?.name || 'Loading...'}</div>
           </div>
         </header>
 
-        <div className="bg-white rounded-[48px] p-12 lg:p-20 shadow-2xl shadow-black/5 border border-gray-100 relative overflow-hidden">
-          {/* Decorative Background Element */}
-          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
-          
-          <ErrorMessage message={error} />
-          {renderStep()}
-        </div>
+        <main className="relative">
+          <div className="bg-white rounded-[60px] p-12 lg:p-24 shadow-2xl shadow-black/[0.03] border border-white relative overflow-hidden transition-all duration-500 min-h-[600px] flex flex-col">
+            {/* Glossy Overlay */}
+            <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/20 to-transparent"></div>
+            
+            <div className="flex-1">
+              <ErrorMessage message={error} />
+              {renderStep()}
+            </div>
+          </div>
+        </main>
+
+        <footer className="mt-12 text-center">
+           <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.4em]">Zilla © 2026 — Secure Slot Booking Engine</p>
+        </footer>
       </div>
     </div>
   );
