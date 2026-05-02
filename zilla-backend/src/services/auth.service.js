@@ -309,24 +309,38 @@ const resetPassword = async ({ email, otp, new_password }) => {
 };
 
 /**
- * Google Login — verify ID token, find/create user, issue tokens.
+ * Google Login — verify ID token or use provided info, find/create user, issue tokens.
  */
-const googleLogin = async (idToken) => {
-  const { OAuth2Client } = require('google-auth-library');
-  const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+const googleLogin = async (data) => {
+  let email, name, picture, google_id;
 
-  let ticket;
-  try {
-    ticket = await client.verifyIdToken({
-      idToken,
-      audience: env.GOOGLE_CLIENT_ID,
-    });
-  } catch (err) {
-    throw new AppError('Invalid Google token.', 401, 'INVALID_GOOGLE_TOKEN');
+  if (typeof data === 'string') {
+    // Treat as idToken
+    const { OAuth2Client } = require('google-auth-library');
+    const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
+
+    let ticket;
+    try {
+      ticket = await client.verifyIdToken({
+        idToken: data,
+        audience: env.GOOGLE_CLIENT_ID,
+      });
+    } catch (err) {
+      throw new AppError('Invalid Google token.', 401, 'INVALID_GOOGLE_TOKEN');
+    }
+
+    const payload = ticket.getPayload();
+    email = payload.email;
+    name = payload.name;
+    picture = payload.picture;
+    google_id = payload.sub;
+  } else {
+    // Treat as user info object (from redirect flow)
+    email = data.email;
+    name = data.full_name;
+    picture = data.picture;
+    google_id = data.google_id;
   }
-
-  const payload = ticket.getPayload();
-  const { email, name, picture, sub: google_id } = payload;
 
   // Check if user exists
   let result = await query(
