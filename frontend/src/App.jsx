@@ -8,6 +8,7 @@ import AuthLayout from './pages/auth/AuthLayout';
 import LandingPage from './pages/LandingPage';
 import LoginPage from './pages/auth/LoginPage';
 import SignupPage from './pages/auth/SignupPage';
+import GoogleCallback from './pages/auth/GoogleCallback';
 
 // Customer Pages
 import CustomerDashboard from './pages/customer/CustomerDashboard';
@@ -36,6 +37,7 @@ function App() {
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
+          <Route path="/auth/callback" element={<GoogleCallback />} />
         </Route>
 
         {/* Protected Customer Routes */}

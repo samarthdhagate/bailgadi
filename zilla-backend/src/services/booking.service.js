@@ -1,15 +1,11 @@
-/**
- * Booking service — slot locking, atomic booking creation, and booking management.
- * Implements the two-layer concurrency model: Redis lock + DB transaction.
- */
-
 const crypto = require('crypto');
 const { query, pool } = require('../config/db');
-const { redisSetNX, redisGet, redisDel, redisAvailable } = require('../config/redis');
+const { redisSetNX, redisGet, redisDel, isRedisAvailable, redisEnabled } = require('../config/redis');
 const { env } = require('../config/env');
-const { intervalsOverlap, countOverlapping } = require('../utils/overlap');
+const { countOverlapping } = require('../utils/overlap');
 const { AppError } = require('../middleware/error.middleware');
 const notificationService = require('./notification.service');
+const { createRazorpayOrder, verifyRazorpaySignature } = require('./payment.service');
 
 const LOCK_TTL_SECONDS = 600; // 10 minutes
 
@@ -20,20 +16,25 @@ const generateConfirmationCode = () => {
   return crypto.randomBytes(4).toString('hex').toUpperCase();
 };
 
+
 /**
  * Lock a slot via Redis.
  * Key pattern: slot:{provider_id}:{start_time_iso}
- * SET key user_id NX EX 600
  *
  * @param {string} user_id
  * @param {string} service_id
  * @param {string} start_time - ISO string
- * @returns {{ locked: boolean, expires_in: number }}
+ * @returns {{ locked: boolean, expires_in: number, payment_order?: object }}
  */
 const lockSlot = async (user_id, service_id, start_time) => {
-  // Fetch service to get provider_id
+  // Log if Redis is expected but unavailable, but don't block the user.
+  if (redisEnabled && !isRedisAvailable()) {
+    console.warn('⚠️  Redis lock skipped: Connection unavailable. Falling back to DB-only check.');
+  }
+
+  // Fetch service to get provider_id and price
   const serviceResult = await query(
-    'SELECT provider_id, duration_min, capacity FROM services WHERE id = $1',
+    'SELECT provider_id, duration_min, capacity, price, name, advance_payment FROM services WHERE id = $1',
     [service_id]
   );
 
@@ -41,7 +42,7 @@ const lockSlot = async (user_id, service_id, start_time) => {
     throw new AppError('Service not found.', 404, 'SERVICE_NOT_FOUND');
   }
 
-  const { provider_id, duration_min, capacity } = serviceResult.rows[0];
+  const { provider_id, duration_min, capacity, price, name, advance_payment } = serviceResult.rows[0];
 
   // Validate slot is in the future
   const slotStart = new Date(start_time);
@@ -49,6 +50,7 @@ const lockSlot = async (user_id, service_id, start_time) => {
     throw new AppError('Cannot lock a slot in the past.', 400, 'SLOT_IN_PAST');
   }
 
+  const slotStartIso = slotStart.toISOString();
   const slotEnd = new Date(slotStart.getTime() + duration_min * 60 * 1000);
 
   // Quick DB check: fetch all bookings for the day and check overlaps
@@ -59,7 +61,7 @@ const lockSlot = async (user_id, service_id, start_time) => {
 
   const bookingsResult = await query(
     `SELECT start_time, end_time FROM bookings
-     WHERE provider_id = $1 AND status = 'booked'
+     WHERE provider_id = $1 AND status IN ('booked', 'confirmed')
        AND start_time >= $2 AND start_time < $3`,
     [provider_id, dayStart.toISOString(), dayEnd.toISOString()]
   );
@@ -70,25 +72,122 @@ const lockSlot = async (user_id, service_id, start_time) => {
     throw new AppError('This slot is fully booked.', 409, 'SLOT_FULL');
   }
 
-  // Attempt Redis lock
-  const lockKey = `slot:${provider_id}:${start_time}`;
-  const result = await redisSetNX(lockKey, user_id, LOCK_TTL_SECONDS);
+  // Attempt Redis lock only if available
+  if (isRedisAvailable()) {
+    const lockKey = `slot:${provider_id}:${slotStartIso}`;
+    const result = await redisSetNX(lockKey, user_id, LOCK_TTL_SECONDS);
 
-  if (result === null || result === 0) {
-    // Check if current user already holds the lock
-    const currentHolder = await redisGet(lockKey);
-    if (currentHolder === user_id) {
-      return { locked: true, expires_in: LOCK_TTL_SECONDS, message: 'You already hold this lock.' };
+    if (result === null || result === 0) {
+      const currentHolder = await redisGet(lockKey);
+      if (currentHolder !== user_id) {
+        throw new AppError('This slot is currently held by another user.', 409, 'SLOT_LOCKED');
+      }
     }
-
-    throw new AppError(
-      'This slot is currently held by another user. Try again in a moment.',
-      409,
-      'SLOT_LOCKED'
-    );
   }
 
-  return { locked: true, expires_in: LOCK_TTL_SECONDS };
+  let response = { locked: true, expires_in: LOCK_TTL_SECONDS };
+
+  // If service requires payment, create Razorpay order
+  if (advance_payment && price > 0) {
+    const amountInPaise = Math.round(price * 100);
+    const order = await createRazorpayOrder(amountInPaise, `receipt_${Date.now()}`);
+    
+    // Store pending payment in DB
+    await query(
+      `INSERT INTO payments (razorpay_order_id, amount, currency, status)
+       VALUES ($1, $2, $3, $4)`,
+      [order.id, price, 'INR', 'pending']
+    );
+
+    response.payment_order = {
+      id: order.id,
+      amount: order.amount,
+      currency: order.currency,
+      key_id: env.RAZORPAY_KEY_ID
+    };
+  }
+
+  return response;
+};
+
+/**
+ * Verify payment and confirm booking atomically.
+ */
+const verifyAndConfirmBooking = async (user_id, paymentData) => {
+  const { razorpay_order_id, razorpay_payment_id, razorpay_signature, booking_details } = paymentData;
+  const { service_id, start_time } = booking_details;
+
+  // 1. Verify Signature
+  const isValid = verifyRazorpaySignature(razorpay_order_id, razorpay_payment_id, razorpay_signature);
+  if (!isValid) {
+    throw new AppError('Payment verification failed. Invalid signature.', 400, 'PAYMENT_VERIFICATION_FAILED');
+  }
+
+  // 2. Start Transaction
+  const dbClient = await pool.connect();
+  try {
+    await dbClient.query('BEGIN');
+
+    // 3. Double check Redis Lock (only if Redis is available)
+    const serviceRes = await dbClient.query('SELECT provider_id, duration_min, capacity, name FROM services WHERE id = $1', [service_id]);
+    const { provider_id, duration_min, capacity } = serviceRes.rows[0];
+    const lockKey = `slot:${provider_id}:${new Date(start_time).toISOString()}`;
+    
+    if (isRedisAvailable()) {
+      const holder = await redisGet(lockKey);
+      if (holder && holder !== user_id) {
+        throw new AppError('Booking session expired or slot taken. Please try again.', 409, 'SESSION_EXPIRED');
+      }
+    }
+
+    // 4. Final capacity check inside transaction
+    const slotStart = new Date(start_time);
+    const slotEnd = new Date(slotStart.getTime() + duration_min * 60 * 1000);
+    
+    const bookingsResult = await dbClient.query(
+      `SELECT start_time, end_time FROM bookings
+       WHERE provider_id = $1 AND status IN ('booked', 'confirmed')
+         AND start_time >= $2 AND start_time < $3
+       FOR UPDATE`, // Lock rows for consistency
+      [provider_id, slotStart.toISOString(), slotEnd.toISOString()]
+    );
+
+    const overlapCount = countOverlapping(slotStart.toISOString(), slotEnd.toISOString(), bookingsResult.rows);
+    if (overlapCount >= capacity) {
+      throw new AppError('Capacity reached while processing payment.', 409, 'SLOT_FULL');
+    }
+
+    // 5. Create Booking
+    const confirmationCode = generateConfirmationCode();
+    const bookingRes = await dbClient.query(
+      `INSERT INTO bookings (user_id, provider_id, service_id, start_time, end_time, status, confirmation_code)
+       VALUES ($1, $2, $3, $4, $5, $6, $7)
+       RETURNING id`,
+      [user_id, provider_id, service_id, slotStart.toISOString(), slotEnd.toISOString(), 'confirmed', confirmationCode]
+    );
+
+    const bookingId = bookingRes.rows[0].id;
+
+    // 6. Update Payment Record
+    await dbClient.query(
+      `UPDATE payments 
+       SET booking_id = $1, razorpay_payment_id = $2, razorpay_signature = $3, status = $4
+       WHERE razorpay_order_id = $5`,
+      [bookingId, razorpay_payment_id, razorpay_signature, 'success', razorpay_order_id]
+    );
+
+    await dbClient.query('COMMIT');
+
+    // 7. Release Redis Lock
+    await redisDel(lockKey);
+
+    return { success: true, booking_id: bookingId, confirmation_code: confirmationCode };
+  } catch (err) {
+    await dbClient.query('ROLLBACK');
+    throw err;
+  } finally {
+    dbClient.release();
+  }
 };
 
 /**
@@ -124,6 +223,7 @@ const createBooking = async (user_id, service_id, start_time, notes) => {
   const { provider_id, duration_min, capacity, manual_confirmation, advance_payment } = service;
 
   const slotStart = new Date(start_time);
+  const slotStartIso = slotStart.toISOString();
   const slotEnd = new Date(slotStart.getTime() + duration_min * 60 * 1000);
 
   // Validate future time
@@ -131,26 +231,21 @@ const createBooking = async (user_id, service_id, start_time, notes) => {
     throw new AppError('Cannot book a slot in the past.', 400, 'SLOT_IN_PAST');
   }
 
-  // 2. Verify Redis lock only when Redis is available.
-  // If Redis is unavailable, DB transaction remains the final concurrency guard.
-  const lockKey = `slot:${provider_id}:${start_time}`;
-  if (redisAvailable) {
+  // 2. Verify Redis lock (only if available).
+  const lockKey = `slot:${provider_id}:${slotStartIso}`;
+  if (isRedisAvailable()) {
     const lockHolder = await redisGet(lockKey);
 
     if (!lockHolder) {
       throw new AppError(
-        'No active lock found. Your lock may have expired. Please re-lock the slot.',
+        'No active lock found. Your session may have expired. Please re-select the slot.',
         410,
         'LOCK_EXPIRED'
       );
     }
 
     if (lockHolder !== user_id) {
-      throw new AppError(
-        'This slot is locked by another user.',
-        409,
-        'SLOT_LOCKED'
-      );
+      throw new AppError('This slot is locked by another user.', 409, 'SLOT_LOCKED');
     }
   }
 
@@ -178,9 +273,10 @@ const createBooking = async (user_id, service_id, start_time, notes) => {
       [provider_id, dayStart.toISOString(), dayEnd.toISOString()]
     );
 
-    // 5. Re-run overlap check
-    const bookedConflicts = conflictResult.rows.filter((r) => r.status === 'booked');
-    const overlapCount = countOverlapping(slotStart.toISOString(), slotEnd.toISOString(), bookedConflicts);
+    // 5. Re-run overlap check.
+    // Treat pending bookings as capacity-consuming so we can’t overbook during payment/manual confirmation.
+    const capacityConsuming = conflictResult.rows.filter((r) => r.status === 'booked' || r.status === 'pending');
+    const overlapCount = countOverlapping(slotStartIso, slotEnd.toISOString(), capacityConsuming);
 
     // 6. Capacity check
     if (overlapCount >= capacity) {
@@ -207,7 +303,7 @@ const createBooking = async (user_id, service_id, start_time, notes) => {
       `INSERT INTO bookings (user_id, provider_id, service_id, start_time, end_time, status, confirmation_code, notes)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
        RETURNING *`,
-      [user_id, provider_id, service_id, slotStart.toISOString(), slotEnd.toISOString(), initialStatus, confirmation_code, notes]
+      [user_id, provider_id, service_id, slotStartIso, slotEnd.toISOString(), initialStatus, confirmation_code, notes]
     );
 
     // 9. COMMIT

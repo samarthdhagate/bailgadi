@@ -6,7 +6,7 @@
 const { query } = require('../config/db');
 const { generateSlots } = require('../utils/slotGenerator');
 const { countOverlapping } = require('../utils/overlap');
-const { redisGet } = require('../config/redis');
+const { redisMGet } = require('../config/redis');
 const { AppError } = require('../middleware/error.middleware');
 
 /**
@@ -59,13 +59,21 @@ const getAvailableSlots = async (service_id, date) => {
   );
 
   const existingBookings = bookingsResult.rows;
-  const bookedBookings = existingBookings.filter((b) => b.status === 'booked');
+  // Pending bookings should reduce availability (they already reserved capacity).
+  const capacityConsumingBookings = existingBookings.filter(
+    (b) => b.status === 'booked' || b.status === 'pending'
+  );
 
   // 4. Filter slots
   const now = new Date();
   const availableSlots = [];
 
-  for (const slot of allSlots) {
+  // Batch-fetch Redis lock holders for all slots (fast path, avoids N Redis roundtrips)
+  const lockKeys = allSlots.map((slot) => `slot:${provider_id}:${slot.start_time}`);
+  const lockHolders = await redisMGet(lockKeys);
+
+  for (let i = 0; i < allSlots.length; i++) {
+    const slot = allSlots[i];
     const slotStart = new Date(slot.start_time);
     const slotEnd = new Date(slot.end_time);
 
@@ -75,7 +83,7 @@ const getAvailableSlots = async (service_id, date) => {
     }
 
     // Filter (a): Overlapping booked booking exists
-    const overlapCount = countOverlapping(slot.start_time, slot.end_time, bookedBookings);
+    const overlapCount = countOverlapping(slot.start_time, slot.end_time, capacityConsumingBookings);
 
     // Filter (c): Booking count >= capacity
     if (overlapCount >= capacity) {
@@ -83,8 +91,7 @@ const getAvailableSlots = async (service_id, date) => {
     }
 
     // Filter (b): Redis lock key exists
-    const lockKey = `slot:${provider_id}:${slot.start_time}`;
-    const lockHolder = await redisGet(lockKey);
+    const lockHolder = lockHolders[i];
     if (lockHolder) {
       // Slot is locked, count it toward capacity
       if (overlapCount + 1 >= capacity) {

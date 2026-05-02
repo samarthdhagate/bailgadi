@@ -308,10 +308,66 @@ const resetPassword = async ({ email, otp, new_password }) => {
   return { message: 'Password reset successful. You can now log in with your new password.' };
 };
 
+/**
+ * Google Login — verify Google profile and issue tokens.
+ */
+const googleLogin = async ({ email, full_name, google_id }) => {
+  // Check if user exists by email
+  let result = await query(
+    'SELECT id, full_name, email, role, is_verified, google_id FROM users WHERE email = $1',
+    [email]
+  );
+
+  let user;
+
+  if (result.rows.length === 0) {
+    // Create new user if not exists
+    // Use a random password hash for OAuth users
+    const randomPassword = crypto.randomBytes(16).toString('hex');
+    const password_hash = await bcrypt.hash(randomPassword, SALT_ROUNDS);
+
+    const insertResult = await query(
+      `INSERT INTO users (full_name, email, password_hash, role, google_id, is_verified)
+       VALUES ($1, $2, $3, $4, $5, TRUE)
+       RETURNING id, full_name, email, role`,
+      [full_name, email, password_hash, 'customer', google_id]
+    );
+    user = insertResult.rows[0];
+  } else {
+    user = result.rows[0];
+    
+    // Update google_id if missing or different
+    if (user.google_id !== google_id) {
+      await query('UPDATE users SET google_id = $1, is_verified = TRUE WHERE id = $2', [google_id, user.id]);
+    }
+  }
+
+  // Generate tokens
+  const access_token = generateAccessToken(user.id, user.role);
+  const refresh_token = generateRefreshToken(user.id, user.role);
+
+  // Store hashed refresh token in DB
+  const refresh_hash = await bcrypt.hash(refresh_token, SALT_ROUNDS);
+  await query('UPDATE users SET refresh_token = $1 WHERE id = $2', [refresh_hash, user.id]);
+
+  return {
+    access_token,
+    refresh_token,
+    user: {
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      role: user.role,
+    },
+  };
+};
+
 module.exports = {
+
   signup,
   verifyOTP,
   login,
+  googleLogin,
   refresh,
   logout,
   logoutByRefreshToken,

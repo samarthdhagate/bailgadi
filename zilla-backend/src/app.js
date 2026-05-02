@@ -29,6 +29,11 @@ if (env.NODE_ENV === 'development') {
   allowedOrigins.add('http://127.0.0.1:5173');
   allowedOrigins.add('http://localhost:5174');
   allowedOrigins.add('http://127.0.0.1:5174');
+  allowedOrigins.add('http://localhost:5175');
+  allowedOrigins.add('http://localhost:5176');
+  allowedOrigins.add('http://localhost:5177');
+  allowedOrigins.add('http://localhost:5178');
+  allowedOrigins.add('http://localhost:3000');
 }
 
 app.use(cors({
