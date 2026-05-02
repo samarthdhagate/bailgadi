@@ -66,5 +66,34 @@ export const bookingService = {
   createBooking: async (bookingData) => {
     await new Promise(resolve => setTimeout(resolve, 1500));
     return { data: { id: 'BK-78234', ...bookingData, status: 'confirmed' } };
+<<<<<<< HEAD
+=======
+  },
+
+  getMyBookings: async () => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return {
+      data: [
+        {
+          id: 'BK-78234',
+          serviceName: 'Haircut & Styling',
+          resourceName: 'Dr. John Smith',
+          date: '2026-05-10',
+          time: '11:00 AM',
+          status: 'Confirmed',
+          price: 50
+        },
+        {
+          id: 'BK-78235',
+          serviceName: 'Dental Consultation',
+          resourceName: 'Sarah Wilson',
+          date: '2026-05-15',
+          time: '02:00 PM',
+          status: 'Pending',
+          price: 0
+        }
+      ]
+    };
+>>>>>>> origin/master
   }
 };

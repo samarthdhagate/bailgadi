@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+<<<<<<< HEAD
 import { MapPin, Clock, ArrowRight } from 'lucide-react';
+=======
+import { MapPin, Clock, ArrowRight, Search } from 'lucide-react';
+>>>>>>> origin/master
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -10,8 +14,16 @@ import { bookingService } from '@services/booking';
 
 const CustomerDashboard = () => {
   const [services, setServices] = useState([]);
+<<<<<<< HEAD
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+=======
+  const [filteredServices, setFilteredServices] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [error, setError] = useState('');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [typeFilter, setTypeFilter] = useState('all');
+>>>>>>> origin/master
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -19,6 +31,10 @@ const CustomerDashboard = () => {
       try {
         const response = await bookingService.getServices();
         setServices(response.data);
+<<<<<<< HEAD
+=======
+        setFilteredServices(response.data);
+>>>>>>> origin/master
       } catch (err) {
         setError('Failed to load services. Please try again later.');
       } finally {
@@ -29,6 +45,7 @@ const CustomerDashboard = () => {
     fetchServices();
   }, []);
 
+<<<<<<< HEAD
   return (
     <DashboardLayout title="Available Services">
       {isLoading ? (
@@ -74,6 +91,119 @@ const CustomerDashboard = () => {
           ))}
         </div>
       )}
+=======
+  useEffect(() => {
+    let result = services;
+    if (searchTerm) {
+      result = result.filter(s => 
+        s.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        s.description.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    }
+    if (typeFilter !== 'all') {
+      result = result.filter(s => 
+        typeFilter === 'free' ? s.price === 0 : s.price > 0
+      );
+    }
+    setFilteredServices(result);
+  }, [searchTerm, typeFilter, services]);
+
+  return (
+    <DashboardLayout title="Available Services">
+      <div className="flex flex-col gap-8">
+        {/* Header Controls */}
+        <div className="flex flex-wrap items-center justify-between gap-4">
+          <div className="relative w-full max-w-md">
+            <Search className="w-5 h-5 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
+            <input
+              type="text"
+              placeholder="Search appointments..."
+              className="w-full pl-10 pr-4 py-3 bg-white border border-gray-200 rounded-xl shadow-sm focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <div className="flex flex-col">
+              <label className="text-xs font-bold text-gray-500 uppercase mb-1 ml-1">Type</label>
+              <select 
+                className="bg-white border border-gray-200 px-4 py-3 rounded-xl shadow-sm outline-none focus:ring-2 focus:ring-primary min-w-[150px]"
+                value={typeFilter}
+                onChange={(e) => setTypeFilter(e.target.value)}
+              >
+                <option value="all">All Types</option>
+                <option value="free">Free</option>
+                <option value="paid">Paid</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <h2 className="text-2xl font-bold text-gray-800">Appointments</h2>
+
+        {isLoading ? (
+          <Loader />
+        ) : error ? (
+          <ErrorMessage message={error} />
+        ) : filteredServices.length === 0 ? (
+          <div className="text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-100">
+            <p className="text-gray-400">No appointments found matching your criteria.</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 xl:grid-cols-2 gap-8">
+            {filteredServices.map((service) => (
+              <Card key={service.id} className="p-8 hover:shadow-md transition-shadow group flex flex-col gap-6 cursor-pointer" onClick={() => navigate(`/booking/${service.id}`)}>
+                <div className="flex flex-col md:flex-row gap-8">
+                  {/* Left: Picture */}
+                  <div className="w-full md:w-48 h-48 rounded-2xl overflow-hidden shadow-inner flex-shrink-0 bg-gray-50 border border-gray-100">
+                    <img 
+                      src={service.image} 
+                      alt={service.title} 
+                      className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                    />
+                  </div>
+
+                  {/* Right: Details */}
+                  <div className="flex-1 flex flex-col">
+                    <h3 className="text-2xl font-bold text-gray-800 mb-6">{service.title}</h3>
+                    
+                    <div className="space-y-4">
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Resource/Users</p>
+                        <div className="flex flex-wrap gap-2">
+                          {['Dr. John Smith', 'Sarah Wilson'].map((res, i) => (
+                            <span key={i} className="text-sm font-medium text-gray-700 bg-gray-50 px-3 py-1 rounded-lg border border-gray-100">
+                              {res}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div>
+                        <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-1">Location</p>
+                        <p className="text-gray-700 font-medium flex items-center gap-2">
+                          <MapPin className="w-4 h-4 text-primary" />
+                          {service.location}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Bottom: Introduction Message */}
+                <div className="pt-6 border-t border-gray-50">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Introduction message</p>
+                  <p className="text-gray-600 line-clamp-2">
+                    {service.description}
+                  </p>
+                </div>
+              </Card>
+            ))}
+          </div>
+        )}
+      </div>
+>>>>>>> origin/master
     </DashboardLayout>
   );
 };
