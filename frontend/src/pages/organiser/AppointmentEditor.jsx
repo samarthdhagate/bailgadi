@@ -1,6 +1,6 @@
-import React, { useState, useEffect, useReducer } from 'react';
+import React, { useState, useEffect, useReducer, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, Trash2, Plus, ArrowRight, Save, Eye, Send } from 'lucide-react';
+import { Calendar, Trash2, Plus, ArrowRight, Save, Eye, Send, Upload, X } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -18,18 +18,20 @@ const initialState = {
     image: '',
     questions: [
       { id: 1, label: 'Name', type: 'text', required: true },
-      { id: 2, label: 'Phone', type: 'phone', required: true },
-      { id: 3, label: 'Symptoms', type: 'text', required: false }
+      { id: 2, label: 'Phone', type: 'phone', required: true }
     ],
-    scheduleType: 'weekly', // 'weekly' or 'flexible'
-    availability: [],
+    scheduleType: 'weekly',
+    availability: [
+      { id: Date.now(), day: 'Monday', startTime: '09:00', endTime: '12:00' },
+      { id: Date.now() + 1, day: 'Wednesday', startTime: '14:00', endTime: '17:00' }
+    ],
     manualConfirmation: false,
     capacityLimit: 50,
     paidBooking: false,
     bookingFee: 200,
     createSlotHours: 1,
     cancellationHours: 24,
-    introMessage: 'Schedule your visit today and experience expert dental care brought right to your doorstep.',
+    introMessage: 'Schedule your visit today and experience expert care brought right to your doorstep.',
     confirmMessage: 'Thank you for your trust we look forward to meeting you'
   },
   isLoading: false,
@@ -52,28 +54,34 @@ function reducer(state, action) {
 const AppointmentEditor = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const fileInputRef = useRef(null);
   const [state, dispatch] = useReducer(reducer, initialState);
   const [activeTab, setActiveTab] = useState('schedule');
-  const [isLoading, setIsLoading] = useState(false);
+  const [isPreviewOpen, setIsPreviewOpen] = useState(false);
 
   useEffect(() => {
     if (id && id !== 'new') {
       const fetchService = async () => {
+        dispatch({ type: 'SET_LOADING', value: true });
         try {
           const res = await organiserService.getServices();
           const service = (res.data || []).find(s => String(s.id) === String(id));
           if (service) {
             dispatch({ type: 'SET_DATA', value: {
               title: service.name,
-              duration: service.duration_min ? String(service.duration_min).padStart(2,'0') + ':00' : '00:30',
+              duration: service.duration_min ? String(Math.floor(service.duration_min / 60)).padStart(2,'0') + ':' + String(service.duration_min % 60).padStart(2,'0') : '00:30',
               location: service.location || '',
               description: service.description || '',
               manualConfirmation: service.manual_confirmation || false,
               paidBooking: service.advance_payment || false,
+              image: service.image || '',
+              price: service.price || 0
             }});
           }
         } catch (err) {
           console.error(err);
+        } finally {
+          dispatch({ type: 'SET_LOADING', value: false });
         }
       };
       fetchService();
@@ -81,17 +89,24 @@ const AppointmentEditor = () => {
   }, [id]);
 
   const handleSave = async () => {
-    setIsLoading(true);
+    dispatch({ type: 'SET_LOADING', value: true });
     try {
+      const durationParts = state.formData.duration.split(':');
+      const duration_min = (parseInt(durationParts[0]) * 60) + parseInt(durationParts[1]);
+      
       const payload = {
         name: state.formData.title,
-        duration_min: parseInt(state.formData.duration) || 30,
+        duration_min: duration_min || 30,
         location: state.formData.location,
         description: state.formData.description,
         manual_confirmation: state.formData.manualConfirmation,
         advance_payment: state.formData.paidBooking,
         capacity: 1,
+        price: state.formData.price,
+        image: state.formData.image,
+        questions: state.formData.questions
       };
+
       if (state.isNew) {
         await organiserService.createService(payload);
       } else {
@@ -101,7 +116,7 @@ const AppointmentEditor = () => {
     } catch (err) {
       alert(err.response?.data?.error?.message || 'Failed to save.');
     } finally {
-      setIsLoading(false);
+      dispatch({ type: 'SET_LOADING', value: false });
     }
   };
 
@@ -109,15 +124,53 @@ const AppointmentEditor = () => {
     dispatch({ type: 'UPDATE_FIELD', field, value });
   };
 
+  const handleImageUpload = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        updateField('image', reader.result);
+      };
+      reader.readAsDataURL(file);
+    }
+  };
+
+  const addAvailabilityLine = () => {
+    const newLine = {
+      id: Date.now(),
+      day: 'Monday',
+      startTime: '09:00',
+      endTime: '12:00'
+    };
+    updateField('availability', [...state.formData.availability, newLine]);
+  };
+
+  const removeAvailabilityLine = (id) => {
+    updateField('availability', state.formData.availability.filter(a => a.id !== id));
+  };
+
+  const updateAvailabilityLine = (id, field, value) => {
+    const updated = state.formData.availability.map(a => 
+      a.id === id ? { ...a, [field]: value } : a
+    );
+    updateField('availability', updated);
+  };
+
   return (
     <DashboardLayout title={state.isNew ? "New Appointment" : "Edit Appointment"}>
-      <div className="flex flex-col gap-8">
+      <div className="flex flex-col gap-8 pb-32">
         {/* Header Actions */}
         <div className="flex items-center justify-between border-b border-gray-100 pb-6">
           <div className="flex gap-3">
-            <Button variant="secondary" onClick={() => navigate('/organiser')}>New</Button>
-            <Button variant="secondary">Preview</Button>
-            <Button className="bg-primary text-white">Publish</Button>
+            <Button variant="secondary" onClick={() => navigate('/organiser/editor/new')}>New</Button>
+            <Button variant="secondary" onClick={() => setIsPreviewOpen(true)}>
+              <Eye className="w-4 h-4 mr-2" />
+              Preview
+            </Button>
+            <Button className="bg-primary text-white" onClick={handleSave}>
+              <Send className="w-4 h-4 mr-2" />
+              Publish
+            </Button>
           </div>
           
           <button 
@@ -139,8 +192,8 @@ const AppointmentEditor = () => {
                 type="text"
                 value={state.formData.title}
                 onChange={(e) => updateField('title', e.target.value)}
-                className="text-5xl font-bold text-gray-800 border-none bg-transparent outline-none w-full placeholder:text-gray-200"
-                placeholder="Appointment Title"
+                className="text-5xl font-bold text-gray-800 border-none bg-transparent outline-none w-full placeholder:text-gray-200 tracking-tighter"
+                placeholder="Enter Title..."
               />
             </div>
 
@@ -153,8 +206,9 @@ const AppointmentEditor = () => {
                     value={state.formData.duration}
                     onChange={(e) => updateField('duration', e.target.value)}
                     className="w-16 bg-transparent outline-none font-bold text-gray-700"
+                    placeholder="00:30"
                   />
-                  <span className="text-sm text-gray-400">Hours</span>
+                  <span className="text-sm text-gray-400">HH:MM</span>
                 </div>
               </div>
 
@@ -177,12 +231,43 @@ const AppointmentEditor = () => {
           <div className="w-full lg:w-[450px] space-y-10">
             {/* Picture Upload */}
             <div className="flex justify-end">
-              <div className="w-48 h-48 bg-gray-50 border-2 border-dashed border-gray-100 rounded-[30px] flex flex-col items-center justify-center gap-4 relative group">
-                <span className="text-xs font-bold text-gray-300 uppercase tracking-widest">Picture</span>
-                <div className="flex gap-4 opacity-0 group-hover:opacity-100 transition-opacity absolute bottom-4">
-                  <button className="p-2 bg-white rounded-lg shadow-sm hover:text-primary"><Plus className="w-4 h-4" /></button>
-                  <button className="p-2 bg-white rounded-lg shadow-sm hover:text-red-500"><Trash2 className="w-4 h-4" /></button>
-                </div>
+              <div 
+                onClick={() => state.formData.image ? null : fileInputRef.current.click()}
+                className={`w-48 h-48 bg-gray-50 border-2 border-dashed rounded-[30px] flex flex-col items-center justify-center gap-4 relative group cursor-pointer overflow-hidden transition-all ${
+                  state.formData.image ? 'border-transparent' : 'border-gray-100 hover:border-primary/50'
+                }`}
+              >
+                {state.formData.image ? (
+                  <>
+                    <img src={state.formData.image} alt="Preview" className="w-full h-full object-cover" />
+                    <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); fileInputRef.current.click(); }}
+                        className="p-3 bg-white rounded-xl shadow-lg hover:text-primary transition-all scale-90 hover:scale-100"
+                      >
+                        <Upload className="w-5 h-5" />
+                      </button>
+                      <button 
+                        onClick={(e) => { e.stopPropagation(); updateField('image', ''); }}
+                        className="p-3 bg-white rounded-xl shadow-lg hover:text-red-500 transition-all scale-90 hover:scale-100"
+                      >
+                        <Trash2 className="w-5 h-5" />
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <>
+                    <Upload className="w-8 h-8 text-gray-200 group-hover:text-primary transition-colors" />
+                    <span className="text-xs font-bold text-gray-300 uppercase tracking-widest group-hover:text-primary transition-colors">Upload Picture</span>
+                  </>
+                )}
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  accept="image/*" 
+                  onChange={handleImageUpload} 
+                />
               </div>
             </div>
 
@@ -196,20 +281,6 @@ const AppointmentEditor = () => {
                   <label className="flex items-center gap-2 cursor-pointer font-bold text-sm text-gray-700">
                     <input type="radio" name="bookType" className="accent-primary" /> Resources
                   </label>
-                </div>
-              </div>
-
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-bold text-gray-400 uppercase">User</span>
-                <div className="flex gap-3">
-                  <div className="px-3 py-1 bg-white border border-gray-100 rounded-lg flex items-center gap-2">
-                    <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[10px] font-bold">A1</span>
-                    <span className="text-xs font-bold text-gray-700">User 1</span>
-                  </div>
-                  <div className="px-3 py-1 bg-white border border-gray-100 rounded-lg flex items-center gap-2 opacity-50">
-                    <span className="w-6 h-6 rounded-md bg-gray-100 flex items-center justify-center text-[10px] font-bold">A2</span>
-                    <span className="text-xs font-bold text-gray-700">User 2</span>
-                  </div>
                 </div>
               </div>
 
@@ -229,7 +300,7 @@ const AppointmentEditor = () => {
                 <span className="text-xs font-bold text-gray-400 uppercase">Manage capacity</span>
                 <div className="flex items-center gap-2">
                   <input type="checkbox" className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary" />
-                  <span className="text-xs font-medium text-gray-500">Allow <input type="text" className="w-8 border-b-2 border-gray-200 outline-none text-center bg-transparent" defaultValue="1" /> Simultaneous Appointment(s) per user</span>
+                  <span className="text-xs font-medium text-gray-500">Allow <input type="text" className="w-8 border-b-2 border-gray-200 outline-none text-center bg-transparent" defaultValue="1" /> Simultaneous Appointment(s)</span>
                 </div>
               </div>
             </div>
@@ -243,7 +314,7 @@ const AppointmentEditor = () => {
               <button
                 key={tab}
                 onClick={() => setActiveTab(tab.toLowerCase())}
-                className={`px-8 py-2 rounded-xl font-bold text-sm transition-all ${
+                className={`px-8 py-3 rounded-xl font-bold text-sm transition-all ${
                   activeTab === tab.toLowerCase() ? 'bg-primary/10 text-primary' : 'text-gray-400 hover:bg-gray-50'
                 }`}
               >
@@ -254,70 +325,71 @@ const AppointmentEditor = () => {
 
           <div className="min-h-[400px]">
             {activeTab === 'schedule' && (
-              <div className="space-y-8">
-                <h3 className="text-3xl font-bold text-gray-300 uppercase tracking-tighter">schedule = {state.formData.scheduleType}</h3>
+              <div className="space-y-8 animate-in fade-in duration-300">
+                <h3 className="text-3xl font-bold text-gray-200 uppercase tracking-tighter">schedule = {state.formData.scheduleType}</h3>
                 
-                {state.formData.scheduleType === 'weekly' ? (
-                  <div className="w-full">
-                    <div className="grid grid-cols-4 px-6 py-3 bg-gray-50 rounded-xl text-xs font-black uppercase text-gray-400 tracking-widest mb-4">
-                      <span>Every</span>
-                      <span className="text-right pr-12">From</span>
-                      <span className="text-center"></span>
-                      <span className="text-left pl-12">To</span>
-                    </div>
-
-                    <div className="space-y-2">
-                      {['Monday', 'Monday', 'Tuesday', 'Tuesday', 'Wednesday', 'Wednesday', 'Thursday', 'Thursday', 'Friday', 'Friday'].map((day, i) => (
-                        <div key={i} className="grid grid-cols-4 px-6 py-4 border-b border-gray-100 items-center group hover:bg-gray-50 transition-colors">
-                          <span className="font-bold text-gray-700 italic">{day}</span>
-                          <div className="text-right pr-12">
-                            <input type="text" defaultValue={i % 2 === 0 ? "9:00" : "14:00"} className="bg-transparent text-gray-500 font-medium outline-none text-right w-16" />
-                          </div>
-                          <div className="flex justify-center">
-                            <ArrowRight className="w-10 h-4 text-primary opacity-50" />
-                          </div>
-                          <div className="flex items-center justify-between pl-12">
-                            <input type="text" defaultValue={i % 2 === 0 ? "12:00" : "17:00"} className="bg-transparent text-gray-500 font-medium outline-none w-16" />
-                            <button className="p-1 opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all"><Trash2 className="w-4 h-4" /></button>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
+                <div className="w-full">
+                  <div className="grid grid-cols-4 px-6 py-3 bg-gray-50 rounded-xl text-xs font-black uppercase text-gray-400 tracking-widest mb-4">
+                    <span>Every</span>
+                    <span className="text-right pr-12">From</span>
+                    <span className="text-center"></span>
+                    <span className="text-left pl-12">To</span>
                   </div>
-                ) : (
-                  <div className="space-y-4">
-                    <div className="grid grid-cols-12 px-6 py-3 bg-gray-50 rounded-xl text-xs font-black uppercase text-gray-400 tracking-widest mb-4">
-                      <span className="col-span-11">Slot</span>
-                      <span className="col-span-1"></span>
-                    </div>
-                    {[
-                      { from: 'Dec 12, 11:00 AM', to: 'Dec 15, 12:00 PM' },
-                      { from: 'Dec 01, 11:00 AM', to: 'Dec 01, 06:00 PM' }
-                    ].map((slot, i) => (
-                      <div key={i} className="grid grid-cols-12 px-6 py-4 border-b border-gray-100 items-center group hover:bg-gray-50 transition-colors">
-                        <div className="col-span-11 flex items-center gap-6">
-                          <span className="font-bold text-gray-700 italic">{slot.from}</span>
-                          <ArrowRight className="w-10 h-4 text-primary opacity-50" />
-                          <span className="font-bold text-gray-700 italic">{slot.to}</span>
+
+                  <div className="space-y-2">
+                    {state.formData.availability.map((item) => (
+                      <div key={item.id} className="grid grid-cols-4 px-6 py-4 border-b border-gray-100 items-center group hover:bg-gray-50 transition-colors">
+                        <select 
+                          value={item.day}
+                          onChange={(e) => updateAvailabilityLine(item.id, 'day', e.target.value)}
+                          className="bg-transparent font-bold text-gray-700 italic outline-none cursor-pointer"
+                        >
+                          {['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'].map(d => (
+                            <option key={d} value={d}>{d}</option>
+                          ))}
+                        </select>
+                        <div className="text-right pr-12">
+                          <input 
+                            type="text" 
+                            value={item.startTime} 
+                            onChange={(e) => updateAvailabilityLine(item.id, 'startTime', e.target.value)}
+                            className="bg-transparent text-gray-500 font-bold outline-none text-right w-16 focus:text-primary transition-colors" 
+                          />
                         </div>
-                        <div className="col-span-1 flex justify-end">
-                          <button className="p-1 text-gray-300 hover:text-red-500 transition-colors opacity-0 group-hover:opacity-100">
+                        <div className="flex justify-center">
+                          <ArrowRight className="w-10 h-4 text-primary opacity-30" />
+                        </div>
+                        <div className="flex items-center justify-between pl-12">
+                          <input 
+                            type="text" 
+                            value={item.endTime} 
+                            onChange={(e) => updateAvailabilityLine(item.id, 'endTime', e.target.value)}
+                            className="bg-transparent text-gray-500 font-bold outline-none w-16 focus:text-primary transition-colors" 
+                          />
+                          <button 
+                            onClick={() => removeAvailabilityLine(item.id)}
+                            className="p-2 opacity-0 group-hover:opacity-100 text-gray-300 hover:text-red-500 transition-all hover:bg-red-50 rounded-lg"
+                          >
                             <Trash2 className="w-4 h-4" />
                           </button>
                         </div>
                       </div>
                     ))}
                   </div>
-                )}
+                </div>
                 
-                <button className="mt-6 px-6 py-3 font-bold text-primary hover:bg-primary/5 rounded-xl transition-all italic underline">
+                <button 
+                  onClick={addAvailabilityLine}
+                  className="mt-6 px-6 py-3 font-bold text-primary hover:bg-primary/5 rounded-xl transition-all italic underline flex items-center gap-2"
+                >
+                  <Plus className="w-4 h-4" />
                   Add a Line
                 </button>
               </div>
             )}
             
             {activeTab === 'question' && (
-              <div className="bg-white rounded-[30px] border border-gray-100 p-8">
+              <div className="bg-white rounded-[30px] border border-gray-100 p-8 animate-in fade-in duration-300">
                 <QuestionBuilder 
                   questions={state.formData.questions} 
                   onChange={(qs) => updateField('questions', qs)}
@@ -326,7 +398,7 @@ const AppointmentEditor = () => {
             )}
 
             {activeTab === 'options' && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 py-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-16 py-8 animate-in fade-in duration-300">
                 <div className="space-y-12">
                   <div className="flex items-center gap-6">
                     <span className="w-32 text-xs font-bold text-gray-400 uppercase">Manual confirmation</span>
@@ -335,9 +407,9 @@ const AppointmentEditor = () => {
                         type="checkbox" 
                         checked={state.formData.manualConfirmation}
                         onChange={(e) => updateField('manualConfirmation', e.target.checked)}
-                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary" 
+                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" 
                       />
-                      <span className="text-sm font-bold text-gray-700 italic">Upto <input type="text" className="w-12 border-b-2 border-gray-200 outline-none text-center bg-transparent" defaultValue={state.formData.capacityLimit} />% of capacity</span>
+                      <span className="text-sm font-bold text-gray-700 italic">Wait for my approval</span>
                     </div>
                   </div>
 
@@ -348,14 +420,22 @@ const AppointmentEditor = () => {
                         type="checkbox" 
                         checked={state.formData.paidBooking}
                         onChange={(e) => updateField('paidBooking', e.target.checked)}
-                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary" 
+                        className="w-5 h-5 rounded border-gray-300 text-primary focus:ring-primary cursor-pointer" 
                       />
-                      <span className="text-sm font-bold text-gray-700 italic">Booking Fees (Rs <input type="text" className="w-12 border-b-2 border-gray-200 outline-none text-center bg-transparent" defaultValue={state.formData.bookingFee} /> Per booking)</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-bold text-gray-700 italic">Booking Fee: Rs</span>
+                        <input 
+                          type="text" 
+                          value={state.formData.price}
+                          onChange={(e) => updateField('price', parseInt(e.target.value) || 0)}
+                          className="w-16 border-b-2 border-gray-200 outline-none text-center bg-transparent font-bold text-primary" 
+                        />
+                      </div>
                     </div>
                   </div>
 
                   <div className="flex items-center gap-6">
-                    <span className="w-32 text-xs font-bold text-gray-400 uppercase">Schedule</span>
+                    <span className="w-32 text-xs font-bold text-gray-400 uppercase">Schedule Mode</span>
                     <div className="flex gap-6">
                       <label className="flex items-center gap-3 cursor-pointer group">
                         <input 
@@ -383,10 +463,15 @@ const AppointmentEditor = () => {
 
                 <div className="space-y-12">
                   <div className="flex items-center gap-6">
-                    <span className="w-32 text-xs font-bold text-gray-400 uppercase">Create Slot</span>
-                    <div className="flex items-center gap-3 border-b-2 border-gray-100 pb-1 w-32">
-                      <input type="text" defaultValue={state.formData.createSlotHours} className="w-full bg-transparent outline-none font-bold text-gray-700 text-center" />
-                      <span className="text-xs font-bold text-gray-400 uppercase">Hours</span>
+                    <span className="w-32 text-xs font-bold text-gray-400 uppercase">Slot Interval</span>
+                    <div className="flex items-center gap-3 border-b-2 border-gray-100 pb-1 w-32 focus-within:border-primary transition-colors">
+                      <input 
+                        type="text" 
+                        value={state.formData.createSlotHours} 
+                        onChange={(e) => updateField('createSlotHours', e.target.value)}
+                        className="w-full bg-transparent outline-none font-bold text-gray-700 text-center" 
+                      />
+                      <span className="text-xs font-bold text-gray-400 uppercase">Hrs</span>
                     </div>
                   </div>
 
@@ -394,10 +479,15 @@ const AppointmentEditor = () => {
                     <span className="w-32 text-xs font-bold text-gray-400 uppercase">Cancellation</span>
                     <div className="flex items-center gap-3">
                       <span className="text-xs font-bold text-gray-400 uppercase">up to</span>
-                      <div className="flex items-center gap-2 border-b-2 border-gray-100 pb-1 w-24">
-                        <input type="text" defaultValue={state.formData.cancellationHours} className="w-full bg-transparent outline-none font-bold text-gray-700 text-center" />
+                      <div className="flex items-center gap-2 border-b-2 border-gray-100 pb-1 w-24 focus-within:border-primary transition-colors">
+                        <input 
+                          type="text" 
+                          value={state.formData.cancellationHours} 
+                          onChange={(e) => updateField('cancellationHours', e.target.value)}
+                          className="w-full bg-transparent outline-none font-bold text-gray-700 text-center" 
+                        />
                       </div>
-                      <span className="text-xs font-bold text-gray-400 uppercase">hour(s) before the booking</span>
+                      <span className="text-xs font-bold text-gray-400 uppercase">hrs before</span>
                     </div>
                   </div>
                 </div>
@@ -405,10 +495,10 @@ const AppointmentEditor = () => {
             )}
 
             {activeTab === 'misc' && (
-              <div className="space-y-12 py-8 max-w-4xl">
+              <div className="space-y-12 py-8 max-w-4xl animate-in fade-in duration-300">
                 <div className="space-y-4">
                   <h4 className="text-sm font-bold text-gray-400 uppercase tracking-[0.2em]">Introduction page message</h4>
-                  <div className="p-8 bg-white border border-gray-100 rounded-[30px] shadow-sm">
+                  <div className="p-8 bg-white border border-gray-100 rounded-[30px] shadow-sm hover:shadow-md transition-shadow">
                     <textarea
                       value={state.formData.introMessage}
                       onChange={(e) => updateField('introMessage', e.target.value)}
@@ -420,7 +510,7 @@ const AppointmentEditor = () => {
 
                 <div className="space-y-4">
                   <h4 className="text-sm font-bold text-gray-400 uppercase tracking-[0.2em]">Confirmation page message</h4>
-                  <div className="p-8 bg-white border border-gray-100 rounded-[30px] shadow-sm">
+                  <div className="p-8 bg-white border border-gray-100 rounded-[30px] shadow-sm hover:shadow-md transition-shadow">
                     <textarea
                       value={state.formData.confirmMessage}
                       onChange={(e) => updateField('confirmMessage', e.target.value)}
@@ -435,11 +525,69 @@ const AppointmentEditor = () => {
         </div>
 
         {/* Footer Save */}
-        <div className="fixed bottom-8 right-8">
-          <Button isLoading={isLoading} onClick={handleSave} className="px-12 py-4 text-lg shadow-xl shadow-primary/20">
-            Save Appointment
+        <div className="fixed bottom-8 right-8 z-50">
+          <Button 
+            isLoading={state.isLoading} 
+            onClick={handleSave} 
+            className="px-12 py-5 text-xl shadow-2xl shadow-primary/30 rounded-2xl scale-105 hover:scale-110 active:scale-95 transition-all"
+          >
+            <Save className="w-5 h-5 mr-3" />
+            Save Changes
           </Button>
         </div>
+
+        {/* Preview Modal */}
+        {isPreviewOpen && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 lg:p-20">
+            <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-xl" onClick={() => setIsPreviewOpen(false)}></div>
+            <div className="bg-white w-full max-w-6xl h-full rounded-[48px] shadow-2xl relative z-10 overflow-hidden flex flex-col border border-white/20">
+              <div className="p-6 border-b border-gray-100 flex items-center justify-between">
+                <div className="flex items-center gap-4">
+                  <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary font-black">P</div>
+                  <span className="font-black text-gray-800 uppercase tracking-widest text-sm">Preview Mode</span>
+                </div>
+                <button onClick={() => setIsPreviewOpen(false)} className="p-2 hover:bg-gray-100 rounded-full transition-colors">
+                  <X className="w-6 h-6 text-gray-400" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto bg-gray-50/50 p-12">
+                <div className="max-w-4xl mx-auto space-y-12">
+                  <div className="text-center space-y-4">
+                    <h1 className="text-6xl font-black text-gray-800 tracking-tighter">{state.formData.title || "Appointment Title"}</h1>
+                    <p className="text-xl text-gray-500 font-medium italic">{state.formData.introMessage}</p>
+                  </div>
+                  
+                  <div className="bg-white rounded-[40px] p-12 shadow-2xl shadow-black/5 border border-gray-100 grid md:grid-cols-2 gap-12">
+                    <div className="space-y-8">
+                       <div className="aspect-video bg-gray-100 rounded-3xl overflow-hidden border border-gray-100">
+                          {state.formData.image ? (
+                            <img src={state.formData.image} className="w-full h-full object-cover" />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center text-gray-300 font-bold">No Image</div>
+                          )}
+                       </div>
+                       <div className="space-y-4">
+                          <div className="flex items-center gap-4 text-gray-600 font-bold">
+                            <Clock className="w-5 h-5 text-primary" />
+                            {state.formData.duration} Hours
+                          </div>
+                          <div className="flex items-center gap-4 text-gray-600 font-bold">
+                            <MapPin className="w-5 h-5 text-primary" />
+                            {state.formData.location || "Online / TBD"}
+                          </div>
+                       </div>
+                    </div>
+                    <div className="bg-gray-50 rounded-3xl p-8 flex flex-col items-center justify-center text-center border border-gray-100">
+                       <Calendar className="w-16 h-16 text-primary/20 mb-6" />
+                       <p className="text-gray-400 font-bold uppercase tracking-widest text-sm">Select a date and time to see the full booking flow.</p>
+                       <Button disabled className="mt-8">Book Appointment</Button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </DashboardLayout>
   );
