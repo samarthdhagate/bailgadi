@@ -97,7 +97,7 @@ const BookingConfirmation = () => {
                 cancel
               </button>
               <button 
-                onClick={() => navigate(`/booking/${booking.serviceId}`)}
+                onClick={() => navigate(`/booking/${booking.serviceId}`, { state: { reschedulingBooking: booking } })}
                 className="px-8 py-3 border border-gray-200 rounded-xl text-lg font-bold text-gray-600 hover:bg-gray-50 transition-colors"
               >
                 Reschedule

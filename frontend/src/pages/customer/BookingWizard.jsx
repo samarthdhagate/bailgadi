@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, CreditCard, CheckCircle } from 'lucide-react';
 import { format } from 'date-fns';
 import { bookingService } from '@services/booking';
@@ -12,17 +12,21 @@ import ErrorMessage from '../../components/ErrorMessage';
 const BookingWizard = () => {
   const { serviceId } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const existingBooking = location.state?.reschedulingBooking;
+  
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isRescheduling, setIsRescheduling] = useState(!!existingBooking);
   
   const [bookingData, setBookingData] = useState({
     serviceId: serviceId,
-    resourceId: null,
-    date: new Date().toISOString().split('T')[0],
-    time: null,
-    capacity: 1,
-    userDetails: {
+    resourceId: existingBooking?.resourceId || null,
+    date: existingBooking?.date || new Date().toISOString().split('T')[0],
+    time: existingBooking?.time || null,
+    capacity: existingBooking?.capacity || 1,
+    userDetails: existingBooking?.userDetails || {
       name: '',
       email: '',
       phone: ''
@@ -71,9 +75,15 @@ const BookingWizard = () => {
   }, [step, bookingData.date, serviceId]);
 
   const handleNext = () => {
-    if (step === 4) {
+    if (isRescheduling && step === 1) {
+      // If rescheduling, skip details and payment
+      submitBooking();
+      return;
+    }
+
+    if (step === 2) {
       if (service?.price > 0) {
-        setStep(5); // Payment
+        setStep(3); // Payment
       } else {
         submitBooking();
       }
@@ -200,7 +210,7 @@ const BookingWizard = () => {
             onClick={handleNext}
             className="px-10 py-4 text-lg"
           >
-            Continue to Details
+            {isRescheduling ? 'Confirm Reschedule' : 'Continue to Details'}
           </Button>
         </div>
       </div>
