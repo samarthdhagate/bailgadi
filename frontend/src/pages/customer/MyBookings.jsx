@@ -1,7 +1,8 @@
-import React, { useState, useEffect } from 'react';
-import { Calendar, Clock, User, CheckCircle, Clock3, XCircle } from 'lucide-react';
+import { Calendar, Clock, User, CheckCircle, Clock3, XCircle, AlertTriangle } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
+import Button from '../../components/Button';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
 import { bookingService } from '@services/booking';
@@ -10,21 +11,34 @@ const MyBookings = () => {
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
+  const navigate = useNavigate();
+
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const response = await bookingService.getMyBookings();
+      setBookings(response.data);
+    } catch (err) {
+      setError('Failed to load your bookings.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const response = await bookingService.getMyBookings();
-        setBookings(response.data);
-      } catch (err) {
-        setError('Failed to load your bookings.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchBookings();
   }, []);
+
+  const handleCancel = async (id) => {
+    if (window.confirm('Are you sure you want to cancel this appointment?')) {
+      try {
+        await bookingService.cancelBooking(id);
+        fetchBookings(); // Refresh list
+      } catch (err) {
+        alert('Failed to cancel booking. Please try again.');
+      }
+    }
+  };
 
   const getStatusStyle = (status) => {
     switch (status.toLowerCase()) {
@@ -105,7 +119,10 @@ const MyBookings = () => {
                       >
                         Reschedule
                       </button>
-                      <button className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors">
+                      <button 
+                        onClick={() => handleCancel(booking.id)}
+                        className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                      >
                         Cancel
                       </button>
                     </div>

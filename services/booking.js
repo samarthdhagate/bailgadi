@@ -76,6 +76,11 @@ export const bookingService = {
     return { data: { id: bookingId, ...bookingData, status: 'Confirmed' } };
   },
 
+  cancelBooking: async (bookingId) => {
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    return { success: true };
+  },
+
   getMyBookings: async () => {
     await new Promise(resolve => setTimeout(resolve, 1000));
     return {
