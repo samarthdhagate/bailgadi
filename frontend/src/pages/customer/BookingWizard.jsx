@@ -98,100 +98,120 @@ const BookingWizard = () => {
     }
   };
 
-  const renderStep = () => {
-    switch (step) {
-      case 1:
-        return (
-          <div className="flex flex-col gap-6">
-            <h2 className="text-xl font-bold">Select a Professional</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {resources.map(r => (
-                <button
-                  key={r.id}
-                  onClick={() => {
-                    setBookingData(prev => ({ ...prev, resourceId: r.id }));
-                    handleNext();
-                  }}
-                  className={`p-4 rounded-xl border-2 text-left transition-all ${
-                    bookingData.resourceId === r.id 
-                      ? 'border-primary bg-primary/5' 
-                      : 'border-gray-100 hover:border-gray-200 bg-white'
-                  }`}
-                >
-                  <p className="font-bold text-gray-800">{r.name}</p>
-                  <p className="text-sm text-gray-500">{r.role}</p>
-                </button>
-              ))}
+  const renderUnifiedSelection = () => {
+    return (
+      <div className="flex flex-col gap-10">
+        {/* Step Header: "With" (Resource Selection) */}
+        <div>
+          <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">With</h3>
+          <div className="flex flex-wrap gap-4">
+            {resources.map(r => (
+              <button
+                key={r.id}
+                onClick={() => setBookingData(prev => ({ ...prev, resourceId: r.id }))}
+                className={`flex items-center gap-3 px-4 py-2 rounded-xl border-2 transition-all ${
+                  bookingData.resourceId === r.id 
+                    ? 'border-primary bg-primary/5 text-primary' 
+                    : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
+                }`}
+              >
+                <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                  bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
+                }`}>
+                  U{r.id}
+                </div>
+                <span className="font-semibold">{r.name}</span>
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Main Selection Area: Calendar and Slots */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+          {/* Left: Date Picker */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Date picker</h3>
+            <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
+              {/* Simplistic Calendar UI Mockup */}
+              <div className="flex items-center justify-between mb-6">
+                <button className="p-2 hover:bg-gray-50 rounded-lg"><ChevronLeft className="w-5 h-5 text-gray-400" /></button>
+                <span className="font-bold text-gray-800">{format(new Date(bookingData.date), 'MMMM yyyy')}</span>
+                <button className="p-2 hover:bg-gray-50 rounded-lg"><ChevronRight className="w-5 h-5 text-gray-400" /></button>
+              </div>
+              <input
+                type="date"
+                value={bookingData.date}
+                onChange={(e) => setBookingData(prev => ({ ...prev, date: e.target.value }))}
+                className="w-full p-4 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-primary outline-none mb-6"
+              />
+              <p className="text-sm text-gray-500 italic leading-relaxed">
+                {service?.description}
+              </p>
             </div>
           </div>
-        );
-      case 2:
-        return (
-          <div className="flex flex-col gap-6">
-            <h2 className="text-xl font-bold">Choose Date & Time</h2>
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              <div>
-                <label className="text-sm font-medium mb-2 block">Date</label>
-                <input
-                  type="date"
-                  value={bookingData.date}
-                  onChange={(e) => setBookingData(prev => ({ ...prev, date: e.target.value }))}
-                  className="input-field"
-                  min={new Date().toISOString().split('T')[0]}
-                />
+
+          {/* Right: Slots */}
+          <div className="flex flex-col gap-4">
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Slots</h3>
+            <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex-1">
+              <div className="grid grid-cols-2 gap-3 mb-8">
+                {slots.map(slot => (
+                  <button
+                    key={slot.id}
+                    disabled={!slot.available}
+                    onClick={() => setBookingData(prev => ({ ...prev, time: slot.time }))}
+                    className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${
+                      bookingData.time === slot.time
+                        ? 'bg-primary border-primary text-white shadow-md'
+                        : slot.available
+                        ? 'border-gray-50 text-gray-700 hover:border-primary/30 hover:bg-primary/5'
+                        : 'bg-gray-50 border-gray-50 text-gray-300 cursor-not-allowed'
+                    }`}
+                  >
+                    {slot.time}
+                  </button>
+                ))}
               </div>
-              <div>
-                <label className="text-sm font-medium mb-2 block">Available Slots</label>
-                {isLoading ? <Loader /> : (
-                  <div className="grid grid-cols-3 gap-2">
-                    {slots.map(slot => (
-                      <button
-                        key={slot.id}
-                        disabled={!slot.available}
-                        onClick={() => setBookingData(prev => ({ ...prev, time: slot.time }))}
-                        className={`p-2 text-xs rounded-lg border transition-all ${
-                          bookingData.time === slot.time
-                            ? 'bg-primary text-white border-primary'
-                            : slot.available
-                            ? 'bg-white text-gray-700 border-gray-200 hover:border-primary'
-                            : 'bg-gray-50 text-gray-400 border-gray-100 cursor-not-allowed'
-                        }`}
-                      >
-                        {slot.time}
-                      </button>
-                    ))}
+
+              {/* Conditional Capacity Selector */}
+              {service?.capacityEnabled !== false && (
+                <div className="pt-6 border-t border-gray-50 mt-auto">
+                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Number of people</p>
+                  <div className="flex items-center gap-4 bg-gray-50 w-max rounded-xl p-1 border border-gray-100">
+                    <button 
+                      onClick={() => setBookingData(prev => ({ ...prev, capacity: Math.max(1, prev.capacity - 1) }))}
+                      className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm"
+                    >-</button>
+                    <span className="w-8 text-center font-bold text-gray-800">{bookingData.capacity}</span>
+                    <button 
+                      onClick={() => setBookingData(prev => ({ ...prev, capacity: prev.capacity + 1 }))}
+                      className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm"
+                    >+</button>
                   </div>
-                )}
-              </div>
-            </div>
-            <div className="flex justify-between mt-4">
-              <Button variant="secondary" onClick={handleBack}>Back</Button>
-              <Button disabled={!bookingData.time} onClick={handleNext}>Next</Button>
+                </div>
+              )}
             </div>
           </div>
-        );
-      case 3:
-        return (
-          <div className="flex flex-col gap-6">
-            <h2 className="text-xl font-bold">Number of People</h2>
-            <div className="flex items-center gap-6 justify-center p-8 bg-gray-50 rounded-xl">
-              <button 
-                onClick={() => setBookingData(prev => ({ ...prev, capacity: Math.max(1, prev.capacity - 1) }))}
-                className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-2xl border border-gray-100"
-              >-</button>
-              <span className="text-4xl font-bold w-12 text-center">{bookingData.capacity}</span>
-              <button 
-                onClick={() => setBookingData(prev => ({ ...prev, capacity: prev.capacity + 1 }))}
-                className="w-12 h-12 rounded-full bg-white shadow-sm flex items-center justify-center text-2xl border border-gray-100"
-              >+</button>
-            </div>
-            <div className="flex justify-between mt-4">
-              <Button variant="secondary" onClick={handleBack}>Back</Button>
-              <Button onClick={handleNext}>Next</Button>
-            </div>
-          </div>
-        );
-      case 4:
+        </div>
+
+        <div className="flex justify-end pt-4">
+          <Button 
+            disabled={!bookingData.resourceId || !bookingData.time} 
+            onClick={handleNext}
+            className="px-10 py-4 text-lg"
+          >
+            Continue to Details
+          </Button>
+        </div>
+      </div>
+    );
+  };
+
+  const renderStep = () => {
+    if (step === 1) return renderUnifiedSelection();
+    
+    switch (step) {
+      case 2: // Details (originally step 4)
         return (
           <div className="flex flex-col gap-6">
             <h2 className="text-xl font-bold">Your Details</h2>
@@ -229,7 +249,7 @@ const BookingWizard = () => {
               />
             </div>
             <div className="flex justify-between mt-4">
-              <Button variant="secondary" onClick={handleBack}>Back</Button>
+              <Button variant="secondary" onClick={() => setStep(1)}>Back</Button>
               <Button 
                 onClick={handleNext}
                 disabled={!bookingData.userDetails.name || !bookingData.userDetails.email}
@@ -239,7 +259,7 @@ const BookingWizard = () => {
             </div>
           </div>
         );
-      case 5:
+      case 3: // Payment (originally step 5)
         return (
           <div className="flex flex-col gap-6">
             <h2 className="text-xl font-bold">Payment</h2>
@@ -273,7 +293,7 @@ const BookingWizard = () => {
             </div>
 
             <div className="flex justify-between mt-4">
-              <Button variant="secondary" onClick={handleBack}>Back</Button>
+              <Button variant="secondary" onClick={() => setStep(2)}>Back</Button>
               <Button isLoading={isLoading} onClick={submitBooking}>Pay & Confirm</Button>
             </div>
           </div>
@@ -285,17 +305,17 @@ const BookingWizard = () => {
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">
-      <div className="max-w-3xl mx-auto">
+      <div className="max-w-6xl mx-auto">
         <button 
           onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-gray-500 hover:text-primary mb-6 transition-colors"
+          className="flex items-center gap-2 text-gray-500 hover:text-primary mb-8 transition-colors"
         >
           <ChevronLeft className="w-5 h-5" />
           Back to Dashboard
         </button>
 
-        <div className="flex items-center justify-between mb-8">
-          {[1, 2, 3, 4, 5].filter(s => s < 5 || service?.price > 0).map((s) => (
+        <div className="flex items-center justify-center mb-12">
+          {[1, 2, 3].filter(s => s < 3 || service?.price > 0).map((s) => (
             <React.Fragment key={s}>
               <div className="flex flex-col items-center gap-2">
                 <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
@@ -304,18 +324,21 @@ const BookingWizard = () => {
                 }`}>
                   {step > s ? <CheckCircle className="w-5 h-5" /> : s}
                 </div>
+                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  {s === 1 ? 'Selection' : s === 2 ? 'Details' : 'Payment'}
+                </span>
               </div>
-              {s < (service?.price > 0 ? 5 : 4) && (
-                <div className={`flex-1 h-1 mx-2 rounded-full ${step > s ? 'bg-green-500' : 'bg-gray-200'}`} />
+              {s < (service?.price > 0 ? 3 : 2) && (
+                <div className={`w-24 h-1 mx-4 rounded-full mt-[-18px] ${step > s ? 'bg-green-500' : 'bg-gray-200'}`} />
               )}
             </React.Fragment>
           ))}
         </div>
 
-        <Card className="p-8">
+        <div className="bg-white rounded-[40px] p-12 shadow-sm border border-gray-100">
           <ErrorMessage message={error} />
           {renderStep()}
-        </Card>
+        </div>
       </div>
     </div>
   );
