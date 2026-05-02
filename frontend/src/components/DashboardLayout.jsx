@@ -11,14 +11,16 @@ const DashboardLayout = ({ children, title }) => {
     customer: [
       { label: 'Dashboard', icon: Calendar, path: '/dashboard' },
       { label: 'My Bookings', icon: User, path: '/bookings' },
+      { label: 'Settings', icon: Settings, path: '/settings' },
     ],
     organiser: [
       { label: 'Appointments', icon: Calendar, path: '/organiser' },
-      { label: 'Settings', icon: Settings, path: '/organiser/settings' },
+      { label: 'Settings', icon: Settings, path: '/settings' },
     ],
     admin: [
       { label: 'Dashboard', icon: Calendar, path: '/admin' },
       { label: 'Users', icon: User, path: '/admin/users' },
+      { label: 'Settings', icon: Settings, path: '/settings' },
     ]
   };
 

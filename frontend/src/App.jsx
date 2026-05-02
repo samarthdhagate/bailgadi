@@ -21,6 +21,7 @@ import AppointmentEditor from './pages/organiser/AppointmentEditor';
 // Admin Pages
 import AdminDashboard from './pages/admin/AdminDashboard';
 import UserManagement from './pages/admin/UserManagement';
+import SettingsPage from './pages/SettingsPage';
 
 function App() {
   return (
@@ -50,6 +51,11 @@ function App() {
         <Route element={<ProtectedRoute allowedRoles={['admin']} />}>
           <Route path="/admin" element={<AdminDashboard />} />
           <Route path="/admin/users" element={<UserManagement />} />
+        </Route>
+
+        {/* Shared Protected Routes */}
+        <Route element={<ProtectedRoute allowedRoles={['customer', 'organiser', 'admin']} />}>
+          <Route path="/settings" element={<SettingsPage />} />
         </Route>
 
         {/* Default Redirects */}
