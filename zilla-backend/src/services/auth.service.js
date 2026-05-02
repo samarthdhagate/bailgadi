@@ -58,29 +58,21 @@ const signup = async ({ full_name, email, password, role = 'customer' }) => {
   const otp = generateOTP();
   const otp_expires_at = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
-  // Insert user, auto-verifying for demo purposes since we lack an OTP UI
+  // Insert user
   const result = await query(
     `INSERT INTO users (full_name, email, password_hash, role, otp_code, otp_expires_at, is_verified)
-     VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+     VALUES ($1, $2, $3, $4, $5, $6, FALSE)
      RETURNING id, full_name, email, role`,
     [full_name, email, password_hash, role, otp, otp_expires_at]
   );
 
   const user = result.rows[0];
 
-  // Auto-create provider record if organiser
-  if (user.role === 'organiser') {
-    await query(
-      'INSERT INTO providers (user_id) VALUES ($1) ON CONFLICT DO NOTHING',
-      [user.id]
-    );
-  }
-
-  // Send OTP email (fire-and-forget) - kept just for the email notification
+  // Send OTP email (fire-and-forget)
   notificationService.sendOTP(email, otp);
 
   return {
-    message: 'Account created and verified automatically for demo purposes.',
+    message: 'Account created. Please verify your email using the OTP sent to you.',
     user: user,
   };
 };
@@ -118,14 +110,6 @@ const verifyOTP = async ({ email, otp }) => {
      WHERE id = $1`,
     [user.id]
   );
-
-  // Auto-create provider record if organiser
-  if (user.role === 'organiser') {
-    await query(
-      'INSERT INTO providers (user_id) VALUES ($1) ON CONFLICT DO NOTHING',
-      [user.id]
-    );
-  }
 
   return { message: 'Email verified successfully. You can now log in.' };
 };
@@ -194,7 +178,7 @@ const refresh = async (refreshToken) => {
 
   // Check user exists and has a stored refresh token
   const result = await query(
-    'SELECT id, role, refresh_token FROM users WHERE id = $1',
+    'SELECT id, full_name, email, role, refresh_token FROM users WHERE id = $1',
     [decoded.user_id]
   );
 
@@ -208,10 +192,20 @@ const refresh = async (refreshToken) => {
     throw new AppError('Invalid refresh token.', 401, 'INVALID_REFRESH_TOKEN');
   }
 
-  // Issue new access token
-  const access_token = generateAccessToken(result.rows[0].id, result.rows[0].role);
+  const user = result.rows[0];
 
-  return { access_token };
+  // Issue new access token
+  const access_token = generateAccessToken(user.id, user.role);
+
+  return {
+    access_token,
+    user: {
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      role: user.role,
+    },
+  };
 };
 
 /**

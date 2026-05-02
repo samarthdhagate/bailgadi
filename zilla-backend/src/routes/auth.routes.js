@@ -10,7 +10,12 @@ const authController = require('../controllers/auth.controller');
 const { authLimiter } = require('../middleware/rateLimit.middleware');
 const { validateRequest } = require('./helpers/validation');
 
-// Apply rate limiter to all auth routes
+// Google OAuth: must not share the strict POST-auth limiter (10/15m) or "Sign in with Google"
+// breaks after normal login/signup/testing. Redirect/callback stays public too.
+router.get('/google', authController.googleLogin);
+router.get('/google/callback', authController.googleCallback);
+
+// Rate limit signup/login/password flows only
 router.use(authLimiter);
 
 // POST /api/auth/signup
@@ -78,10 +83,6 @@ router.post(
   ],
   authController.resetPassword
 );
-
-// Google OAuth
-router.get('/google', authController.googleLogin);
-router.get('/google/callback', authController.googleCallback);
 
 module.exports = router;
 

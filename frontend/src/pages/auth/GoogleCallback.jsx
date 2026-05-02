@@ -8,30 +8,23 @@ const GoogleCallback = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = searchParams.get('token');
-    
-    if (token) {
-      // In a real app, you might want to fetch user details using this token
-      // For now, we assume the backend redirect includes everything we need
-      // or we use a simplified login that just sets the token and redirects to dashboard
-      // The login function in AuthContext usually expects { user, access_token }
-      
-      // Since we only got the token in URL, we might need a small workaround 
-      // or update the backend to include basic user info in query params too
-      
-      // Let's assume we can at least set the token and the user will be fetched 
-      // by the context's initialization logic if it exists.
-      
-      // A better way: redirect to a logic that handles "OAuth success"
-      // For now, I'll just save the token and redirect.
-      localStorage.setItem('accessToken', token);
-      
-      // Redirect to dashboard - AuthContext will handle fetching user from token
-      window.location.href = '/dashboard';
-    } else {
-      navigate('/login?error=google_failed');
-    }
-  }, [searchParams, login, navigate]);
+    const exchangeToken = async () => {
+      try {
+        const response = await authService.refresh();
+        if (response.success && response.data) {
+          login(response.data);
+          // Redirect is handled by login function
+        } else {
+          throw new Error('Refresh failed');
+        }
+      } catch (err) {
+        console.error('OAuth callback error:', err);
+        navigate('/login?error=google_failed');
+      }
+    };
+
+    exchangeToken();
+  }, [login, navigate]);
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[400px] gap-4">

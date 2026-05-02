@@ -27,17 +27,22 @@ const getStoredUser = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const [token, setToken] = useState(() => localStorage.getItem('token') || 'bypass-token');
-  const [role, setRole] = useState(() => localStorage.getItem('role') || 'organiser');
+  const isDev = import.meta.env.MODE === 'development';
+
+  const [token, setToken] = useState(() => localStorage.getItem('token') || (isDev ? 'bypass-token' : null));
+  const [role, setRole] = useState(() => localStorage.getItem('role') || (isDev ? 'organiser' : null));
   const [user, setUser] = useState(() => {
     const stored = getStoredUser();
     if (stored) return stored;
-    return {
-      id: 'bypass-id',
-      name: 'Bypass Admin',
-      email: 'admin@zilla.dev',
-      role: 'organiser'
-    };
+    if (isDev) {
+      return {
+        id: 'bypass-id',
+        name: 'Bypass Admin',
+        email: 'admin@zilla.dev',
+        role: 'organiser'
+      };
+    }
+    return null;
   });
   const [isLoading] = useState(false);
   const navigate = useNavigate();

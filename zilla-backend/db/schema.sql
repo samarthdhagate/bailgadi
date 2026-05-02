@@ -49,10 +49,10 @@ CREATE TABLE users (
   role           VARCHAR(20)  NOT NULL DEFAULT 'customer'
     CHECK (role IN ('customer', 'organiser', 'admin')),
   is_verified    BOOLEAN      NOT NULL DEFAULT FALSE,
-  otp_token      VARCHAR(10),
+  otp_code       VARCHAR(10),
   otp_expires_at TIMESTAMPTZ,
-  oauth_provider VARCHAR(30),
-  oauth_token    TEXT,
+  google_id      VARCHAR(255) UNIQUE,
+  refresh_token  TEXT,
   created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   CONSTRAINT users_email_unique    UNIQUE (email),
@@ -119,13 +119,13 @@ CREATE TABLE facilities (
 );
 CREATE TABLE facility_images (
     id SERIAL PRIMARY KEY,
-    facility_id INTEGER NOT NULL
+    facility_id UUID NOT NULL
         REFERENCES facilities(id) ON DELETE CASCADE,
     image_url TEXT NOT NULL,
     alt_text TEXT,
     display_order INTEGER DEFAULT 0,
     is_primary BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
 CREATE TRIGGER trg_facilities_updated_at

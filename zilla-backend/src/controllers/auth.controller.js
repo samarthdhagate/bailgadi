@@ -3,6 +3,7 @@
  */
 
 const authService = require('../services/auth.service');
+const { env } = require('../config/env');
 
 const signup = async (req, res, next) => {
   try {
@@ -102,6 +103,17 @@ const googleAuthService = require('../services/googleAuth.service');
 
 const googleLogin = async (req, res, next) => {
   try {
+    if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
+      return res.status(503).json({
+        success: false,
+        error: {
+          code: 'GOOGLE_OAUTH_NOT_CONFIGURED',
+          message:
+            'Google Sign-In is not configured on the server. Add GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET (and optionally GOOGLE_REDIRECT_URI) to the backend .env.',
+        },
+      });
+    }
+
     const url = googleAuthService.getGoogleAuthUrl();
     res.json({ success: true, data: { url } });
   } catch (err) {
@@ -129,11 +141,10 @@ const googleCallback = async (req, res, next) => {
       path: '/',
     });
 
-    const { refresh_token, ...responseData } = result;
-
-    // Redirect to frontend with token
-    const { env } = require('../config/env');
-    const frontendRedirectUrl = `${env.FRONTEND_URL}/auth/callback?token=${result.access_token}`;
+    // Redirect to frontend callback page
+    // Access token is NOT sent in URL for security. 
+    // Frontend will use the refresh cookie to get a fresh access token.
+    const frontendRedirectUrl = `${env.FRONTEND_URL}/auth/callback`;
     res.redirect(frontendRedirectUrl);
   } catch (err) {
     next(err);

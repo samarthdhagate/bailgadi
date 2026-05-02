@@ -32,6 +32,7 @@ const AUTH_ROUTES_TO_SKIP_REFRESH = [
   '/auth/verify-otp',
   '/auth/forgot-password',
   '/auth/reset-password',
+  '/auth/google',
 ];
 
 const processQueue = (error, token = null) => {

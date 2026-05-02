@@ -13,8 +13,8 @@ const optionalVars = {
   PORT: '5000',
   NODE_ENV: 'development',
   REDIS_URL: '',
-  REDIS_HOST: 'localhost',
-  REDIS_PORT: '6379',
+  REDIS_HOST: '',
+  REDIS_PORT: '',
   REDIS_PASSWORD: '',
   RAZORPAY_KEY_ID: '',
   RAZORPAY_KEY_SECRET: '',
@@ -28,6 +28,7 @@ const optionalVars = {
   GOOGLE_CLIENT_ID: '',
   GOOGLE_CLIENT_SECRET: '',
   GOOGLE_REDIRECT_URI: 'http://localhost:5000/api/auth/google/callback',
+  GEMINI_API_KEY: '',
 };
 
 // Validate required vars
