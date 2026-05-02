@@ -5,6 +5,8 @@ import Input from '../../components/Input';
 import Button from '../../components/Button';
 import ErrorMessage from '../../components/ErrorMessage';
 
+import { authService } from '@services/auth';
+
 const SignupPage = () => {
   const [role, setRole] = useState('customer'); // 'customer' or 'organiser'
   const [formData, setFormData] = useState({
@@ -30,11 +32,13 @@ const SignupPage = () => {
     setError('');
 
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      // In a real app, we would send the 'role' to the backend
+      await authService.register({ 
+        ...formData, 
+        role 
+      });
       navigate('/login');
     } catch (err) {
-      setError('Failed to create account. Please try again.');
+      setError(err.response?.data?.error?.message || 'Failed to create account. Please try again.');
     } finally {
       setIsLoading(false);
     }
