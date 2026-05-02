@@ -21,14 +21,9 @@ const CustomerDashboard = () => {
     const fetchServices = async () => {
       try {
         const response = await bookingService.getServices();
-<<<<<<< HEAD
-        setServices(response.data);
-        setFilteredServices(response.data);
-=======
         const data = response.data || [];
         setServices(data);
         setFilteredServices(data);
->>>>>>> 6af9674e4e07653f1a53c81caa8afe0546e9dba3
       } catch (err) {
         setError('Failed to load services. Please try again later.');
       } finally {
