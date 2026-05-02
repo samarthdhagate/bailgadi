@@ -98,6 +98,47 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+const googleAuthService = require('../services/googleAuth.service');
+
+const googleLogin = async (req, res, next) => {
+  try {
+    const url = googleAuthService.getGoogleAuthUrl();
+    res.json({ success: true, data: { url } });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const googleCallback = async (req, res, next) => {
+  try {
+    const { code } = req.query;
+    const payload = await googleAuthService.getGoogleUserInfo(code);
+
+    const result = await authService.googleLogin({
+      email: payload.email,
+      full_name: payload.name,
+      google_id: payload.sub,
+    });
+
+    // Set refresh token as HttpOnly cookie
+    res.cookie('refreshToken', result.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    });
+
+    const { refresh_token, ...responseData } = result;
+
+    // Redirect to frontend with token
+    const { env } = require('../config/env');
+    const frontendRedirectUrl = `${env.FRONTEND_URL}/auth/callback?token=${result.access_token}`;
+    res.redirect(frontendRedirectUrl);
+  } catch (err) {
+    next(err);
+  }
+};
 module.exports = {
   signup,
   verifyOTP,
@@ -106,4 +147,6 @@ module.exports = {
   logout,
   forgotPassword,
   resetPassword,
+  googleLogin,
+  googleCallback,
 };

@@ -25,6 +25,9 @@ const optionalVars = {
   SMTP_PASS: '',
   FROM_EMAIL: 'noreply@zilla.app',
   FRONTEND_URL: 'http://localhost:5173',
+  GOOGLE_CLIENT_ID: '',
+  GOOGLE_CLIENT_SECRET: '',
+  GOOGLE_REDIRECT_URI: 'http://localhost:5000/api/auth/google/callback',
 };
 
 // Validate required vars

@@ -34,6 +34,17 @@ const LoginPage = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await authService.getGoogleAuthUrl();
+      if (response.success && response.data.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (err) {
+      setError('Could not initiate Google login. Please try again.');
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <h2 className="text-2xl font-semibold text-gray-800 mb-2">Login</h2>
@@ -73,6 +84,7 @@ const LoginPage = () => {
 
       <button
         type="button"
+        onClick={handleGoogleLogin}
         className="w-full py-3 bg-white border border-gray-100 rounded-xl font-bold text-gray-700 hover:bg-gray-50 transition-all flex items-center justify-center gap-3 shadow-sm"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

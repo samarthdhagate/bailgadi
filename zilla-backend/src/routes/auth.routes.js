@@ -79,4 +79,9 @@ router.post(
   authController.resetPassword
 );
 
+// Google OAuth
+router.get('/google', authController.googleLogin);
+router.get('/google/callback', authController.googleCallback);
+
 module.exports = router;
+
