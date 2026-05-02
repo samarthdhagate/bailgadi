@@ -25,8 +25,9 @@ const DashboardLayout = ({ children, title }) => {
     <div className="min-h-screen bg-background flex">
       {/* Sidebar */}
       <aside className="w-64 bg-white border-r border-gray-200 hidden md:flex flex-col">
-        <div className="p-6">
-          <h2 className="text-2xl font-bold text-primary">Appointify</h2>
+        <div className="p-6 flex items-center gap-3">
+          <img src="/zilla_logo.png" alt="Zilla" className="w-10 h-10" />
+          <h2 className="text-2xl font-bold text-primary tracking-tighter">zilla</h2>
         </div>
         
         <nav className="flex-1 px-4 py-4 flex flex-col gap-1">

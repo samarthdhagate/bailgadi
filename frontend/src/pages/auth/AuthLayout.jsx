@@ -5,9 +5,10 @@ const AuthLayout = () => {
   return (
     <div className="min-h-screen bg-background flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-primary">Appointify</h1>
-          <p className="text-gray-500 mt-2">Professional Appointment Booking</p>
+        <div className="flex flex-col items-center mb-8">
+          <img src="/zilla_logo.png" alt="Zilla" className="w-20 h-20 mb-2" />
+          <h1 className="text-4xl font-bold text-primary tracking-tighter">zilla</h1>
+          <p className="text-gray-400 font-medium italic mt-1">Professional Appointment Booking</p>
         </div>
         <div className="bg-white p-8 rounded-xl shadow-sm border border-gray-100">
           <Outlet />
