@@ -42,7 +42,6 @@ export const bookingService = {
   },
 
   getSlots: async (serviceId, date) => {
-    // In a real app: return axiosInstance.get(`/slots?serviceId=${serviceId}&date=${date}`);
     await new Promise(resolve => setTimeout(resolve, 500));
     return {
       data: [
@@ -69,9 +68,12 @@ export const bookingService = {
 
   createBooking: async (bookingData) => {
     await new Promise(resolve => setTimeout(resolve, 1500));
-    return { data: { id: 'BK-78234', ...bookingData, status: 'confirmed' } };
-<<<<<<< HEAD
-=======
+    return { data: { id: 'BK-' + Math.floor(Math.random() * 100000), ...bookingData, status: 'Confirmed' } };
+  },
+
+  rescheduleBooking: async (bookingId, bookingData) => {
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    return { data: { id: bookingId, ...bookingData, status: 'Confirmed' } };
   },
 
   getMyBookings: async () => {
@@ -98,6 +100,5 @@ export const bookingService = {
         }
       ]
     };
->>>>>>> origin/master
   }
 };

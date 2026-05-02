@@ -8,7 +8,7 @@ import Button from '../../components/Button';
 const BookingConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { booking } = location.state || {};
+  const { booking, isRescheduling } = location.state || {};
 
   if (!booking) {
     return (
@@ -27,7 +27,9 @@ const BookingConfirmation = () => {
         <div className="flex flex-col gap-10">
           {/* Header */}
           <div className="border-b border-gray-100 pb-8">
-            <h1 className="text-4xl font-bold text-gray-800">Appointment confirmed</h1>
+            <h1 className="text-4xl font-bold text-gray-800">
+              {isRescheduling ? 'Reschedule confirmed' : 'Appointment confirmed'}
+            </h1>
           </div>
 
           <div className="space-y-10">

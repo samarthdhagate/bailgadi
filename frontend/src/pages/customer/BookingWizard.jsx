@@ -99,8 +99,13 @@ const BookingWizard = () => {
   const submitBooking = async () => {
     setIsLoading(true);
     try {
-      const res = await bookingService.createBooking(bookingData);
-      navigate('/confirmation', { state: { booking: res.data } });
+      let res;
+      if (isRescheduling && existingBooking?.id) {
+        res = await bookingService.rescheduleBooking(existingBooking.id, bookingData);
+      } else {
+        res = await bookingService.createBooking(bookingData);
+      }
+      navigate('/confirmation', { state: { booking: res.data, isRescheduling } });
     } catch (err) {
       setError('Failed to confirm booking');
     } finally {
