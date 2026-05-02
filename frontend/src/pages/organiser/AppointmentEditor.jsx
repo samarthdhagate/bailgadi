@@ -228,13 +228,13 @@ const AppointmentEditor = () => {
             {/* Left: Basic Info */}
             <div className="lg:col-span-8 space-y-12 bg-white rounded-[48px] p-12 border border-gray-100 shadow-sm">
               <div className="space-y-2">
-                <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] pl-1">Service Title</p>
+                <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] pl-1">Service Identity</p>
                 <input
                   type="text"
                   value={state.formData.title}
                   onChange={(e) => updateField('title', e.target.value)}
                   className="text-6xl font-black text-gray-800 border-none bg-transparent outline-none w-full placeholder:text-gray-100 tracking-tighter"
-                  placeholder="Enter Title..."
+                  placeholder="Name your amazing service..."
                 />
               </div>
 
