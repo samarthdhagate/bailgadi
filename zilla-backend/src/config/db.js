@@ -8,7 +8,7 @@ const { env } = require('./env');
 
 const pool = new Pool({
   connectionString: env.DATABASE_URL,
-  ssl: env.DATABASE_URL.includes('localhost') ? false : {
+  ssl: (env.DATABASE_URL.includes('localhost') || env.DATABASE_URL.includes('10.20.20')) ? false : {
     rejectUnauthorized: false,
   },
   max: 20,
