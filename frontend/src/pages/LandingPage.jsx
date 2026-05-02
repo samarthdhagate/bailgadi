@@ -5,12 +5,12 @@ import { ChevronDown, ArrowRight } from 'lucide-react';
 const screenshots = [
   { 
     title: "Share your booking page", 
-    image: "https://images.unsplash.com/photo-1506784983877-45594efa4cbe?auto=format&fit=crop&q=80&w=2000",
+    image: "/card1.png",
     content: "Let clients pick a time that works for everyone in seconds."
   },
   { 
     title: "Manage your meetings", 
-    image: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=2000",
+    image: "/card2.png",
     content: "Keep track of all your upcoming appointments in one place."
   }
 ];
@@ -49,14 +49,6 @@ const LandingPage = () => {
             <img src="/zilla_logo.png" alt="Zilla" className="w-10 h-10" />
             <span className="text-2xl font-black text-white tracking-tighter">zilla</span>
           </div>
-          
-          <nav className="hidden xl:flex items-center gap-8 text-sm font-bold text-white/80">
-            {['Product', 'Solutions', 'Resources', 'Pricing'].map(item => (
-              <button key={item} className="flex items-center gap-1 hover:text-white transition-colors">
-                {item} <ChevronDown className="w-4 h-4 opacity-50" />
-              </button>
-            ))}
-          </nav>
         </div>
 
         <div className="flex items-center gap-6">
