@@ -24,14 +24,14 @@ const DashboardLayout = ({ children, title }) => {
   };
 
   return (
-    <div className="min-h-screen bg-dark-900 flex overflow-hidden text-gray-200">
+    <div className="min-h-screen bg-gray-50 flex overflow-hidden text-gray-900">
       {/* Sidebar */}
-      <aside className="w-72 bg-dark-800 border-r border-dark-700 hidden md:flex flex-col z-20">
+      <aside className="w-72 bg-white border-r border-gray-100 hidden md:flex flex-col z-20">
         <div className="p-8 flex items-center gap-4">
           <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/30">
             <LayoutDashboard className="w-6 h-6 text-white" />
           </div>
-          <h2 className="text-3xl font-black text-white tracking-tighter">zilla</h2>
+          <h2 className="text-3xl font-black text-gray-900 tracking-tighter">zilla</h2>
         </div>
         
         <nav className="flex-1 px-4 py-8 flex flex-col gap-2">
@@ -39,7 +39,7 @@ const DashboardLayout = ({ children, title }) => {
             <button
               key={item.label}
               onClick={() => navigate(item.path)}
-              className="flex items-center gap-4 px-6 py-4 text-gray-400 hover:text-white hover:bg-dark-700 rounded-3xl transition-all group"
+              className="flex items-center gap-4 px-6 py-4 text-gray-400 hover:text-primary hover:bg-gray-50 rounded-3xl transition-all group"
             >
               <item.icon className="w-5 h-5 group-hover:text-primary transition-colors" />
               <span className="font-bold uppercase tracking-widest text-[10px]">{item.label}</span>
@@ -47,19 +47,19 @@ const DashboardLayout = ({ children, title }) => {
           ))}
         </nav>
 
-        <div className="p-6 border-t border-dark-700">
-          <div className="w-full flex items-center gap-4 p-4 mb-4 bg-dark-900/50 rounded-[32px] border border-dark-700/50">
-            <div className="w-12 h-12 rounded-2xl bg-primary/20 flex items-center justify-center text-primary font-black text-xl">
+        <div className="p-6 border-t border-gray-100">
+          <div className="w-full flex items-center gap-4 p-4 mb-4 bg-gray-50 rounded-[32px] border border-gray-100">
+            <div className="w-12 h-12 rounded-2xl bg-primary/10 flex items-center justify-center text-primary font-black text-xl">
               {displayName?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-black text-white truncate">{displayName}</p>
+              <p className="text-sm font-black text-gray-900 truncate">{displayName}</p>
               <p className="text-[10px] text-primary font-bold uppercase tracking-widest opacity-60">{role}</p>
             </div>
           </div>
           <button
             onClick={logout}
-            className="w-full flex items-center gap-4 px-6 py-4 text-red-400 hover:bg-red-500/10 rounded-3xl transition-all font-bold uppercase tracking-widest text-[10px]"
+            className="w-full flex items-center gap-4 px-6 py-4 text-gray-400 hover:text-red-500 hover:bg-red-50/10 rounded-3xl transition-all font-bold uppercase tracking-widest text-[10px]"
           >
             <LogOut className="w-5 h-5" />
             Logout
@@ -69,22 +69,22 @@ const DashboardLayout = ({ children, title }) => {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col min-w-0 h-screen overflow-hidden">
-        <header className="h-20 bg-dark-800 border-b border-dark-700 flex items-center justify-between px-10 z-10 flex-shrink-0">
+        <header className="h-20 bg-white border-b border-gray-100 flex items-center justify-between px-10 z-10 flex-shrink-0">
           <div className="flex items-center gap-4">
-            <h1 className="text-sm font-black text-white uppercase tracking-[0.4em]">{title}</h1>
+            <h1 className="text-sm font-black text-gray-900 uppercase tracking-[0.4em]">{title}</h1>
           </div>
           
           <div className="flex gap-3">
             <button 
               onClick={() => navigate('/organiser/reporting')}
-              className="px-6 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border border-dark-700 rounded-xl hover:border-primary hover:text-white transition-all bg-dark-900/50"
+              className="px-6 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border border-gray-100 rounded-xl hover:border-primary hover:text-primary transition-all bg-gray-50"
             >
               Intelligence
             </button>
           </div>
         </header>
         
-        <div className="flex-1 overflow-hidden p-10 bg-dark-900">
+        <div className="flex-1 overflow-hidden p-10 bg-gray-50/30">
           {children}
         </div>
       </main>
