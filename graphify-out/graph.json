@@ -6647,6 +6647,148 @@
       "community": 5
     },
     {
+      "id": "availability_service",
+      "label": "availability.service.js",
+      "file_type": "code",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+      "source_location": "L1",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+          "source_location": "L1"
+        }
+      ],
+      "community": 18
+    },
+    {
+      "id": "availability_service_getavailableslots",
+      "label": "getAvailableSlots()",
+      "file_type": "code",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+      "source_location": "L26-L105",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+          "source_location": "L26"
+        }
+      ],
+      "snippet": "getAvailableSlots = async (service_id, date) => {\n  // 1. Fetch service details\n  const serviceResult = await query(\n    'SELECT id, provider_id, duration_min, capacity FROM services WHERE id = $1',\n    [service_id]\n  );\n\n  if (serviceResult.rows.length === 0) {\n    throw new AppError('Service not found.', 404, 'SERVICE_NOT_FOUND');\n  }\n\n  const service = serviceResult.rows[0];\n  const { provider_id, capacity } = service;\n\n  // 2. Generate all possible slots for the day\n  const allSlots = await generateSlots(provider_id, service_id, date);\n\n  if (allSlots.length === 0) {\n    return [];\n  }\n\n  // 3. Batch-fetch ALL bookings for this provider on this date (ONE query, no N+1)\n  const dayStart = new Date(date + 'T00:00:00Z').toISOString();\n  const dayEnd = new Date(date + 'T23:59:59.999Z').toISOString();",
+      "community": 18
+    },
+    {
+      "id": "availability_service_setworkinghours",
+      "label": "setWorkingHours()",
+      "file_type": "code",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+      "source_location": "L110-L140",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+          "source_location": "L110"
+        }
+      ],
+      "snippet": "setWorkingHours = async (user_id, workingHours) => {\n  // Get provider_id\n  const providerResult = await query(\n    'SELECT id FROM providers WHERE user_id = $1',\n    [user_id]\n  );\n\n  if (providerResult.rows.length === 0) {\n    throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');\n  }\n\n  const provider_id = providerResult.rows[0].id;\n\n  // Delete existing working hours and re-insert\n  // (simpler and safer than complex upsert logic)\n  await query('DELETE FROM availability WHERE provider_id = $1', [provider_id]);\n\n  const insertedRows = [];\n\n  for (const wh of workingHours) {\n    const result = await query(\n      `INSERT INTO availability (provider_id, day_of_week, start_time, end_time)\n       VALUES ($1, $2, $3, $4)\n       RETURNING *`,\n      [provider_id, wh.day_of_week, wh.start_time, wh.end_time]",
+      "community": 18
+    },
+    {
+      "id": "availability_service_getworkinghours",
+      "label": "getWorkingHours()",
+      "file_type": "code",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+      "source_location": "L145-L166",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+          "source_location": "L145"
+        }
+      ],
+      "snippet": "getWorkingHours = async (user_id) => {\n  const providerResult = await query(\n    'SELECT id FROM providers WHERE user_id = $1',\n    [user_id]\n  );\n\n  if (providerResult.rows.length === 0) {\n    throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');\n  }\n\n  const provider_id = providerResult.rows[0].id;\n\n  const result = await query(\n    `SELECT id, day_of_week, start_time, end_time\n     FROM availability\n     WHERE provider_id = $1\n     ORDER BY day_of_week, start_time`,\n    [provider_id]\n  );\n\n  return result.rows;\n}",
+      "community": 18
+    },
+    {
+      "id": "payment_service",
+      "label": "payment.service.js",
+      "file_type": "code",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+      "source_location": "L1",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+          "source_location": "L1"
+        }
+      ],
+      "community": 24
+    },
+    {
+      "id": "payment_service_createorder",
+      "label": "createOrder()",
+      "file_type": "code",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+      "source_location": "L24-L102",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+          "source_location": "L24"
+        }
+      ],
+      "snippet": "createOrder = async (user_id, booking_id, amount) => {\n  if (!Number.isInteger(amount) || amount <= 0) {\n    throw new AppError('Amount must be a positive integer in INR.', 400, 'INVALID_AMOUNT');\n  }\n\n  if (!razorpay) {\n    throw new AppError('Payment gateway is not configured.', 503, 'PAYMENT_NOT_CONFIGURED');\n  }\n\n  // Verify booking exists and belongs to user\n  const bookingResult = await query(\n    `SELECT b.id, b.user_id, b.status, b.provider_id, b.start_time,\n            s.name AS service_name\n     FROM bookings b\n     JOIN services s ON b.service_id = s.id\n     WHERE b.id = $1`,\n    [booking_id]\n  );\n\n  if (bookingResult.rows.length === 0) {\n    throw new AppError('Booking not found.', 404, 'BOOKING_NOT_FOUND');\n  }\n\n  const booking = bookingResult.rows[0];",
+      "community": 24
+    },
+    {
+      "id": "payment_service_verifypayment",
+      "label": "verifyPayment()",
+      "file_type": "code",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+      "source_location": "L107-L146",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+          "source_location": "L107"
+        }
+      ],
+      "snippet": "verifyPayment = async (razorpay_order_id, razorpay_payment_id, razorpay_signature) => {\n  // Verify HMAC signature\n  const body = razorpay_order_id + '|' + razorpay_payment_id;\n  const expectedSignature = crypto\n    .createHmac('sha256', env.RAZORPAY_KEY_SECRET)\n    .update(body)\n    .digest('hex');\n\n  const expectedBuffer = Buffer.from(expectedSignature, 'hex');\n  const receivedBuffer = Buffer.from(razorpay_signature, 'hex');\n  if (\n    expectedBuffer.length !== receivedBuffer.length ||\n    !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)\n  ) {\n    throw new AppError('Invalid payment signature.', 400, 'INVALID_SIGNATURE');\n  }\n\n  // Update payment record\n  const paymentResult = await query(\n    `UPDATE payments\n     SET razorpay_payment_id = $1, status = 'success'\n     WHERE razorpay_order_id = $2\n     RETURNING *`,\n    [razorpay_payment_id, razorpay_order_id]\n  );",
+      "community": 24
+    },
+    {
+      "id": "payment_service_handlewebhook",
+      "label": "handleWebhook()",
+      "file_type": "code",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+      "source_location": "L151-L221",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+          "source_location": "L151"
+        }
+      ],
+      "snippet": "handleWebhook = async (rawBody, signature) => {\n  // Verify webhook signature\n  const expectedSignature = crypto\n    .createHmac('sha256', env.RAZORPAY_WEBHOOK_SECRET)\n    .update(rawBody)\n    .digest('hex');\n\n  const expectedBuffer = Buffer.from(expectedSignature, 'hex');\n  const receivedBuffer = Buffer.from(signature, 'hex');\n  if (\n    expectedBuffer.length !== receivedBuffer.length ||\n    !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)\n  ) {\n    throw new AppError('Invalid webhook signature.', 400, 'INVALID_WEBHOOK_SIGNATURE');\n  }\n\n  const event = JSON.parse(rawBody);\n  const eventType = event.event;\n\n  if (eventType === 'payment.captured') {\n    const paymentEntity = event.payload.payment.entity;\n    const razorpay_order_id = paymentEntity.order_id;\n    const razorpay_payment_id = paymentEntity.id;\n\n    // Update payment",
+      "community": 24
+    },
+    {
       "id": "auth_service",
       "label": "auth.service.js",
       "file_type": "code",
@@ -6862,77 +7004,6 @@
       "community": 10
     },
     {
-      "id": "availability_service",
-      "label": "availability.service.js",
-      "file_type": "code",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-      "source_location": "L1",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-          "source_location": "L1"
-        }
-      ],
-      "community": 18
-    },
-    {
-      "id": "availability_service_getavailableslots",
-      "label": "getAvailableSlots()",
-      "file_type": "code",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-      "source_location": "L26-L105",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-          "source_location": "L26"
-        }
-      ],
-      "snippet": "getAvailableSlots = async (service_id, date) => {\n  // 1. Fetch service details\n  const serviceResult = await query(\n    'SELECT id, provider_id, duration_min, capacity FROM services WHERE id = $1',\n    [service_id]\n  );\n\n  if (serviceResult.rows.length === 0) {\n    throw new AppError('Service not found.', 404, 'SERVICE_NOT_FOUND');\n  }\n\n  const service = serviceResult.rows[0];\n  const { provider_id, capacity } = service;\n\n  // 2. Generate all possible slots for the day\n  const allSlots = await generateSlots(provider_id, service_id, date);\n\n  if (allSlots.length === 0) {\n    return [];\n  }\n\n  // 3. Batch-fetch ALL bookings for this provider on this date (ONE query, no N+1)\n  const dayStart = new Date(date + 'T00:00:00Z').toISOString();\n  const dayEnd = new Date(date + 'T23:59:59.999Z').toISOString();",
-      "community": 18
-    },
-    {
-      "id": "availability_service_setworkinghours",
-      "label": "setWorkingHours()",
-      "file_type": "code",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-      "source_location": "L110-L140",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-          "source_location": "L110"
-        }
-      ],
-      "snippet": "setWorkingHours = async (user_id, workingHours) => {\n  // Get provider_id\n  const providerResult = await query(\n    'SELECT id FROM providers WHERE user_id = $1',\n    [user_id]\n  );\n\n  if (providerResult.rows.length === 0) {\n    throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');\n  }\n\n  const provider_id = providerResult.rows[0].id;\n\n  // Delete existing working hours and re-insert\n  // (simpler and safer than complex upsert logic)\n  await query('DELETE FROM availability WHERE provider_id = $1', [provider_id]);\n\n  const insertedRows = [];\n\n  for (const wh of workingHours) {\n    const result = await query(\n      `INSERT INTO availability (provider_id, day_of_week, start_time, end_time)\n       VALUES ($1, $2, $3, $4)\n       RETURNING *`,\n      [provider_id, wh.day_of_week, wh.start_time, wh.end_time]",
-      "community": 18
-    },
-    {
-      "id": "availability_service_getworkinghours",
-      "label": "getWorkingHours()",
-      "file_type": "code",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-      "source_location": "L145-L166",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-          "source_location": "L145"
-        }
-      ],
-      "snippet": "getWorkingHours = async (user_id) => {\n  const providerResult = await query(\n    'SELECT id FROM providers WHERE user_id = $1',\n    [user_id]\n  );\n\n  if (providerResult.rows.length === 0) {\n    throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');\n  }\n\n  const provider_id = providerResult.rows[0].id;\n\n  const result = await query(\n    `SELECT id, day_of_week, start_time, end_time\n     FROM availability\n     WHERE provider_id = $1\n     ORDER BY day_of_week, start_time`,\n    [provider_id]\n  );\n\n  return result.rows;\n}",
-      "community": 18
-    },
-    {
       "id": "booking_service",
       "label": "booking.service.js",
       "file_type": "code",
@@ -7110,77 +7181,6 @@
       ],
       "snippet": "confirmBooking = async (booking_id, user_id) => {\n  // Verify organiser owns the service\n  const providerResult = await query(\n    'SELECT id FROM providers WHERE user_id = $1',\n    [user_id]\n  );\n\n  if (providerResult.rows.length === 0) {\n    throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');\n  }\n\n  const provider_id = providerResult.rows[0].id;\n\n  const result = await query(\n    `UPDATE bookings\n     SET status = 'booked'\n     WHERE id = $1 AND provider_id = $2 AND status = 'pending'\n     RETURNING *`,\n    [booking_id, provider_id]\n  );\n\n  if (result.rows.length === 0) {\n    throw new AppError('Booking not found, already confirmed, or you do not own this booking.', 404, 'BOOKING_NOT_FOUND');\n  }",
       "community": 7
-    },
-    {
-      "id": "payment_service",
-      "label": "payment.service.js",
-      "file_type": "code",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-      "source_location": "L1",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-          "source_location": "L1"
-        }
-      ],
-      "community": 24
-    },
-    {
-      "id": "payment_service_createorder",
-      "label": "createOrder()",
-      "file_type": "code",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-      "source_location": "L24-L102",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-          "source_location": "L24"
-        }
-      ],
-      "snippet": "createOrder = async (user_id, booking_id, amount) => {\n  if (!Number.isInteger(amount) || amount <= 0) {\n    throw new AppError('Amount must be a positive integer in INR.', 400, 'INVALID_AMOUNT');\n  }\n\n  if (!razorpay) {\n    throw new AppError('Payment gateway is not configured.', 503, 'PAYMENT_NOT_CONFIGURED');\n  }\n\n  // Verify booking exists and belongs to user\n  const bookingResult = await query(\n    `SELECT b.id, b.user_id, b.status, b.provider_id, b.start_time,\n            s.name AS service_name\n     FROM bookings b\n     JOIN services s ON b.service_id = s.id\n     WHERE b.id = $1`,\n    [booking_id]\n  );\n\n  if (bookingResult.rows.length === 0) {\n    throw new AppError('Booking not found.', 404, 'BOOKING_NOT_FOUND');\n  }\n\n  const booking = bookingResult.rows[0];",
-      "community": 24
-    },
-    {
-      "id": "payment_service_verifypayment",
-      "label": "verifyPayment()",
-      "file_type": "code",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-      "source_location": "L107-L146",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-          "source_location": "L107"
-        }
-      ],
-      "snippet": "verifyPayment = async (razorpay_order_id, razorpay_payment_id, razorpay_signature) => {\n  // Verify HMAC signature\n  const body = razorpay_order_id + '|' + razorpay_payment_id;\n  const expectedSignature = crypto\n    .createHmac('sha256', env.RAZORPAY_KEY_SECRET)\n    .update(body)\n    .digest('hex');\n\n  const expectedBuffer = Buffer.from(expectedSignature, 'hex');\n  const receivedBuffer = Buffer.from(razorpay_signature, 'hex');\n  if (\n    expectedBuffer.length !== receivedBuffer.length ||\n    !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)\n  ) {\n    throw new AppError('Invalid payment signature.', 400, 'INVALID_SIGNATURE');\n  }\n\n  // Update payment record\n  const paymentResult = await query(\n    `UPDATE payments\n     SET razorpay_payment_id = $1, status = 'success'\n     WHERE razorpay_order_id = $2\n     RETURNING *`,\n    [razorpay_payment_id, razorpay_order_id]\n  );",
-      "community": 24
-    },
-    {
-      "id": "payment_service_handlewebhook",
-      "label": "handleWebhook()",
-      "file_type": "code",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-      "source_location": "L151-L221",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-          "source_location": "L151"
-        }
-      ],
-      "snippet": "handleWebhook = async (rawBody, signature) => {\n  // Verify webhook signature\n  const expectedSignature = crypto\n    .createHmac('sha256', env.RAZORPAY_WEBHOOK_SECRET)\n    .update(rawBody)\n    .digest('hex');\n\n  const expectedBuffer = Buffer.from(expectedSignature, 'hex');\n  const receivedBuffer = Buffer.from(signature, 'hex');\n  if (\n    expectedBuffer.length !== receivedBuffer.length ||\n    !crypto.timingSafeEqual(expectedBuffer, receivedBuffer)\n  ) {\n    throw new AppError('Invalid webhook signature.', 400, 'INVALID_WEBHOOK_SIGNATURE');\n  }\n\n  const event = JSON.parse(rawBody);\n  const eventType = event.event;\n\n  if (eventType === 'payment.captured') {\n    const paymentEntity = event.payload.payment.entity;\n    const razorpay_order_id = paymentEntity.order_id;\n    const razorpay_payment_id = paymentEntity.id;\n\n    // Update payment",
-      "community": 24
     }
   ],
   "links": [
@@ -19476,6 +19476,193 @@
       ]
     },
     {
+      "source": "availability_service",
+      "target": "availability_service_getavailableslots",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+      "source_location": "L26",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+          "source_location": "L26"
+        }
+      ]
+    },
+    {
+      "source": "availability_service",
+      "target": "availability_service_setworkinghours",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+      "source_location": "L110",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+          "source_location": "L110"
+        }
+      ]
+    },
+    {
+      "source": "availability_service",
+      "target": "availability_service_getworkinghours",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+      "source_location": "L145",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
+          "source_location": "L145"
+        }
+      ]
+    },
+    {
+      "source": "payment_service",
+      "target": "payment_service_createorder",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+      "source_location": "L24",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+          "source_location": "L24"
+        }
+      ]
+    },
+    {
+      "source": "payment_service",
+      "target": "payment_service_verifypayment",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+      "source_location": "L107",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+          "source_location": "L107"
+        }
+      ]
+    },
+    {
+      "source": "payment_service",
+      "target": "payment_service_handlewebhook",
+      "relation": "contains",
+      "confidence": "EXTRACTED",
+      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+      "source_location": "L151",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
+          "source_location": "L151"
+        }
+      ]
+    },
+    {
+      "source": "bookingwizard",
+      "target": "button_button",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+      "source_location": "L6",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+          "source_location": "L6"
+        }
+      ]
+    },
+    {
+      "source": "bookingwizard",
+      "target": "card_card",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+      "source_location": "L7",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+          "source_location": "L7"
+        }
+      ]
+    },
+    {
+      "source": "bookingwizard",
+      "target": "input_input",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+      "source_location": "L8",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+          "source_location": "L8"
+        }
+      ]
+    },
+    {
+      "source": "bookingwizard",
+      "target": "loader_loader",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+      "source_location": "L9",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+          "source_location": "L9"
+        }
+      ]
+    },
+    {
+      "source": "bookingwizard",
+      "target": "errormessage_errormessage",
+      "relation": "imports_from",
+      "confidence": "EXTRACTED",
+      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+      "source_location": "L10",
+      "layer": "base",
+      "provenance": [
+        {
+          "capability_id": "builtin:extract:javascript",
+          "stage": "extract",
+          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
+          "source_location": "L10"
+        }
+      ]
+    },
+    {
       "source": "auth_service",
       "target": "auth_service_generateotp",
       "relation": "contains",
@@ -19748,57 +19935,6 @@
       ]
     },
     {
-      "source": "availability_service",
-      "target": "availability_service_getavailableslots",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-      "source_location": "L26",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-          "source_location": "L26"
-        }
-      ]
-    },
-    {
-      "source": "availability_service",
-      "target": "availability_service_setworkinghours",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-      "source_location": "L110",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-          "source_location": "L110"
-        }
-      ]
-    },
-    {
-      "source": "availability_service",
-      "target": "availability_service_getworkinghours",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-      "source_location": "L145",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/availability.service.js",
-          "source_location": "L145"
-        }
-      ]
-    },
-    {
       "source": "booking_service",
       "target": "booking_service_generateconfirmationcode",
       "relation": "contains",
@@ -19965,142 +20101,6 @@
           "stage": "extract",
           "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/booking.service.js",
           "source_location": "L195"
-        }
-      ]
-    },
-    {
-      "source": "payment_service",
-      "target": "payment_service_createorder",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-      "source_location": "L24",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-          "source_location": "L24"
-        }
-      ]
-    },
-    {
-      "source": "payment_service",
-      "target": "payment_service_verifypayment",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-      "source_location": "L107",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-          "source_location": "L107"
-        }
-      ]
-    },
-    {
-      "source": "payment_service",
-      "target": "payment_service_handlewebhook",
-      "relation": "contains",
-      "confidence": "EXTRACTED",
-      "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-      "source_location": "L151",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:/1_PROGRAMMING/0_Projects/Zilla/Zilla/zilla-backend/src/services/payment.service.js",
-          "source_location": "L151"
-        }
-      ]
-    },
-    {
-      "source": "bookingwizard",
-      "target": "button_button",
-      "relation": "imports_from",
-      "confidence": "EXTRACTED",
-      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-      "source_location": "L6",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-          "source_location": "L6"
-        }
-      ]
-    },
-    {
-      "source": "bookingwizard",
-      "target": "card_card",
-      "relation": "imports_from",
-      "confidence": "EXTRACTED",
-      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-      "source_location": "L7",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-          "source_location": "L7"
-        }
-      ]
-    },
-    {
-      "source": "bookingwizard",
-      "target": "input_input",
-      "relation": "imports_from",
-      "confidence": "EXTRACTED",
-      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-      "source_location": "L8",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-          "source_location": "L8"
-        }
-      ]
-    },
-    {
-      "source": "bookingwizard",
-      "target": "loader_loader",
-      "relation": "imports_from",
-      "confidence": "EXTRACTED",
-      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-      "source_location": "L9",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-          "source_location": "L9"
-        }
-      ]
-    },
-    {
-      "source": "bookingwizard",
-      "target": "errormessage_errormessage",
-      "relation": "imports_from",
-      "confidence": "EXTRACTED",
-      "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-      "source_location": "L10",
-      "layer": "base",
-      "provenance": [
-        {
-          "capability_id": "builtin:extract:javascript",
-          "stage": "extract",
-          "source_file": "C:\\1_PROGRAMMING\\0_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx",
-          "source_location": "L10"
         }
       ]
     }

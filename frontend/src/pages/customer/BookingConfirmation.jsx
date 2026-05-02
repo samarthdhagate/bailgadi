@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { format } from 'date-fns';
+import { format, addMinutes, parse } from 'date-fns';
 import { CheckCircle, Clock, MapPin, Users } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -8,7 +8,30 @@ import Button from '../../components/Button';
 const BookingConfirmation = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { booking } = location.state || {};
+  const { booking, isRescheduling } = location.state || {};
+
+  const generateGoogleCalendarUrl = () => {
+    if (!booking) return '';
+
+    try {
+      // Assuming booking.date is 'YYYY-MM-DD' and booking.time is 'HH:MM AM/PM'
+      const startDateTime = parse(`${booking.date} ${booking.time}`, 'yyyy-MM-dd hh:mm a', new Date());
+      const endDateTime = addMinutes(startDateTime, 30); // Default 30 min duration
+
+      const formatForGoogle = (date) => format(date, "yyyyMMdd'T'HHmmss'Z'");
+      
+      const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
+      const text = encodeURIComponent(`Appointment: ${booking.serviceName || 'Booking'}`);
+      const dates = `${formatForGoogle(startDateTime)}/${formatForGoogle(endDateTime)}`;
+      const details = encodeURIComponent(`Confirmation Code: ${booking.confirmation_code || booking.id}\nStatus: ${booking.status}`);
+      const location = encodeURIComponent(booking.location || 'Ahmedabad, India');
+
+      return `${baseUrl}&text=${text}&dates=${dates}&details=${details}&location=${location}`;
+    } catch (e) {
+      console.error('Error generating calendar URL:', e);
+      return '#';
+    }
+  };
 
   if (!booking) {
     return (
@@ -28,7 +51,9 @@ const BookingConfirmation = () => {
           {/* Header */}
           <div className="border-b border-gray-100 pb-8 flex justify-between items-center">
             <div>
-              <h1 className="text-4xl font-bold text-gray-800">Appointment confirmed</h1>
+              <h1 className="text-4xl font-bold text-gray-800">
+                {isRescheduling ? 'Reschedule confirmed' : 'Appointment confirmed'}
+              </h1>
               <p className="text-gray-500 mt-2">Confirmation Code: <span className="font-mono font-bold text-primary">{booking.confirmation_code || booking.id}</span></p>
             </div>
             <div className="bg-green-100 text-green-600 p-3 rounded-full">
@@ -45,9 +70,15 @@ const BookingConfirmation = () => {
                   {booking.date}, {booking.time}
                 </p>
                 <div className="flex gap-4">
-                  <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
+                  <a 
+                    href={generateGoogleCalendarUrl()}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
+                  >
+                    <img src="https://www.gstatic.com/calendar/images/dynamiclogo_2020q4/calendar_31_2x.png" alt="Google Calendar" className="w-4 h-4" />
                     Google calendar
-                  </button>
+                  </a>
                   <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
                     Outlook calendar
                   </button>

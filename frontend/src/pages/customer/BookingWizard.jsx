@@ -1,7 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
-import { ChevronLeft, ChevronRight, Calendar as CalendarIcon, Clock, Users, CreditCard, CheckCircle } from 'lucide-react';
-import { format } from 'date-fns';
+import { 
+  ChevronLeft, 
+  ChevronRight, 
+  Calendar as CalendarIcon, 
+  Clock, 
+  Users, 
+  CreditCard, 
+  CheckCircle 
+} from 'lucide-react';
+import { 
+  format, 
+  addMonths, 
+  subMonths, 
+  startOfMonth, 
+  endOfMonth, 
+  startOfWeek, 
+  endOfWeek, 
+  isSameMonth, 
+  isSameDay, 
+  addDays, 
+  eachDayOfInterval, 
+  isPast,
+  isToday
+} from 'date-fns';
 import { bookingService } from '@services/booking';
 import Button from '../../components/Button';
 import Card from '../../components/Card';
@@ -33,6 +55,7 @@ const BookingWizard = () => {
     }
   });
 
+  const [currentMonth, setCurrentMonth] = useState(new Date());
   const [resources, setResources] = useState([]);
   const [slots, setSlots] = useState([]);
   const [service, setService] = useState(null);
@@ -44,6 +67,13 @@ const BookingWizard = () => {
         const res = await bookingService.getServices();
         const currentService = (res.data || []).find(s => String(s.id) === String(serviceId));
         setService(currentService);
+
+        // Fetch resources (mocked for now in service, but let's set some defaults)
+        const resData = await bookingService.getResources(serviceId);
+        setResources(resData.data || []);
+        if (resData.data?.length > 0 && !bookingData.resourceId) {
+          setBookingData(prev => ({ ...prev, resourceId: resData.data[0].id }));
+        }
       } catch (err) {
         setError('Failed to load service details');
       } finally {
@@ -73,14 +103,13 @@ const BookingWizard = () => {
 
   const handleNext = () => {
     if (isRescheduling && step === 1) {
-      // If rescheduling, skip details and payment
       submitBooking();
       return;
     }
 
     if (step === 2) {
       if (service?.price > 0) {
-        setStep(3); // Payment
+        setStep(3);
       } else {
         submitBooking();
       }
@@ -89,28 +118,24 @@ const BookingWizard = () => {
     }
   };
 
-  const handleBack = () => {
-    setStep(prev => prev - 1);
-  };
-
   const submitBooking = async () => {
     setIsLoading(true);
     setError('');
     try {
-      // Lock the slot first
       await bookingService.lockSlot(serviceId, bookingData.time);
-      // Create the booking
       const res = await bookingService.createBooking({
+        ...bookingData,
         serviceId,
         startTime: bookingData.time,
-        notes: `${bookingData.userDetails.name} — ${bookingData.userDetails.phone}`,
       });
+      
       navigate('/confirmation', {
         state: {
           booking: {
             ...res.data,
-            date: new Date(res.data.start_time).toLocaleDateString(),
-            time: new Date(res.data.start_time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+            serviceName: service?.name || service?.title,
+            date: bookingData.date,
+            time: bookingData.time,
             userDetails: bookingData.userDetails,
           }
         }
@@ -122,9 +147,88 @@ const BookingWizard = () => {
     }
   };
 
+  // --- Calendar Helpers ---
+  const renderCalendar = () => {
+    const monthStart = startOfMonth(currentMonth);
+    const monthEnd = endOfMonth(monthStart);
+    const startDate = startOfWeek(monthStart);
+    const endDate = endOfWeek(monthEnd);
+
+    const dateFormat = "d";
+    const rows = [];
+    let days = [];
+    let day = startDate;
+    let formattedDate = "";
+
+    const calendarDays = eachDayOfInterval({
+      start: startDate,
+      end: endDate
+    });
+
+    const daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
+
+    return (
+      <div className="w-full">
+        {/* Calendar Header */}
+        <div className="flex items-center justify-between mb-8">
+          <button 
+            onClick={() => setCurrentMonth(subMonths(currentMonth, 1))}
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5 text-gray-400" />
+          </button>
+          <span className="text-lg font-bold text-gray-800">
+            {format(currentMonth, 'MMMM yyyy')}
+          </span>
+          <button 
+            onClick={() => setCurrentMonth(addMonths(currentMonth, 1))}
+            className="p-2 hover:bg-gray-100 rounded-xl transition-colors"
+          >
+            <ChevronRight className="w-5 h-5 text-gray-400" />
+          </button>
+        </div>
+
+        {/* Days of Week */}
+        <div className="grid grid-cols-7 mb-4">
+          {daysOfWeek.map(d => (
+            <div key={d} className="text-center text-xs font-bold text-gray-400 uppercase">
+              {d}
+            </div>
+          ))}
+        </div>
+
+        {/* Days Grid */}
+        <div className="grid grid-cols-7 gap-1">
+          {calendarDays.map((date, i) => {
+            const isCurrentMonth = isSameMonth(date, monthStart);
+            const isSelected = isSameDay(date, new Date(bookingData.date));
+            const isDisabled = isPast(date) && !isToday(date);
+
+            return (
+              <button
+                key={i}
+                disabled={isDisabled}
+                onClick={() => setBookingData(prev => ({ ...prev, date: format(date, 'yyyy-MM-dd') }))}
+                className={`aspect-square flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
+                  !isCurrentMonth ? 'text-gray-200' :
+                  isSelected ? 'bg-black text-white shadow-lg' :
+                  isDisabled ? 'text-gray-200 cursor-not-allowed' :
+                  'text-gray-700 hover:bg-gray-100'
+                }`}
+              >
+                {format(date, 'd')}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  };
+
   const renderUnifiedSelection = () => {
     return (
       <div className="flex flex-col gap-10">
+<<<<<<< HEAD
         {resources.length > 0 && (
           <div>
             <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">With</h3>
@@ -148,69 +252,92 @@ const BookingWizard = () => {
                 </button>
               ))}
             </div>
+=======
+        {/* Section: "With" */}
+        <div>
+          <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">With</h3>
+          <div className="flex flex-wrap gap-4">
+            {resources.map(r => (
+              <button
+                key={r.id}
+                onClick={() => setBookingData(prev => ({ ...prev, resourceId: r.id }))}
+                className={`flex items-center gap-3 px-5 py-3 rounded-2xl border-2 transition-all ${
+                  bookingData.resourceId === r.id 
+                    ? 'border-primary bg-primary/5 text-primary' 
+                    : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
+                }`}
+              >
+                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
+                  bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
+                }`}>
+                  {r.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <span className="font-bold">{r.name}</span>
+              </button>
+            ))}
+>>>>>>> ce7ad0561f56b64529f514d909b393c3232ee07b
           </div>
         )}
 
-        {/* Main Selection Area: Calendar and Slots */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
+        {/* Section: Main Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">
           {/* Left: Date Picker */}
-          <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Date picker</h3>
-            <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm">
-              {/* Simplistic Calendar UI Mockup */}
-              <div className="flex items-center justify-between mb-6">
-                <button className="p-2 hover:bg-gray-50 rounded-lg"><ChevronLeft className="w-5 h-5 text-gray-400" /></button>
-                <span className="font-bold text-gray-800">{format(new Date(bookingData.date), 'MMMM yyyy')}</span>
-                <button className="p-2 hover:bg-gray-50 rounded-lg"><ChevronRight className="w-5 h-5 text-gray-400" /></button>
+          <div className="space-y-6">
+            <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">Date picker</h3>
+            <div className="bg-white border border-gray-100 rounded-[32px] p-10 shadow-sm">
+              {renderCalendar()}
+              
+              <div className="mt-10 pt-8 border-t border-gray-50">
+                <p className="text-sm text-gray-500 font-medium leading-relaxed italic">
+                  Schedule your visit today and experience expert care brought right to your doorstep.
+                </p>
               </div>
-              <input
-                type="date"
-                value={bookingData.date}
-                onChange={(e) => setBookingData(prev => ({ ...prev, date: e.target.value }))}
-                className="w-full p-4 border border-gray-100 rounded-2xl focus:ring-2 focus:ring-primary outline-none mb-6"
-              />
-              <p className="text-sm text-gray-500 italic leading-relaxed">
-                {service?.description}
-              </p>
             </div>
           </div>
 
           {/* Right: Slots */}
-          <div className="flex flex-col gap-4">
-            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider">Slots</h3>
-            <div className="bg-white border border-gray-100 rounded-3xl p-6 shadow-sm flex-1">
-              <div className="grid grid-cols-2 gap-3 mb-8">
-                {slots.map(slot => (
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">Slots</h3>
+              <span className="text-[10px] font-bold text-gray-400 uppercase">(schedule = Weekly)</span>
+            </div>
+            <div className="bg-white border border-gray-100 rounded-[32px] p-10 shadow-sm min-h-[400px] flex flex-col">
+              <div className="grid grid-cols-2 gap-4">
+                {slots.length > 0 ? slots.map(slot => (
                   <button
                     key={slot.id}
                     disabled={!slot.available}
                     onClick={() => setBookingData(prev => ({ ...prev, time: slot.time }))}
-                    className={`py-3 px-4 rounded-xl border-2 font-bold text-sm transition-all ${
+                    className={`py-4 px-6 rounded-2xl border-2 font-bold text-sm transition-all ${
                       bookingData.time === slot.time
-                        ? 'bg-primary border-primary text-white shadow-md'
+                        ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]'
                         : slot.available
-                        ? 'border-gray-50 text-gray-700 hover:border-primary/30 hover:bg-primary/5'
+                        ? 'border-gray-100 text-gray-700 hover:border-primary/30 hover:bg-gray-50'
                         : 'bg-gray-50 border-gray-50 text-gray-300 cursor-not-allowed'
                     }`}
                   >
                     {slot.time}
                   </button>
-                ))}
+                )) : (
+                  <div className="col-span-2 py-20 text-center">
+                    <p className="text-gray-400 font-medium">No slots available for this date.</p>
+                  </div>
+                )}
               </div>
 
-              {/* Conditional Capacity Selector */}
-              {service?.capacityEnabled !== false && (
-                <div className="pt-6 border-t border-gray-50 mt-auto">
-                  <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Number of people</p>
-                  <div className="flex items-center gap-4 bg-gray-50 w-max rounded-xl p-1 border border-gray-100">
+              {/* Number of People (if enabled) */}
+              {service?.capacity > 1 && (
+                <div className="mt-auto pt-10 border-t border-gray-50">
+                  <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Number of people</p>
+                  <div className="flex items-center gap-6 bg-gray-50 w-max rounded-2xl p-2 border border-gray-100">
                     <button 
                       onClick={() => setBookingData(prev => ({ ...prev, capacity: Math.max(1, prev.capacity - 1) }))}
-                      className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm"
+                      className="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm hover:text-primary transition-colors"
                     >-</button>
-                    <span className="w-8 text-center font-bold text-gray-800">{bookingData.capacity}</span>
+                    <span className="w-8 text-center font-black text-lg text-gray-800">{bookingData.capacity}</span>
                     <button 
                       onClick={() => setBookingData(prev => ({ ...prev, capacity: prev.capacity + 1 }))}
-                      className="w-8 h-8 rounded-lg bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm"
+                      className="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm hover:text-primary transition-colors"
                     >+</button>
                   </div>
                 </div>
@@ -219,13 +346,18 @@ const BookingWizard = () => {
           </div>
         </div>
 
-        <div className="flex justify-end pt-4">
+        {/* Footer Actions */}
+        <div className="flex justify-end pt-6">
           <Button 
+<<<<<<< HEAD
             disabled={!bookingData.time} 
+=======
+            disabled={!bookingData.resourceId || !bookingData.time || isLoading} 
+>>>>>>> ce7ad0561f56b64529f514d909b393c3232ee07b
             onClick={handleNext}
-            className="px-10 py-4 text-lg"
+            className="px-12 py-5 text-lg rounded-2xl shadow-2xl shadow-primary/30"
           >
-            {isRescheduling ? 'Confirm Reschedule' : 'Continue to Details'}
+            {isLoading ? <Loader /> : (isRescheduling ? 'Confirm Reschedule' : 'Continue to Details')}
           </Button>
         </div>
       </div>
@@ -236,16 +368,15 @@ const BookingWizard = () => {
     if (step === 1) return renderUnifiedSelection();
     
     switch (step) {
-      case 2: // Details (originally step 4)
+      case 2:
         return (
           <div className="flex flex-col gap-8 max-w-4xl mx-auto">
             <div className="border-b border-gray-100 pb-6">
-              <h2 className="text-3xl font-bold text-gray-800">Details</h2>
-              <p className="text-gray-500 mt-2">Please provide your contact information and answer a few questions.</p>
+              <h2 className="text-3xl font-bold text-gray-800 tracking-tighter">Details</h2>
+              <p className="text-gray-500 mt-2 font-medium">Please provide your contact information to confirm your booking.</p>
             </div>
 
             <div className="space-y-8 py-4">
-              {/* Standard Fields */}
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
                 <label className="font-bold text-gray-700">Full Name</label>
                 <div className="md:col-span-2">
@@ -281,7 +412,7 @@ const BookingWizard = () => {
                 <label className="font-bold text-gray-700">Phone Number</label>
                 <div className="md:col-span-2">
                   <Input
-                    placeholder="+1 234 567 890"
+                    placeholder="+91 98765 43210"
                     value={bookingData.userDetails.phone}
                     onChange={(e) => setBookingData(prev => ({ 
                       ...prev, 
@@ -291,142 +422,92 @@ const BookingWizard = () => {
                   />
                 </div>
               </div>
-
-              {/* Dynamic Questions from Organiser */}
-              {service?.questions?.map((q) => (
-                <div key={q.id} className="grid grid-cols-1 md:grid-cols-3 items-start gap-4">
-                  <label className="font-bold text-gray-700 pt-3">{q.label}{q.required && '*'}</label>
-                  <div className="md:col-span-2">
-                    {q.type === 'textarea' ? (
-                      <textarea
-                        className="input-field min-h-[120px]"
-                        placeholder={`Enter ${q.label.toLowerCase()}...`}
-                        required={q.required}
-                        value={bookingData.userDetails[q.id] || ''}
-                        onChange={(e) => setBookingData(prev => ({ 
-                          ...prev, 
-                          userDetails: { ...prev.userDetails, [q.id]: e.target.value } 
-                        }))}
-                      />
-                    ) : (
-                      <Input
-                        placeholder={`Enter ${q.label.toLowerCase()}...`}
-                        required={q.required}
-                        value={bookingData.userDetails[q.id] || ''}
-                        onChange={(e) => setBookingData(prev => ({ 
-                          ...prev, 
-                          userDetails: { ...prev.userDetails, [q.id]: e.target.value } 
-                        }))}
-                      />
-                    )}
-                  </div>
-                </div>
-              ))}
             </div>
 
-            <div className="flex flex-col items-center gap-4 pt-10 border-t border-gray-50">
+            <div className="flex flex-col items-center gap-6 pt-10 border-t border-gray-50">
               <Button 
                 onClick={handleNext}
                 disabled={!bookingData.userDetails.name || !bookingData.userDetails.email}
-                className="px-16 py-4 text-lg min-w-[250px]"
+                className="px-20 py-5 text-xl min-w-[300px] rounded-2xl shadow-2xl shadow-primary/30"
               >
-                {service?.price > 0 ? 'Proceed to payment' : 'Confirm'}
+                {service?.price > 0 ? 'Proceed to payment' : 'Confirm Appointment'}
               </Button>
               <button 
                 onClick={() => setStep(1)}
-                className="text-gray-400 hover:text-primary font-medium transition-colors"
+                className="text-gray-400 hover:text-primary font-bold transition-all uppercase tracking-widest text-xs"
               >
-                Go back to selection
+                ← Back to selection
               </button>
             </div>
           </div>
         );
-      case 3: // Payment (originally step 5)
+      case 3:
         return (
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
-            {/* Left: Payment Method Selection */}
             <div className="lg:col-span-2 space-y-10">
               <div>
-                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-6">Choose a payment method</h3>
+                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-8">Choose a payment method</h3>
                 <div className="space-y-6">
-                  {/* Credit Card Option */}
-                  <div className="space-y-6">
+                  <div className="space-y-8 p-8 bg-gray-50 rounded-[32px] border border-gray-100">
                     <label className="flex items-center gap-3 cursor-pointer group">
-                      <input type="radio" name="paymentMethod" defaultChecked className="w-5 h-5 accent-primary" />
-                      <span className="font-bold text-gray-700 group-hover:text-primary transition-colors">Credit Card</span>
+                      <input type="radio" name="paymentMethod" defaultChecked className="w-6 h-6 accent-primary" />
+                      <span className="font-black text-xl text-gray-800">Credit / Debit Card</span>
                     </label>
                     
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-8">
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                       <div className="md:col-span-2">
-                        <label className="block text-sm font-bold text-gray-500 mb-2">Name on Card</label>
-                        <Input placeholder="John Doe" />
-                      </div>
-                      <div className="md:col-span-2">
-                        <label className="block text-sm font-bold text-gray-500 mb-2">Card Number</label>
-                        <Input placeholder="•••• •••• •••• ••••" />
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Card Number</label>
+                        <Input placeholder="0000 0000 0000 0000" />
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-2">Expiration Date</label>
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Expiry</label>
                         <Input placeholder="MM / YY" />
                       </div>
                       <div>
-                        <label className="block text-sm font-bold text-gray-500 mb-2">Security Code</label>
-                        <Input placeholder="CVV" />
+                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">CVV</label>
+                        <Input placeholder="•••" />
                       </div>
                     </div>
                   </div>
-
-                  {/* Other Options (Placeholders) */}
-                  {['Debit Card', 'UPI Pay', 'PayPal'].map(method => (
-                    <label key={method} className="flex items-center gap-3 cursor-pointer group pl-0">
-                      <input type="radio" name="paymentMethod" className="w-5 h-5 accent-primary" />
-                      <span className="font-bold text-gray-700 group-hover:text-primary transition-colors">{method}</span>
-                    </label>
-                  ))}
                 </div>
               </div>
 
-              <div className="pt-6 border-t border-gray-50">
+              <div className="pt-6">
                 <button 
                   onClick={() => setStep(2)}
-                  className="text-gray-400 hover:text-primary font-medium transition-colors"
+                  className="text-gray-400 hover:text-primary font-bold uppercase tracking-widest text-xs"
                 >
-                  Go back to details
+                  ← Go back to details
                 </button>
               </div>
             </div>
 
-            {/* Right: Order Summary */}
             <div>
-              <Card className="p-8 sticky top-8">
-                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Order Summary</h3>
+              <Card className="p-10 sticky top-8 bg-white border border-gray-100 rounded-[40px] shadow-2xl shadow-black/5">
+                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8 text-center">Summary</h3>
                 
-                <div className="space-y-4 mb-8">
+                <div className="space-y-6 mb-10">
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-800 font-medium">{service?.title}</span>
-                    <span className="font-bold text-gray-800">${service?.price}</span>
+                    <span className="text-gray-500 font-bold">{service?.name || service?.title}</span>
+                    <span className="font-black text-gray-800">₹{service?.price}</span>
                   </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Subtotal</span>
-                    <span className="font-medium text-gray-800">${service?.price}</span>
-                  </div>
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500">Taxes</span>
-                    <span className="font-medium text-gray-800">${(service?.price * 0.1).toFixed(2)}</span>
+                  <div className="flex justify-between items-center text-sm">
+                    <span className="text-gray-400">Convenience Fee</span>
+                    <span className="font-bold text-gray-800">₹40</span>
                   </div>
                 </div>
 
-                <div className="pt-6 border-t border-gray-100 mb-8 flex justify-between items-center">
-                  <span className="text-xl font-bold text-gray-800">Total</span>
-                  <span className="text-2xl font-black text-primary">${(service?.price * 1.1).toFixed(2)}</span>
+                <div className="pt-8 border-t border-gray-100 mb-10 flex justify-between items-center">
+                  <span className="text-2xl font-black text-gray-800">Total</span>
+                  <span className="text-3xl font-black text-primary">₹{Number(service?.price || 0) + 40}</span>
                 </div>
 
                 <Button 
                   isLoading={isLoading} 
                   onClick={submitBooking}
-                  className="w-full py-4 text-lg"
+                  className="w-full py-5 text-xl rounded-2xl shadow-2xl shadow-primary/30"
                 >
-                  Pay Now
+                  Pay & Confirm
                 </Button>
               </Card>
             </div>
@@ -438,38 +519,31 @@ const BookingWizard = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
+    <div className="min-h-screen bg-gray-50 py-12 px-4 font-['Inter',sans-serif]">
       <div className="max-w-6xl mx-auto">
-        <button 
-          onClick={() => navigate('/dashboard')}
-          className="flex items-center gap-2 text-gray-500 hover:text-primary mb-8 transition-colors"
-        >
-          <ChevronLeft className="w-5 h-5" />
-          Back to Dashboard
-        </button>
+        <header className="flex items-center justify-between mb-12">
+          <button 
+            onClick={() => navigate('/dashboard')}
+            className="flex items-center gap-2 text-gray-400 hover:text-primary font-bold uppercase tracking-widest text-xs transition-colors"
+          >
+            <ChevronLeft className="w-5 h-5" />
+            Back to Dashboard
+          </button>
 
-        <div className="flex items-center justify-center mb-12">
-          {[1, 2, 3].filter(s => s < 3 || service?.price > 0).map((s) => (
-            <React.Fragment key={s}>
-              <div className="flex flex-col items-center gap-2">
-                <div className={`w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all ${
-                  step === s ? 'bg-primary text-white scale-110 shadow-lg' : 
-                  step > s ? 'bg-green-500 text-white' : 'bg-white text-gray-400 border border-gray-200'
-                }`}>
-                  {step > s ? <CheckCircle className="w-5 h-5" /> : s}
-                </div>
-                <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                  {s === 1 ? 'Selection' : s === 2 ? 'Details' : 'Payment'}
-                </span>
-              </div>
-              {s < (service?.price > 0 ? 3 : 2) && (
-                <div className={`w-24 h-1 mx-4 rounded-full mt-[-18px] ${step > s ? 'bg-green-500' : 'bg-gray-200'}`} />
-              )}
-            </React.Fragment>
-          ))}
-        </div>
+          <div className="flex items-center gap-4">
+            {[1, 2, 3].filter(s => s < 3 || service?.price > 0).map((s) => (
+              <div key={s} className={`w-3 h-3 rounded-full transition-all duration-500 ${
+                step === s ? 'bg-primary w-8' : 
+                step > s ? 'bg-green-500' : 'bg-gray-200'
+              }`} />
+            ))}
+          </div>
+        </header>
 
-        <div className="bg-white rounded-[40px] p-12 shadow-sm border border-gray-100">
+        <div className="bg-white rounded-[48px] p-12 lg:p-20 shadow-2xl shadow-black/5 border border-gray-100 relative overflow-hidden">
+          {/* Decorative Background Element */}
+          <div className="absolute top-0 right-0 w-64 h-64 bg-primary/5 rounded-full -translate-y-1/2 translate-x-1/2 blur-3xl"></div>
+          
           <ErrorMessage message={error} />
           {renderStep()}
         </div>
