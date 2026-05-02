@@ -41,6 +41,7 @@ CREATE TABLE services (
   duration_min INTEGER NOT NULL,
   capacity INTEGER NOT NULL DEFAULT 1,
   is_published BOOLEAN DEFAULT FALSE,
+  price INTEGER DEFAULT 0,
   advance_payment BOOLEAN DEFAULT FALSE,
   manual_confirmation BOOLEAN DEFAULT FALSE,
   created_at TIMESTAMPTZ DEFAULT NOW()

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, User, CheckCircle, Clock3, XCircle } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
+import Button from '../../components/Button';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
 import { bookingService } from '@services/booking';
@@ -13,18 +14,19 @@ const MyBookings = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
 
-  useEffect(() => {
-    const fetchBookings = async () => {
-      try {
-        const response = await bookingService.getMyBookings();
-        setBookings(response.data || []);
-      } catch (err) {
-        setError('Failed to load your bookings.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
+  const fetchBookings = async () => {
+    setIsLoading(true);
+    try {
+      const response = await bookingService.getMyBookings();
+      setBookings(response.data || []);
+    } catch (err) {
+      setError('Failed to load your bookings.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
+  useEffect(() => {
     fetchBookings();
   }, []);
 
@@ -32,9 +34,8 @@ const MyBookings = () => {
     if (!window.confirm('Are you sure you want to cancel this booking?')) return;
     try {
       await bookingService.cancelBooking(bookingId);
-      setBookings((prev) =>
-        prev.map((b) => (b.id === bookingId ? { ...b, status: 'cancelled' } : b))
-      );
+      // Refresh list to show updated status
+      fetchBookings();
     } catch (err) {
       alert(err.response?.data?.error?.message || 'Failed to cancel booking.');
     }
@@ -74,14 +75,20 @@ const MyBookings = () => {
 
   const formatDate = (isoString) => {
     if (!isoString) return '';
-    const d = new Date(isoString);
-    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return isoString; // Return as is if not ISO
+      return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+    } catch (e) { return isoString; }
   };
 
   const formatTime = (isoString) => {
     if (!isoString) return '';
-    const d = new Date(isoString);
-    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    try {
+      const d = new Date(isoString);
+      if (isNaN(d.getTime())) return isoString; // Return as is if not ISO
+      return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+    } catch (e) { return isoString; }
   };
 
   return (
@@ -108,15 +115,20 @@ const MyBookings = () => {
                       <Calendar className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-1">{booking.service_name}</h3>
+                      <h3 className="text-lg font-bold text-gray-800 mb-1">{booking.service_name || booking.serviceName}</h3>
                       <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <User className="w-4 h-4" />
-                          <span>{booking.provider_name}</span>
+                          <span>{booking.provider_name || booking.resourceName}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4" />
-                          <span>{formatDate(booking.start_time)} at {formatTime(booking.start_time)}</span>
+                          <span>
+                            {booking.start_time ? 
+                              `${formatDate(booking.start_time)} at ${formatTime(booking.start_time)}` : 
+                              `${booking.date} at ${booking.time}`
+                            }
+                          </span>
                         </div>
                         {booking.confirmation_code && (
                           <div className="font-mono text-primary font-medium">
@@ -132,10 +144,10 @@ const MyBookings = () => {
                       {getStatusIcon(booking.status)}
                       {booking.status}
                     </div>
-                    {booking.status !== 'cancelled' && (
+                    {booking.status?.toLowerCase() !== 'cancelled' && (
                       <div className="flex gap-2">
                         <button
-                          onClick={() => navigate(`/booking/${booking.service_id}`, { state: { reschedulingBooking: booking } })}
+                          onClick={() => navigate(`/booking/${booking.service_id || booking.serviceId || 1}`, { state: { reschedulingBooking: booking } })}
                           className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
                         >
                           Reschedule
