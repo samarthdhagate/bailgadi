@@ -28,6 +28,8 @@ import Reporting from './pages/organiser/Reporting';
 import ResourceEditor from './pages/organiser/ResourceEditor';
 import UserEditor from './pages/organiser/UserEditor';
 
+import ChatWidget from './components/ChatWidget';
+
 function App() {
   return (
     <AuthProvider>
@@ -71,8 +73,11 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <ChatWidget />
     </AuthProvider>
   );
 }
+
+
 
 export default App;

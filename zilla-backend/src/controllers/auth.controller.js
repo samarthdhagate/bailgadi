@@ -98,12 +98,36 @@ const resetPassword = async (req, res, next) => {
   }
 };
 
+const googleLogin = async (req, res, next) => {
+  try {
+    const { token } = req.body;
+    const result = await authService.googleLogin(token);
+
+    // Set refresh token as HttpOnly cookie
+    res.cookie('refreshToken', result.refresh_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'strict',
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      path: '/',
+    });
+
+    const { refresh_token, ...responseData } = result;
+    res.json({ success: true, data: responseData });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   signup,
   verifyOTP,
   login,
+  googleLogin,
   refresh,
   logout,
   forgotPassword,
   resetPassword,
 };
+
+

@@ -51,6 +51,17 @@ router.post(
   authController.login
 );
 
+// POST /api/auth/google
+router.post(
+  '/google',
+  [
+    body('token').notEmpty().withMessage('Google token is required.'),
+    validateRequest,
+  ],
+  authController.googleLogin
+);
+
+
 // POST /api/auth/refresh
 router.post('/refresh', authController.refresh);
 

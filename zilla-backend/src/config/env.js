@@ -7,6 +7,7 @@ const requiredVars = [
   'DATABASE_URL',
   'JWT_SECRET',
   'JWT_REFRESH_SECRET',
+  'GOOGLE_CLIENT_ID',
 ];
 
 const optionalVars = {

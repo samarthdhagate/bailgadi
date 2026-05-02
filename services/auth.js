@@ -52,4 +52,10 @@ export const authService = {
     });
     return response.data;
   },
+  
+  googleLogin: async (token) => {
+    const response = await axiosInstance.post('/auth/google', { token });
+    return response.data;
+  },
 };
+
