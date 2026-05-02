@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext';
 const DashboardLayout = ({ children, title }) => {
   const { logout, user, role } = useAuth();
   const navigate = useNavigate();
+  const displayName = user?.full_name || user?.name || 'User';
 
   const menuItems = {
     customer: [
@@ -47,11 +48,11 @@ const DashboardLayout = ({ children, title }) => {
           <div
             className="w-full flex items-center gap-3 px-4 py-3 mb-2 hover:bg-gray-50 rounded-xl transition-all text-left group"
           >
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold transition-all">
-              {user?.name?.[0]?.toUpperCase() || 'U'}
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-white transition-all">
+              {displayName?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-bold text-gray-900 truncate">{user?.name || 'User'}</p>
+              <p className="text-sm font-bold text-gray-900 truncate">{displayName}</p>
               <p className="text-xs text-gray-500 truncate capitalize">{role}</p>
             </div>
           </div>

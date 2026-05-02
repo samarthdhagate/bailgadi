@@ -4,46 +4,57 @@ import axiosInstance from './api/axiosInstance';
 const FORCE_MOCK = true;
 
 export const authService = {
-  login: async (credentials) => {
-    if (FORCE_MOCK) {
-      return mockLogin(credentials);
-    }
-    
-    try {
-      const response = await axiosInstance.post('/auth/login', credentials);
-      return response.data;
-    } catch (error) {
-      console.warn("Backend login failed, falling back to mock mode:", error.message);
-      return mockLogin(credentials);
-    }
-  },
-
-  signup: async (userData) => {
-    if (FORCE_MOCK) {
-      return { success: true, data: { message: "Mock registration successful" } };
-    }
-    const response = await axiosInstance.post('/auth/signup', userData);
+  signup: async ({ full_name, email, password, role = 'customer' }) => {
+    const response = await axiosInstance.post('/auth/signup', {
+      full_name,
+      email,
+      password,
+      role,
+    });
     return response.data;
   },
 
-  register: async (userData) => {
-    if (FORCE_MOCK) {
-      return { success: true, data: { message: "Mock registration successful" } };
-    }
-    const response = await axiosInstance.post('/auth/register', userData);
+  verifyOtp: async ({ email, otp }) => {
+    const response = await axiosInstance.post('/auth/verify-otp', {
+      email,
+      otp,
+    });
     return response.data;
   },
 
-  logout: () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('user');
+  login: async ({ email, password }) => {
+    const response = await axiosInstance.post('/auth/login', {
+      email,
+      password,
+    });
+    return response.data;
   },
 
-  getProfile: async () => {
-    const response = await axiosInstance.get('/auth/profile');
+  refresh: async () => {
+    const response = await axiosInstance.post('/auth/refresh');
     return response.data;
-  }
+  },
+
+  logout: async () => {
+    const response = await axiosInstance.post('/auth/logout');
+    return response.data;
+  },
+
+  forgotPassword: async ({ email }) => {
+    const response = await axiosInstance.post('/auth/forgot-password', {
+      email,
+    });
+    return response.data;
+  },
+
+  resetPassword: async ({ email, otp, new_password }) => {
+    const response = await axiosInstance.post('/auth/reset-password', {
+      email,
+      otp,
+      new_password,
+    });
+    return response.data;
+  },
 };
 
 // Helper for Mock Login logic

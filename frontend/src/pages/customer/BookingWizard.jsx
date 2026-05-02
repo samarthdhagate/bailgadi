@@ -44,7 +44,7 @@ const BookingWizard = () => {
   
   const [bookingData, setBookingData] = useState({
     serviceId: serviceId,
-    resourceId: existingBooking?.resourceId || null,
+    resourceId: existingBooking?.resourceId || 'default',
     date: existingBooking?.date || new Date().toISOString().split('T')[0],
     time: existingBooking?.time || null,
     capacity: existingBooking?.capacity || 1,
@@ -228,30 +228,31 @@ const BookingWizard = () => {
   const renderUnifiedSelection = () => {
     return (
       <div className="flex flex-col gap-10">
-        {/* Section: "With" */}
-        <div>
-          <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-6">With</h3>
-          <div className="flex flex-wrap gap-4">
-            {resources.map(r => (
-              <button
-                key={r.id}
-                onClick={() => setBookingData(prev => ({ ...prev, resourceId: r.id }))}
-                className={`flex items-center gap-3 px-5 py-3 rounded-2xl border-2 transition-all ${
-                  bookingData.resourceId === r.id 
-                    ? 'border-primary bg-primary/5 text-primary' 
-                    : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
-                }`}
-              >
-                <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
-                  bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
-                }`}>
-                  {r.name.split(' ').map(n => n[0]).join('')}
-                </div>
-                <span className="font-bold">{r.name}</span>
-              </button>
-            ))}
+        {resources.length > 0 && (
+          <div>
+            <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-4">With</h3>
+            <div className="flex flex-wrap gap-4">
+              {resources.map(r => (
+                <button
+                  key={r.id}
+                  onClick={() => setBookingData(prev => ({ ...prev, resourceId: r.id }))}
+                  className={`flex items-center gap-3 px-4 py-2 rounded-xl border-2 transition-all ${
+                    bookingData.resourceId === r.id
+                      ? 'border-primary bg-primary/5 text-primary'
+                      : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
+                  }`}
+                >
+                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-bold text-xs ${
+                    bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
+                  }`}>
+                    U{r.id}
+                  </div>
+                  <span className="font-semibold">{r.name}</span>
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        )}
 
         {/* Section: Main Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-start">

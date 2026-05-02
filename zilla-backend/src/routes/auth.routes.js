@@ -7,7 +7,6 @@ const { body } = require('express-validator');
 const router = express.Router();
 
 const authController = require('../controllers/auth.controller');
-const { verifyToken } = require('../middleware/auth.middleware');
 const { authLimiter } = require('../middleware/rateLimit.middleware');
 const { validateRequest } = require('./helpers/validation');
 
@@ -56,7 +55,7 @@ router.post(
 router.post('/refresh', authController.refresh);
 
 // POST /api/auth/logout
-router.post('/logout', verifyToken, authController.logout);
+router.post('/logout', authController.logout);
 
 // POST /api/auth/forgot-password
 router.post(

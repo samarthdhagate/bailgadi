@@ -93,6 +93,8 @@ const getAvailableSlots = async (service_id, date) => {
     }
 
     availableSlots.push({
+      id: slot.start_time,
+      time: slot.start_time,
       start_time: slot.start_time,
       end_time: slot.end_time,
       available: true,

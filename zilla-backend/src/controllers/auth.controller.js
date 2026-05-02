@@ -59,8 +59,10 @@ const refresh = async (req, res, next) => {
 
 const logout = async (req, res, next) => {
   try {
-    if (req.user) {
+    if (req.user?.user_id) {
       await authService.logout(req.user.user_id);
+    } else {
+      await authService.logoutByRefreshToken(req.cookies.refreshToken);
     }
 
     res.clearCookie('refreshToken', {

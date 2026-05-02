@@ -61,6 +61,41 @@ const listMine = async (req, res, next) => {
 };
 
 /**
+ * GET /api/services/:id — get one organiser-owned service
+ */
+const getById = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const providerResult = await query(
+      'SELECT id FROM providers WHERE user_id = $1',
+      [req.user.user_id]
+    );
+
+    if (providerResult.rows.length === 0) {
+      throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');
+    }
+
+    const provider_id = providerResult.rows[0].id;
+    const result = await query(
+      `SELECT id, name, duration_min, capacity, is_published, advance_payment,
+              manual_confirmation, created_at
+       FROM services
+       WHERE id = $1 AND provider_id = $2`,
+      [id, provider_id]
+    );
+
+    if (result.rows.length === 0) {
+      throw new AppError('Service not found or you do not own this service.', 404, 'SERVICE_NOT_FOUND');
+    }
+
+    res.json({ success: true, data: result.rows[0] });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
  * POST /api/services — create a new service
  */
 const create = async (req, res, next) => {
@@ -203,4 +238,4 @@ const togglePublish = async (req, res, next) => {
   }
 };
 
-module.exports = { listPublished, listMine, create, update, remove, togglePublish };
+module.exports = { listPublished, listMine, getById, create, update, remove, togglePublish };

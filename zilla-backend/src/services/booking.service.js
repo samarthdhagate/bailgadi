@@ -5,10 +5,11 @@
 
 const crypto = require('crypto');
 const { query, pool } = require('../config/db');
-const { redisSetNX, redisGet, redisDel } = require('../config/redis');
+const { redisSetNX, redisGet, redisDel, redisAvailable } = require('../config/redis');
+const { env } = require('../config/env');
 const { intervalsOverlap, countOverlapping } = require('../utils/overlap');
 const { AppError } = require('../middleware/error.middleware');
-const { sendBookingConfirmation, sendCancellationNotice } = require('../utils/mailer');
+const notificationService = require('./notification.service');
 
 const LOCK_TTL_SECONDS = 600; // 10 minutes
 
@@ -50,15 +51,22 @@ const lockSlot = async (user_id, service_id, start_time) => {
 
   const slotEnd = new Date(slotStart.getTime() + duration_min * 60 * 1000);
 
-  // Quick DB check: are there already enough bookings to fill capacity?
+  // Quick DB check: fetch all bookings for the day and check overlaps
+  const dayStart = new Date(slotStart);
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+
   const bookingsResult = await query(
-    `SELECT COUNT(*) AS cnt FROM bookings
+    `SELECT start_time, end_time FROM bookings
      WHERE provider_id = $1 AND status = 'booked'
-       AND start_time < $2 AND end_time > $3`,
-    [provider_id, slotEnd.toISOString(), slotStart.toISOString()]
+       AND start_time >= $2 AND start_time < $3`,
+    [provider_id, dayStart.toISOString(), dayEnd.toISOString()]
   );
 
-  if (parseInt(bookingsResult.rows[0].cnt) >= capacity) {
+  const overlapCount = countOverlapping(slotStart.toISOString(), slotEnd.toISOString(), bookingsResult.rows);
+
+  if (overlapCount >= capacity) {
     throw new AppError('This slot is fully booked.', 409, 'SLOT_FULL');
   }
 
@@ -123,50 +131,59 @@ const createBooking = async (user_id, service_id, start_time, notes) => {
     throw new AppError('Cannot book a slot in the past.', 400, 'SLOT_IN_PAST');
   }
 
-  // 2. Verify Redis lock exists and is owned by this user
+  // 2. Verify Redis lock only when Redis is available.
+  // If Redis is unavailable, DB transaction remains the final concurrency guard.
   const lockKey = `slot:${provider_id}:${start_time}`;
-  const lockHolder = await redisGet(lockKey);
+  if (redisAvailable) {
+    const lockHolder = await redisGet(lockKey);
 
-  if (!lockHolder) {
-    throw new AppError(
-      'No active lock found. Your lock may have expired. Please re-lock the slot.',
-      410,
-      'LOCK_EXPIRED'
-    );
-  }
+    if (!lockHolder) {
+      throw new AppError(
+        'No active lock found. Your lock may have expired. Please re-lock the slot.',
+        410,
+        'LOCK_EXPIRED'
+      );
+    }
 
-  if (lockHolder !== user_id) {
-    throw new AppError(
-      'This slot is locked by another user.',
-      409,
-      'SLOT_LOCKED'
-    );
+    if (lockHolder !== user_id) {
+      throw new AppError(
+        'This slot is locked by another user.',
+        409,
+        'SLOT_LOCKED'
+      );
+    }
   }
 
   // 3-9. Atomic transaction
   const client = await pool.connect();
 
+  let committed = false;
+  let booking = null;
+  let initialStatus = 'pending';
   try {
     await client.query('BEGIN');
 
-    // 4. SELECT FOR UPDATE — lock conflicting booking rows
+    // 4. SELECT FOR UPDATE — lock rows for the day
+    const dayStart = new Date(slotStart);
+    dayStart.setUTCHours(0, 0, 0, 0);
+    const dayEnd = new Date(dayStart);
+    dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+
     const conflictResult = await client.query(
-      `SELECT id, status FROM bookings
+      `SELECT id, status, start_time, end_time FROM bookings
        WHERE provider_id = $1
          AND status IN ('booked', 'pending')
-         AND start_time < $2 AND end_time > $3
+         AND start_time >= $2 AND start_time < $3
        FOR UPDATE`,
-      [provider_id, slotEnd.toISOString(), slotStart.toISOString()]
+      [provider_id, dayStart.toISOString(), dayEnd.toISOString()]
     );
 
     // 5. Re-run overlap check
     const bookedConflicts = conflictResult.rows.filter((r) => r.status === 'booked');
+    const overlapCount = countOverlapping(slotStart.toISOString(), slotEnd.toISOString(), bookedConflicts);
 
     // 6. Capacity check
-    if (bookedConflicts.length >= capacity) {
-      await client.query('ROLLBACK');
-      // Release Redis lock since booking failed
-      await redisDel(lockKey);
+    if (overlapCount >= capacity) {
       throw new AppError(
         'This slot was booked by someone else while you had it locked. Please choose another slot.',
         409,
@@ -178,7 +195,8 @@ const createBooking = async (user_id, service_id, start_time, notes) => {
     const confirmation_code = generateConfirmationCode();
 
     // Determine initial status
-    const initialStatus = advance_payment
+    const paymentGatewayConfigured = Boolean(env.RAZORPAY_KEY_ID && env.RAZORPAY_KEY_SECRET);
+    initialStatus = advance_payment && paymentGatewayConfigured
       ? 'pending'   // Needs payment first
       : manual_confirmation
         ? 'pending'  // Needs organiser confirmation
@@ -194,32 +212,35 @@ const createBooking = async (user_id, service_id, start_time, notes) => {
 
     // 9. COMMIT
     await client.query('COMMIT');
+    committed = true;
 
-    const booking = bookingResult.rows[0];
-
-    // 10. Release Redis lock
-    await redisDel(lockKey);
-
-    // 11. Send confirmation email (non-blocking, fire-and-forget)
-    if (initialStatus === 'booked') {
-      // Get user email
-      const userResult = await query('SELECT email FROM users WHERE id = $1', [user_id]);
-      if (userResult.rows.length > 0) {
-        sendBookingConfirmation(userResult.rows[0].email, {
-          ...booking,
-          service_name: service.service_name,
-        }).catch((err) => console.error('Failed to send confirmation email:', err.message));
-      }
-    }
-
-    // 12. Return booking
-    return booking;
+    booking = bookingResult.rows[0];
   } catch (err) {
-    await client.query('ROLLBACK');
+    if (!committed) {
+      await client.query('ROLLBACK');
+    }
+    await redisDel(lockKey);
     throw err;
   } finally {
     client.release();
   }
+
+  // 10. Release Redis lock
+  await redisDel(lockKey);
+
+  // 11. Send confirmation email (non-blocking, fire-and-forget)
+  if (initialStatus === 'booked') {
+    const userResult = await query('SELECT email FROM users WHERE id = $1', [user_id]);
+    if (userResult.rows.length > 0) {
+      notificationService.sendBookingConfirmation(userResult.rows[0].email, {
+        ...booking,
+        service_name: service.service_name,
+      });
+    }
+  }
+
+  // 12. Return booking
+  return booking;
 };
 
 /**
@@ -327,9 +348,7 @@ const cancelBooking = async (booking_id, user_id, user_role) => {
   );
 
   // Send cancellation email
-  sendCancellationNotice(booking.customer_email, result.rows[0]).catch((err) => {
-    console.error('Failed to send cancellation email:', err.message);
-  });
+  notificationService.sendCancellationNotice(booking.customer_email, result.rows[0]);
 
   return result.rows[0];
 };
@@ -365,16 +384,23 @@ const rescheduleBooking = async (booking_id, user_id, new_start_time) => {
   }
 
   // Check for conflicts
+  const dayStart = new Date(newStart);
+  dayStart.setUTCHours(0, 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setUTCDate(dayEnd.getUTCDate() + 1);
+
   const conflictResult = await query(
-    `SELECT COUNT(*) AS cnt FROM bookings
+    `SELECT start_time, end_time FROM bookings
      WHERE provider_id = $1
        AND id != $2
        AND status = 'booked'
-       AND start_time < $3 AND end_time > $4`,
-    [booking.provider_id, booking_id, newEnd.toISOString(), newStart.toISOString()]
+       AND start_time >= $3 AND start_time < $4`,
+    [booking.provider_id, booking_id, dayStart.toISOString(), dayEnd.toISOString()]
   );
 
-  if (parseInt(conflictResult.rows[0].cnt) >= booking.capacity) {
+  const overlapCount = countOverlapping(newStart.toISOString(), newEnd.toISOString(), conflictResult.rows);
+
+  if (overlapCount >= booking.capacity) {
     throw new AppError('The new time slot is not available.', 409, 'SLOT_TAKEN');
   }
 
@@ -428,10 +454,10 @@ const confirmBooking = async (booking_id, user_id) => {
       'SELECT name FROM services WHERE id = $1',
       [result.rows[0].service_id]
     );
-    sendBookingConfirmation(userResult.rows[0].email, {
+    notificationService.sendBookingConfirmation(userResult.rows[0].email, {
       ...result.rows[0],
       service_name: serviceResult.rows[0]?.name || 'N/A',
-    }).catch((err) => console.error('Failed to send confirmation email:', err.message));
+    });
   }
 
   return result.rows[0];

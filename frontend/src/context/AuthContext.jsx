@@ -1,31 +1,37 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '@services/auth';
 
 const AuthContext = createContext(null);
+const getStoredUser = () => {
+  const token = localStorage.getItem('token');
+  const role = localStorage.getItem('role');
+  if (!token || !role) {
+    return null;
+  }
+
+  const storedUser = localStorage.getItem('user');
+  if (!storedUser) {
+    return { token, role };
+  }
+
+  try {
+    const parsedUser = JSON.parse(storedUser);
+    return {
+      ...parsedUser,
+      name: parsedUser.full_name || parsedUser.name || '',
+    };
+  } catch {
+    return { token, role };
+  }
+};
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem('token'));
-  const [role, setRole] = useState(localStorage.getItem('role'));
-  const [isLoading, setIsLoading] = useState(false);
+  const [token, setToken] = useState(() => localStorage.getItem('token'));
+  const [role, setRole] = useState(() => localStorage.getItem('role'));
+  const [user, setUser] = useState(() => getStoredUser());
+  const [isLoading] = useState(false);
   const navigate = useNavigate();
-
-  useEffect(() => {
-    if (token && role) {
-      // Restore user state from localStorage on mount
-      const storedUser = localStorage.getItem('user');
-      if (storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch {
-          setUser({ token, role });
-        }
-      } else {
-        setUser({ token, role });
-      }
-    }
-  }, [token, role]);
 
   /**
    * Login with real API. Stores tokens and user data.
@@ -33,14 +39,18 @@ export const AuthProvider = ({ children }) => {
   const login = (authData) => {
     const { access_token, user: userData } = authData;
     const userRole = userData.role;
+    const normalizedUser = {
+      ...userData,
+      name: userData.full_name || userData.name || '',
+    };
 
     localStorage.setItem('token', access_token);
     localStorage.setItem('role', userRole);
-    localStorage.setItem('user', JSON.stringify(userData));
+    localStorage.setItem('user', JSON.stringify(normalizedUser));
 
     setToken(access_token);
     setRole(userRole);
-    setUser(userData);
+    setUser(normalizedUser);
 
     // Redirect based on role
     if (userRole === 'customer') navigate('/dashboard');

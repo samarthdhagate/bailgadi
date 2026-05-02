@@ -9,7 +9,7 @@ const crypto = require('crypto');
 const { query, pool } = require('../config/db');
 const { env } = require('../config/env');
 const { AppError } = require('../middleware/error.middleware');
-const { sendOTPEmail } = require('../utils/mailer');
+const notificationService = require('./notification.service');
 
 const SALT_ROUNDS = 12;
 const OTP_EXPIRY_MINUTES = 10;
@@ -77,9 +77,7 @@ const signup = async ({ full_name, email, password, role = 'customer' }) => {
   }
 
   // Send OTP email (fire-and-forget) - kept just for the email notification
-  sendOTPEmail(email, otp).catch((err) => {
-    console.error('Failed to send OTP email:', err.message);
-  });
+  notificationService.sendOTP(email, otp);
 
   return {
     message: 'Account created and verified automatically for demo purposes.',
@@ -225,6 +223,34 @@ const logout = async (user_id) => {
 };
 
 /**
+ * Logout using refresh token cookie fallback.
+ * Useful when access token is expired but browser still has refresh cookie.
+ */
+const logoutByRefreshToken = async (refreshToken) => {
+  if (!refreshToken) {
+    return { message: 'Logged out successfully.' };
+  }
+
+  try {
+    const decoded = jwt.verify(refreshToken, env.JWT_REFRESH_SECRET);
+    const result = await query('SELECT refresh_token FROM users WHERE id = $1', [decoded.user_id]);
+
+    if (result.rows.length === 0 || !result.rows[0].refresh_token) {
+      return { message: 'Logged out successfully.' };
+    }
+
+    const isMatch = await bcrypt.compare(refreshToken, result.rows[0].refresh_token);
+    if (isMatch) {
+      await query('UPDATE users SET refresh_token = NULL WHERE id = $1', [decoded.user_id]);
+    }
+  } catch (_err) {
+    // Intentionally ignore token parsing/verification errors for idempotent logout.
+  }
+
+  return { message: 'Logged out successfully.' };
+};
+
+/**
  * Forgot password — generate and send OTP.
  */
 const forgotPassword = async ({ email }) => {
@@ -243,9 +269,7 @@ const forgotPassword = async ({ email }) => {
     [otp, otp_expires_at, email]
   );
 
-  sendOTPEmail(email, otp).catch((err) => {
-    console.error('Failed to send forgot password OTP:', err.message);
-  });
+  notificationService.sendOTP(email, otp);
 
   return { message: 'If an account with that email exists, an OTP has been sent.' };
 };
@@ -290,6 +314,7 @@ module.exports = {
   login,
   refresh,
   logout,
+  logoutByRefreshToken,
   forgotPassword,
   resetPassword,
 };
