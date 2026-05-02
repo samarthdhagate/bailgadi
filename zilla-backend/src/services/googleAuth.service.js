@@ -7,12 +7,6 @@ const client = new OAuth2Client(
   env.GOOGLE_REDIRECT_URI
 );
 
-console.log('🗝️  Google OAuth Client Initialized');
-if (!env.GOOGLE_CLIENT_ID || !env.GOOGLE_CLIENT_SECRET) {
-  console.error('❌ CRITICAL: Google OAuth credentials missing!');
-  console.error('Please ensure GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET are set in your environment variables.');
-}
-
 /**
  * Generate the Google Auth URL.
  */

@@ -68,12 +68,12 @@ const CustomerDashboard = () => {
           <MiniCalendar events={mockEvents} />
           
           <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 relative overflow-hidden group">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <Bell className="w-4 h-4 animate-bounce" />
+                <Bell className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-0.5">Next Appointment</h4>
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Next Appointment</h4>
                 <p className="text-xs font-bold text-gray-700 truncate italic">Hair Cut with Mike — Tomorrow, 10:00 AM</p>
               </div>
             </div>
@@ -85,19 +85,19 @@ const CustomerDashboard = () => {
           <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
             <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Available Services</h2>
             
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="relative flex-1 md:w-64">
                 <Search className="w-4 h-4 text-gray-400 absolute left-3 top-1/2 -translate-y-1/2" />
                 <input
                   type="text"
                   placeholder="Search..."
-                  className="w-full pl-9 pr-4 py-2.5 bg-white border border-gray-100 rounded-xl text-xs font-bold shadow-sm focus:border-primary/30 outline-none transition-all"
+                  className="w-full pl-9 pr-4 py-2 bg-white border border-gray-100 rounded-xl text-xs font-bold shadow-sm focus:border-primary/50 outline-none transition-all duration-200"
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
                 />
               </div>
               <select 
-                className="bg-white border border-gray-100 px-4 py-2.5 rounded-xl text-xs font-bold shadow-sm outline-none focus:border-primary/30"
+                className="bg-white border border-gray-100 px-4 py-2 rounded-xl text-xs font-bold shadow-sm outline-none focus:border-primary/50 transition-all duration-200"
                 value={typeFilter}
                 onChange={(e) => setTypeFilter(e.target.value)}
               >
@@ -122,11 +122,11 @@ const CustomerDashboard = () => {
                 {filteredServices.map((service) => (
                   <Card 
                     key={service.id} 
-                    className="p-8 hover:shadow-2xl hover:shadow-black/5 transition-all duration-500 group flex flex-col gap-6 cursor-pointer border-transparent hover:border-primary/10" 
+                    className="p-8 hover:shadow-2xl transition-all duration-200 group flex flex-col gap-6 cursor-pointer" 
                     onClick={() => navigate(`/booking/${service.id}`)}
                   >
                     <div className="flex flex-col md:flex-row gap-8">
-                      <div className="w-full md:w-48 h-48 rounded-3xl overflow-hidden shadow-inner flex-shrink-0 bg-gray-50 border border-gray-100 flex items-center justify-center group-hover:scale-105 transition-transform duration-500">
+                      <div className="w-full md:w-48 h-48 rounded-3xl overflow-hidden shadow-inner flex-shrink-0 bg-gray-50 border border-gray-100 flex items-center justify-center group-hover:scale-[1.02] transition-transform duration-200">
                         {service.image ? (
                           <img src={service.image} className="w-full h-full object-cover" />
                         ) : (
@@ -136,7 +136,7 @@ const CustomerDashboard = () => {
 
                       <div className="flex-1 flex flex-col justify-center">
                         <div className="flex items-center justify-between mb-4">
-                           <h3 className="text-2xl font-black text-gray-800 tracking-tighter group-hover:text-primary transition-colors">{service.name}</h3>
+                           <h3 className="text-2xl font-black text-gray-800 tracking-tighter group-hover:text-primary transition-colors duration-200">{service.name}</h3>
                            <div className="px-3 py-1 bg-gray-50 rounded-lg text-[10px] font-black text-gray-400 uppercase tracking-widest border border-gray-100">
                              {service.advance_payment ? 'Premium' : 'Free'}
                            </div>
@@ -169,7 +169,7 @@ const CustomerDashboard = () => {
                           <span className="text-primary">Instant Booking</span>
                         )}
                       </div>
-                      <Button onClick={(e) => { e.stopPropagation(); navigate(`/booking/${service.id}`); }} className="px-10 py-3 rounded-2xl shadow-lg shadow-primary/20">
+                      <Button onClick={(e) => { e.stopPropagation(); navigate(`/booking/${service.id}`); }} className="px-10 py-3 rounded-2xl shadow-lg shadow-primary/20 active:scale-95 transition-all duration-200">
                         Book Now
                         <ArrowRight className="w-4 h-4 ml-2" />
                       </Button>

@@ -25,6 +25,7 @@ export const bookingService = {
         ]
       };
     }
+
   },
 
   getSlots: async (serviceId, date) => {
@@ -37,15 +38,14 @@ export const bookingService = {
       } catch (e) { console.warn("API failed, using mock slots"); }
     }
     await new Promise(resolve => setTimeout(resolve, 500));
+    const baseDate = date || new Date().toISOString().split('T')[0];
     return {
       data: [
-        { id: '1', time: '09:00 AM', available: true },
-        { id: '2', time: '10:00 AM', available: false },
-        { id: '3', time: '11:00 AM', available: true },
-        { id: '4', time: '01:00 PM', available: true },
-        { id: '5', time: '02:00 PM', available: true },
-        { id: '6', time: '03:00 PM', available: false },
-        { id: '7', time: '04:00 PM', available: true }
+        { id: '1', time: `${baseDate}T09:00:00.000Z`, available: true },
+        { id: '2', time: `${baseDate}T10:00:00.000Z`, available: false },
+        { id: '3', time: `${baseDate}T11:00:00.000Z`, available: true },
+        { id: '4', time: `${baseDate}T13:00:00.000Z`, available: true },
+        { id: '5', time: `${baseDate}T14:00:00.000Z`, available: true }
       ]
     };
   },
@@ -81,7 +81,7 @@ export const bookingService = {
     }
     const response = await axiosInstance.post('/bookings', {
       service_id: bookingData.serviceId,
-      start_time: bookingData.time,
+      start_time: bookingData.startTime || bookingData.time,
       notes: JSON.stringify(bookingData.userDetails),
     });
     return response.data;

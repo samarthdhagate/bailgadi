@@ -191,24 +191,24 @@ const AppointmentEditor = () => {
         <div className="flex flex-col gap-10 pb-20">
           
           {/* Action Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-6 bg-white/50 backdrop-blur-sm p-6 rounded-[32px] border border-white/20 shadow-sm">
-            <div className="flex gap-3">
+          <div className="flex flex-wrap items-center justify-between gap-6 bg-white/50 backdrop-blur-sm p-6 rounded-[32px] border border-white/20">
+            <div className="flex gap-4">
               <button 
                 onClick={() => navigate('/organiser/editor/new')}
-                className="px-6 py-2 bg-gray-50 text-gray-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all"
+                className="px-6 py-2 bg-gray-50 text-gray-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all duration-200"
               >
                 New
               </button>
               <button 
                 onClick={() => setIsPreviewOpen(true)}
-                className="px-6 py-2 bg-gray-50 text-gray-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all flex items-center gap-2"
+                className="px-6 py-2 bg-gray-50 text-gray-500 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-gray-100 transition-all duration-200 flex items-center gap-2"
               >
                 <Eye className="w-4 h-4" />
                 Preview
               </button>
               <button 
                 onClick={handleSave}
-                className="px-8 py-2 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+                className="px-8 py-2 bg-primary text-white rounded-xl font-black text-[10px] uppercase tracking-widest shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 <Send className="w-4 h-4" />
                 Publish
@@ -217,7 +217,7 @@ const AppointmentEditor = () => {
             
             <button 
               onClick={() => navigate('/organiser/meetings')}
-              className="flex items-center gap-2 px-6 py-2 bg-white border border-gray-100 rounded-xl font-bold text-gray-700 hover:shadow-sm transition-all"
+              className="flex items-center gap-2 px-6 py-2 bg-white border border-gray-100 rounded-xl font-bold text-gray-700 transition-all duration-200 active:scale-95"
             >
               <Calendar className="w-4 h-4 text-primary" />
               <span className="text-xs uppercase tracking-wider">Meetings</span>
@@ -226,7 +226,7 @@ const AppointmentEditor = () => {
 
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-10">
             {/* Left: Basic Info */}
-            <div className="lg:col-span-8 space-y-12 bg-white rounded-[48px] p-12 border border-gray-100 shadow-sm">
+            <div className="lg:col-span-8 space-y-12 bg-white rounded-[48px] p-12 border border-gray-100">
               <div className="space-y-2">
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] pl-1">Service Identity</p>
                 <input
@@ -238,10 +238,10 @@ const AppointmentEditor = () => {
                 />
               </div>
 
-              <div className="grid md:grid-cols-2 gap-10">
+              <div className="grid md:grid-cols-2 gap-12">
                 <div className="space-y-2">
                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] pl-1">Duration</p>
-                  <div className="flex items-center gap-3 border-b-2 border-gray-50 focus-within:border-primary transition-all pb-3">
+                  <div className="flex items-center gap-3 border-b-2 border-gray-50 focus-within:border-primary transition-all duration-200 pb-3">
                     <Clock className="w-5 h-5 text-gray-300" />
                     <input
                       type="text"
@@ -256,7 +256,7 @@ const AppointmentEditor = () => {
 
                 <div className="space-y-2">
                   <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] pl-1">Location</p>
-                  <div className="flex items-center gap-3 border-b-2 border-gray-50 focus-within:border-primary transition-all pb-3">
+                  <div className="flex items-center gap-3 border-b-2 border-gray-50 focus-within:border-primary transition-all duration-200 pb-3">
                     <MapPin className="w-5 h-5 text-gray-300" />
                     <input
                       type="text"
@@ -271,13 +271,13 @@ const AppointmentEditor = () => {
 
               {/* Tabs Integration */}
               <div className="pt-10 border-t border-gray-50">
-                <div className="flex gap-2 mb-8 overflow-x-auto scrollbar-hide pb-2">
+                <div className="flex gap-3 mb-8 overflow-x-auto scrollbar-hide pb-2">
                   {['Schedule', 'Questions', 'Policy', 'Success'].map((tab) => (
                     <button
                       key={tab}
                       onClick={() => setActiveTab(tab.toLowerCase())}
-                      className={`px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${
-                        activeTab === tab.toLowerCase() ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100'
+                      className={`px-8 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all duration-200 ${
+                        activeTab === tab.toLowerCase() ? 'bg-primary text-white shadow-lg shadow-primary/20' : 'bg-gray-50 text-gray-400 hover:bg-gray-100 active:scale-95'
                       }`}
                     >
                       {tab}
@@ -287,14 +287,14 @@ const AppointmentEditor = () => {
 
                 <div className="min-h-[300px]">
                   {activeTab === 'schedule' && (
-                    <div className="space-y-6 animate-in fade-in duration-300">
+                    <div className="space-y-6 animate-in fade-in duration-200">
                       <div className="flex items-center justify-between">
                          <h4 className="text-xs font-black text-gray-400 uppercase tracking-widest">Availability Slots</h4>
-                         <button onClick={addAvailabilityLine} className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all"><Plus className="w-4 h-4" /></button>
+                         <button onClick={addAvailabilityLine} className="p-2 bg-primary/10 text-primary rounded-xl hover:bg-primary hover:text-white transition-all duration-200"><Plus className="w-4 h-4" /></button>
                       </div>
-                      <div className="space-y-3">
+                      <div className="space-y-4">
                         {state.formData.availability.map((item) => (
-                          <div key={item.id} className="flex items-center gap-4 bg-gray-50 p-4 rounded-3xl group hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all">
+                          <div key={item.id} className="flex items-center gap-4 bg-gray-50 p-4 rounded-3xl group hover:bg-white hover:shadow-xl hover:shadow-black/5 transition-all duration-200">
                             <select 
                               value={item.day}
                               onChange={(e) => updateAvailabilityLine(item.id, 'day', e.target.value)}
@@ -309,7 +309,7 @@ const AppointmentEditor = () => {
                               <ChevronRight className="w-4 h-4 text-gray-200" />
                               <input type="text" value={item.endTime} onChange={(e) => updateAvailabilityLine(item.id, 'endTime', e.target.value)} className="w-16 bg-white border border-gray-100 rounded-lg py-1 px-2 text-center font-bold text-gray-500 text-xs" />
                             </div>
-                            <button onClick={() => removeAvailabilityLine(item.id)} className="p-2 text-gray-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"><Trash2 className="w-4 h-4" /></button>
+                            <button onClick={() => removeAvailabilityLine(item.id)} className="p-2 text-gray-200 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all duration-200"><Trash2 className="w-4 h-4" /></button>
                           </div>
                         ))}
                       </div>
@@ -317,14 +317,14 @@ const AppointmentEditor = () => {
                   )}
 
                   {activeTab === 'questions' && (
-                    <div className="animate-in fade-in duration-300">
+                    <div className="animate-in fade-in duration-200">
                       <QuestionBuilder questions={state.formData.questions} onChange={(qs) => updateField('questions', qs)} />
                     </div>
                   )}
 
                   {activeTab === 'policy' && (
-                    <div className="space-y-10 animate-in fade-in duration-300">
-                       <div className="grid md:grid-cols-2 gap-10">
+                    <div className="space-y-10 animate-in fade-in duration-200">
+                       <div className="grid md:grid-cols-2 gap-12">
                           <div className="p-6 bg-gray-50 rounded-[32px] space-y-4">
                              <div className="flex items-center justify-between">
                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Manual Confirmation</span>
@@ -337,9 +337,9 @@ const AppointmentEditor = () => {
                                <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Paid Booking</span>
                                <input type="checkbox" checked={state.formData.paidBooking} onChange={(e) => updateField('paidBooking', e.target.checked)} className="w-5 h-5 rounded-lg border-gray-200 text-primary focus:ring-primary" />
                              </div>
-                             <div className="flex items-center gap-3">
+                             <div className="flex items-center gap-4">
                                 <span className="text-xs font-black text-gray-700">Fee (Rs):</span>
-                                <input type="text" value={state.formData.price} onChange={(e) => updateField('price', parseInt(e.target.value) || 0)} className="bg-white border border-gray-100 rounded-xl px-4 py-1 font-bold text-primary w-24" />
+                                <input type="text" value={state.formData.price} onChange={(e) => updateField('price', parseInt(e.target.value) || 0)} className="bg-white border border-gray-100 rounded-xl px-4 py-2 font-bold text-primary w-24 outline-none focus:border-primary/50 transition-all duration-200" />
                              </div>
                           </div>
                        </div>
@@ -347,13 +347,13 @@ const AppointmentEditor = () => {
                   )}
 
                   {activeTab === 'success' && (
-                    <div className="space-y-6 animate-in fade-in duration-300">
+                    <div className="space-y-6 animate-in fade-in duration-200">
                        <div className="space-y-4">
                           <h5 className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Confirmation Message</h5>
                           <textarea 
                             value={state.formData.confirmMessage} 
                             onChange={(e) => updateField('confirmMessage', e.target.value)}
-                            className="w-full min-h-[150px] p-8 bg-gray-50 rounded-[32px] border border-gray-100 outline-none font-bold text-gray-600 italic leading-relaxed"
+                            className="w-full min-h-[150px] p-8 bg-gray-50 rounded-[32px] border border-gray-100 outline-none font-bold text-gray-600 italic leading-relaxed focus:border-primary/50 transition-all duration-200"
                             placeholder="What should the user see after booking?"
                           />
                        </div>
@@ -366,26 +366,26 @@ const AppointmentEditor = () => {
             {/* Right: Media & Resource Settings */}
             <div className="lg:col-span-4 space-y-10">
               {/* Media Card */}
-              <div className="bg-white rounded-[48px] p-8 border border-gray-100 shadow-sm space-y-6">
+              <div className="bg-white rounded-[48px] p-8 border border-gray-100 space-y-6">
                 <p className="text-[10px] font-black text-gray-300 uppercase tracking-[0.2em] text-center">Service Cover</p>
                 <div 
                   onClick={() => state.formData.image ? null : fileInputRef.current.click()}
-                  className={`aspect-square bg-gray-50 border-2 border-dashed rounded-[40px] flex flex-col items-center justify-center gap-4 relative group cursor-pointer overflow-hidden transition-all ${
+                  className={`aspect-square bg-gray-50 border-2 border-dashed rounded-[40px] flex flex-col items-center justify-center gap-4 relative group cursor-pointer overflow-hidden transition-all duration-200 ${
                     state.formData.image ? 'border-transparent' : 'border-gray-100 hover:border-primary/50'
                   }`}
                 >
                   {state.formData.image ? (
                     <>
                       <img src={state.formData.image} alt="Preview" className="w-full h-full object-cover" />
-                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-4">
-                        <button onClick={(e) => { e.stopPropagation(); fileInputRef.current.click(); }} className="p-3 bg-white rounded-xl shadow-lg hover:text-primary transition-all"><Upload className="w-5 h-5" /></button>
-                        <button onClick={(e) => { e.stopPropagation(); updateField('image', ''); }} className="p-3 bg-white rounded-xl shadow-lg hover:text-red-500 transition-all"><Trash2 className="w-5 h-5" /></button>
+                      <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity duration-200 flex items-center justify-center gap-4">
+                        <button onClick={(e) => { e.stopPropagation(); fileInputRef.current.click(); }} className="p-3 bg-white rounded-xl shadow-lg hover:text-primary transition-all duration-200"><Upload className="w-5 h-5" /></button>
+                        <button onClick={(e) => { e.stopPropagation(); updateField('image', ''); }} className="p-3 bg-white rounded-xl shadow-lg hover:text-red-500 transition-all duration-200"><Trash2 className="w-5 h-5" /></button>
                       </div>
                     </>
                   ) : (
                     <>
                       <div className="w-16 h-16 rounded-3xl bg-white border border-gray-100 flex items-center justify-center shadow-sm">
-                        <Upload className="w-6 h-6 text-gray-300 group-hover:text-primary transition-colors" />
+                        <Upload className="w-6 h-6 text-gray-300 group-hover:text-primary transition-colors duration-200" />
                       </div>
                       <span className="text-[10px] font-black text-gray-300 uppercase tracking-widest">Upload Picture</span>
                     </>
@@ -395,26 +395,26 @@ const AppointmentEditor = () => {
               </div>
 
               {/* Resource Settings */}
-              <div className="bg-white rounded-[48px] p-10 border border-gray-100 shadow-sm space-y-10">
+              <div className="bg-white rounded-[48px] p-10 border border-gray-100 space-y-10">
                 <div className="space-y-6">
                    <div className="flex items-center justify-between">
                       <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Assign to</span>
                       <div className="flex gap-2 p-1 bg-gray-50 rounded-xl">
-                        <button className="px-4 py-1.5 bg-white shadow-sm rounded-lg text-[10px] font-black text-primary uppercase">User</button>
-                        <button className="px-4 py-1.5 text-[10px] font-black text-gray-300 uppercase">Resources</button>
+                        <button className="px-4 py-1.5 bg-white shadow-sm rounded-lg text-[10px] font-black text-primary uppercase active:scale-95 transition-all duration-200">User</button>
+                        <button className="px-4 py-1.5 text-[10px] font-black text-gray-300 uppercase active:scale-95 transition-all duration-200">Resources</button>
                       </div>
                    </div>
 
                    <div className="space-y-4">
                       <div className="flex items-center justify-between">
                         <span className="text-[10px] font-black text-gray-400 uppercase tracking-widest">Staff</span>
-                        <button onClick={() => setIsAddingUser(true)} className="p-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all"><UserPlus className="w-4 h-4" /></button>
+                        <button onClick={() => setIsAddingUser(true)} className="p-1.5 bg-primary/10 text-primary rounded-lg hover:bg-primary hover:text-white transition-all duration-200"><UserPlus className="w-4 h-4" /></button>
                       </div>
                       
                       {isAddingUser && (
-                        <div className="flex gap-2 animate-in slide-in-from-top-2 duration-300">
-                          <input type="text" placeholder="Name..." value={newUserName} onChange={(e) => setNewUserName(e.target.value)} className="flex-1 px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none" />
-                          <button onClick={addNewUser} className="px-4 bg-primary text-white rounded-xl text-xs font-black">Add</button>
+                        <div className="flex gap-2 animate-in slide-in-from-top-2 duration-200">
+                          <input type="text" placeholder="Name..." value={newUserName} onChange={(e) => setNewUserName(e.target.value)} className="flex-1 px-4 py-2 bg-gray-50 border border-gray-100 rounded-xl text-xs font-bold outline-none focus:border-primary/50 transition-all duration-200" />
+                          <button onClick={addNewUser} className="px-4 bg-primary text-white rounded-xl text-xs font-black active:scale-95 transition-all duration-200">Add</button>
                         </div>
                       )}
 
@@ -423,8 +423,8 @@ const AppointmentEditor = () => {
                           <button 
                             key={u.id} 
                             onClick={() => toggleUserSelection(u.id)}
-                            className={`px-4 py-2 rounded-2xl flex items-center gap-2 border transition-all ${
-                              state.formData.selectedUsers.includes(u.id) ? 'bg-primary/5 border-primary text-primary' : 'bg-white border-gray-100 text-gray-400 opacity-60'
+                            className={`px-4 py-2 rounded-2xl flex items-center gap-2 border transition-all duration-200 ${
+                              state.formData.selectedUsers.includes(u.id) ? 'bg-primary/5 border-primary text-primary' : 'bg-white border-gray-100 text-gray-400 opacity-60 active:scale-95'
                             }`}
                           >
                             <div className={`w-5 h-5 rounded-lg flex items-center justify-center text-[8px] font-black ${state.formData.selectedUsers.includes(u.id) ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'}`}>
@@ -443,7 +443,7 @@ const AppointmentEditor = () => {
                            type="text" 
                            value={state.formData.capacityLimit} 
                            onChange={(e) => updateField('capacityLimit', parseInt(e.target.value) || 1)} 
-                           className="w-12 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 text-center font-black text-primary text-xs" 
+                           className="w-12 bg-gray-50 border border-gray-100 rounded-lg px-2 py-1 text-center font-black text-primary text-xs outline-none focus:border-primary/50 transition-all duration-200" 
                          />
                       </div>
                       <div className="flex items-center justify-between">
@@ -462,14 +462,14 @@ const AppointmentEditor = () => {
       <div className="fixed bottom-10 right-10 z-50 flex items-center gap-4">
         <button 
           onClick={() => navigate('/organiser')}
-          className="px-8 py-4 bg-white border border-gray-100 rounded-[20px] font-black text-[10px] uppercase tracking-widest text-gray-400 shadow-xl hover:text-gray-600 transition-all"
+          className="px-8 py-4 bg-white border border-gray-100 rounded-[20px] font-black text-[10px] uppercase tracking-widest text-gray-400 shadow-xl hover:text-gray-600 active:scale-95 transition-all duration-200"
         >
           Discard
         </button>
         <button 
           onClick={handleSave}
           disabled={state.isLoading}
-          className="px-12 py-5 bg-gray-800 text-white rounded-[24px] font-black text-sm uppercase tracking-widest shadow-2xl shadow-black/20 hover:bg-black hover:scale-105 active:scale-95 transition-all flex items-center gap-4"
+          className="px-12 py-5 bg-gray-800 text-white rounded-[24px] font-black text-sm uppercase tracking-widest shadow-2xl shadow-black/20 hover:bg-black hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center gap-4 disabled:opacity-40 disabled:cursor-not-allowed"
         >
           {state.isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save className="w-5 h-5" />}
           Save Changes
@@ -480,7 +480,7 @@ const AppointmentEditor = () => {
       {isPreviewOpen && (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 lg:p-12 overflow-hidden">
           <div className="absolute inset-0 bg-black/80 backdrop-blur-3xl" onClick={() => setIsPreviewOpen(false)}></div>
-          <div className="bg-white w-full max-w-6xl h-full rounded-[64px] shadow-2xl relative z-10 overflow-hidden flex flex-col border border-white/20 animate-in zoom-in-95 duration-500">
+          <div className="bg-white w-full max-w-6xl h-full rounded-[64px] shadow-2xl relative z-10 overflow-hidden flex flex-col border border-white/20 animate-in zoom-in-95 duration-200">
             <div className="p-8 border-b border-gray-100 flex items-center justify-between flex-shrink-0">
               <div className="flex items-center gap-4">
                 <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary">
@@ -491,7 +491,7 @@ const AppointmentEditor = () => {
                   <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">See what your customers will experience</p>
                 </div>
               </div>
-              <button onClick={() => setIsPreviewOpen(false)} className="p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all">
+              <button onClick={() => setIsPreviewOpen(false)} className="p-3 bg-gray-50 hover:bg-gray-100 rounded-2xl transition-all duration-200 active:scale-95">
                 <X className="w-6 h-6 text-gray-400" />
               </button>
             </div>
@@ -503,7 +503,7 @@ const AppointmentEditor = () => {
                    <p className="text-2xl text-gray-500 font-bold italic max-w-2xl mx-auto leading-relaxed">{state.formData.introMessage}</p>
                 </div>
 
-                <div className="grid md:grid-cols-2 gap-12 bg-white p-12 rounded-[64px] shadow-2xl shadow-black/5 border border-gray-100">
+                <div className="grid md:grid-cols-2 gap-12 bg-white p-12 rounded-[64px] border border-gray-100">
                    <div className="space-y-8">
                       <div className="aspect-[4/3] bg-gray-50 rounded-[40px] overflow-hidden border border-gray-50 shadow-inner">
                          {state.formData.image ? (
@@ -538,7 +538,7 @@ const AppointmentEditor = () => {
                          <h4 className="text-2xl font-black text-gray-800 tracking-tighter">Ready to schedule?</h4>
                          <p className="text-sm font-bold text-gray-400 italic">Select a date and time to continue with your booking.</p>
                       </div>
-                      <Button className="w-full py-5 text-xl rounded-3xl" disabled>Book Now</Button>
+                      <Button className="w-full py-5 text-xl rounded-3xl opacity-40 cursor-not-allowed" disabled>Book Now</Button>
                       <p className="text-[10px] font-black text-primary/40 uppercase tracking-widest">SECURE BOOKING POWERED BY ZILLA</p>
                    </div>
                 </div>

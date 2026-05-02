@@ -1,5 +1,6 @@
 /**
  * Service controller — handles CRUD for organiser facilities (services).
+ * Queries the `facilities` table (the actual DB schema) rather than `services`/`providers`.
  * Business logic is simple enough to live directly in the controller.
  */
 
@@ -7,18 +8,19 @@ const { query } = require('../config/db');
 const { AppError } = require('../middleware/error.middleware');
 
 /**
- * GET /api/services — list all published services (public)
+ * GET /api/services — list all published facilities (public)
  */
 const listPublished = async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT f.id, f.name, f.duration_mins AS duration_min, f.max_capacity AS capacity, 
-              f.advance_payment, f.manual_confirm AS manual_confirmation, f.created_at, 
-              f.organiser_id AS provider_user_id, u.full_name AS provider_name,
-              f.type, f.description, f.base_price AS price
+      `SELECT f.id, f.name, f.duration_mins AS duration_min, f.max_capacity AS capacity,
+              f.advance_payment, f.manual_confirm AS manual_confirmation,
+              f.base_price, f.status, f.created_at,
+              f.organiser_id, u.full_name AS provider_name,
+              f.type, f.description
        FROM facilities f
        JOIN users u ON f.organiser_id = u.id
-       WHERE f.status = 'published'
+       WHERE f.status = 'published' AND f.deleted_at IS NULL
        ORDER BY f.created_at DESC`
     );
 
@@ -29,39 +31,49 @@ const listPublished = async (req, res, next) => {
 };
 
 /**
- * GET /api/services/my — organiser's own services
+ * GET /api/services/my — organiser's own facilities
  */
 const listMine = async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT id, name, duration_mins AS duration_min, max_capacity AS capacity, 
-              (status = 'published') AS is_published, advance_payment,
-              manual_confirm AS manual_confirmation, created_at, type, description, base_price AS price
+      `SELECT id, name, duration_mins AS duration_min, max_capacity AS capacity,
+              status, advance_payment, manual_confirm AS manual_confirmation,
+              base_price, schedule_type, working_hours, working_tz,
+              questions_schema, cancellation_hrs, intro_message, confirm_message,
+              assignment_mode, booking_mode, created_at, type, description
        FROM facilities
-       WHERE organiser_id = $1
+       WHERE organiser_id = $1 AND deleted_at IS NULL
        ORDER BY created_at DESC`,
       [req.user.user_id]
     );
 
-    res.json({ success: true, data: result.rows });
+    // Map status to is_published for frontend compatibility
+    const mapped = result.rows.map(row => ({
+      ...row,
+      is_published: row.status === 'published',
+    }));
+
+    res.json({ success: true, data: mapped });
   } catch (err) {
     next(err);
   }
 };
 
 /**
- * GET /api/services/:id — get one organiser-owned service
+ * GET /api/services/:id — get one organiser-owned facility
  */
 const getById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const result = await query(
-      `SELECT id, name, duration_mins AS duration_min, max_capacity AS capacity, 
-              (status = 'published') AS is_published, advance_payment,
-              manual_confirm AS manual_confirmation, created_at, type, description, base_price AS price
+      `SELECT id, name, duration_mins AS duration_min, max_capacity AS capacity,
+              status, advance_payment, manual_confirm AS manual_confirmation,
+              base_price, schedule_type, working_hours, working_tz,
+              questions_schema, cancellation_hrs, intro_message, confirm_message,
+              assignment_mode, booking_mode, created_at, type, description
        FROM facilities
-       WHERE id = $1 AND organiser_id = $2`,
+       WHERE id = $1 AND organiser_id = $2 AND deleted_at IS NULL`,
       [id, req.user.user_id]
     );
 
@@ -69,24 +81,42 @@ const getById = async (req, res, next) => {
       throw new AppError('Service not found or you do not own this service.', 404, 'SERVICE_NOT_FOUND');
     }
 
-    res.json({ success: true, data: result.rows[0] });
+    const row = result.rows[0];
+    res.json({
+      success: true,
+      data: {
+        ...row,
+        is_published: row.status === 'published',
+      },
+    });
   } catch (err) {
     next(err);
   }
 };
 
 /**
- * POST /api/services — create a new service
+ * POST /api/services — create a new facility
  */
 const create = async (req, res, next) => {
   try {
-    const { name, duration_min, capacity = 1, advance_payment = false, manual_confirmation = false, type = 'General', description = '', price = 0 } = req.body;
+    const {
+      name,
+      duration_min,
+      capacity = 1,
+      advance_payment = false,
+      manual_confirmation = false,
+      base_price = 0,
+      type = 'General',
+      description = '',
+    } = req.body;
 
     const result = await query(
-      `INSERT INTO facilities (organiser_id, name, duration_mins, max_capacity, advance_payment, manual_confirm, type, description, base_price)
+      `INSERT INTO facilities (organiser_id, name, duration_mins, max_capacity, advance_payment, manual_confirm, base_price, type, description)
        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
-       RETURNING id, name, duration_mins AS duration_min, max_capacity AS capacity, advance_payment, manual_confirm AS manual_confirmation`,
-      [req.user.user_id, name, duration_min, capacity, advance_payment, manual_confirmation, type, description, price]
+       RETURNING id, name, duration_mins AS duration_min, max_capacity AS capacity,
+                 advance_payment, manual_confirm AS manual_confirmation, base_price,
+                 status, created_at, type, description`,
+      [req.user.user_id, name, duration_min, capacity, advance_payment, manual_confirmation, base_price, type, description]
     );
 
     res.status(201).json({ success: true, data: result.rows[0] });
@@ -96,12 +126,12 @@ const create = async (req, res, next) => {
 };
 
 /**
- * PUT /api/services/:id — update a service
+ * PUT /api/services/:id — update a facility
  */
 const update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, duration_min, capacity, advance_payment, manual_confirmation, type, description, price } = req.body;
+    const { name, duration_min, capacity, advance_payment, manual_confirmation, base_price, type, description } = req.body;
 
     const result = await query(
       `UPDATE facilities
@@ -110,12 +140,14 @@ const update = async (req, res, next) => {
            max_capacity = COALESCE($3, max_capacity),
            advance_payment = COALESCE($4, advance_payment),
            manual_confirm = COALESCE($5, manual_confirm),
-           type = COALESCE($6, type),
-           description = COALESCE($7, description),
-           base_price = COALESCE($8, base_price)
-       WHERE id = $9 AND organiser_id = $10
-       RETURNING id, name, duration_mins AS duration_min, max_capacity AS capacity`,
-      [name, duration_min, capacity, advance_payment, manual_confirmation, type, description, price, id, req.user.user_id]
+           base_price = COALESCE($6, base_price),
+           type = COALESCE($7, type),
+           description = COALESCE($8, description)
+       WHERE id = $9 AND organiser_id = $10 AND deleted_at IS NULL
+       RETURNING id, name, duration_mins AS duration_min, max_capacity AS capacity,
+                 advance_payment, manual_confirm AS manual_confirmation, base_price,
+                 status, created_at, type, description`,
+      [name, duration_min, capacity, advance_payment, manual_confirmation, base_price, type, description, id, req.user.user_id]
     );
 
     if (result.rows.length === 0) {
@@ -129,14 +161,16 @@ const update = async (req, res, next) => {
 };
 
 /**
- * DELETE /api/services/:id — delete a service
+ * DELETE /api/services/:id — soft-delete a facility
  */
 const remove = async (req, res, next) => {
   try {
     const { id } = req.params;
 
     const result = await query(
-      'DELETE FROM facilities WHERE id = $1 AND organiser_id = $2 RETURNING id',
+      `UPDATE facilities SET deleted_at = NOW()
+       WHERE id = $1 AND organiser_id = $2 AND deleted_at IS NULL
+       RETURNING id`,
       [id, req.user.user_id]
     );
 
@@ -157,19 +191,33 @@ const togglePublish = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const result = await query(
-      `UPDATE facilities
-       SET status = CASE WHEN status = 'published' THEN 'draft' ELSE 'published' END
-       WHERE id = $1 AND organiser_id = $2
-       RETURNING id, name, status`,
+    // Get current status
+    const current = await query(
+      `SELECT status FROM facilities WHERE id = $1 AND organiser_id = $2 AND deleted_at IS NULL`,
       [id, req.user.user_id]
     );
 
-    if (result.rows.length === 0) {
+    if (current.rows.length === 0) {
       throw new AppError('Service not found or you do not own this service.', 404, 'SERVICE_NOT_FOUND');
     }
 
-    res.json({ success: true, data: { ...result.rows[0], is_published: result.rows[0].status === 'published' } });
+    const newStatus = current.rows[0].status === 'published' ? 'unpublished' : 'published';
+
+    const result = await query(
+      `UPDATE facilities
+       SET status = $1
+       WHERE id = $2 AND organiser_id = $3 AND deleted_at IS NULL
+       RETURNING id, name, status`,
+      [newStatus, id, req.user.user_id]
+    );
+
+    res.json({
+      success: true,
+      data: {
+        ...result.rows[0],
+        is_published: result.rows[0].status === 'published',
+      },
+    });
   } catch (err) {
     next(err);
   }

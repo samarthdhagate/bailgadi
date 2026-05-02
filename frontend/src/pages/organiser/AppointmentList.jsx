@@ -58,12 +58,12 @@ const AppointmentList = () => {
           <MiniCalendar events={mockEvents} />
           
           <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 relative overflow-hidden group">
-            <div className="flex items-center gap-3">
+            <div className="flex items-center gap-4">
               <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
-                <Bell className="w-4 h-4 animate-bounce" />
+                <Bell className="w-4 h-4" />
               </div>
               <div className="flex-1 min-w-0">
-                <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-0.5">Next Meeting</h4>
+                <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-1">Next Meeting</h4>
                 <p className="text-xs font-bold text-gray-700 truncate italic">Consultation — Tomorrow, 2:00 PM</p>
               </div>
             </div>
@@ -74,11 +74,11 @@ const AppointmentList = () => {
         <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-4 scrollbar-hide">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Upcoming Appointments</h2>
-            <div className="flex gap-2">
-               <button className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-primary transition-all shadow-sm">
+            <div className="flex gap-4">
+               <button className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-primary transition-all duration-200">
                  <Filter className="w-4 h-4" />
                </button>
-               <button onClick={() => navigate('/organiser/editor/new')} className="p-2 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-110 active:scale-95 transition-all">
+               <button onClick={() => navigate('/organiser/editor/new')} className="p-2 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all duration-200">
                  <Plus className="w-4 h-4" />
                </button>
             </div>
@@ -97,7 +97,7 @@ const AppointmentList = () => {
             ) : (
               <div className="grid gap-4">
                 {appointments.map((app) => (
-                  <div key={app.id} className="group relative bg-white border border-gray-100 rounded-[32px] p-6 hover:shadow-2xl hover:shadow-black/5 transition-all duration-500">
+                  <div key={app.id} className="group relative bg-white border border-gray-100 rounded-[32px] p-6 hover:shadow-2xl transition-all duration-200">
                     <div className="flex items-center gap-6">
                       <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0">
                         {app.image ? (
@@ -112,7 +112,7 @@ const AppointmentList = () => {
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-1">
                           <h3 className="text-lg font-black text-gray-800 truncate">{app.name}</h3>
-                          {app.is_published && <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" title="Published" />}
+                          {app.is_published && <div className="w-2 h-2 rounded-full bg-orange-400" title="Published" />}
                         </div>
                         <div className="flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-tighter">
                           <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary" /> {app.duration_min}m</span>
@@ -120,10 +120,10 @@ const AppointmentList = () => {
                         </div>
                       </div>
 
-                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
-                        <button className="p-2.5 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"><Share2 className="w-4 h-4" /></button>
-                        <button onClick={() => navigate(`/organiser/editor/${app.id}`)} className="p-2.5 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"><Edit3 className="w-4 h-4" /></button>
-                        <button className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all duration-200 transform translate-x-2 group-hover:translate-x-0">
+                        <button className="p-2 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all duration-200"><Share2 className="w-4 h-4" /></button>
+                        <button onClick={() => navigate(`/organiser/editor/${app.id}`)} className="p-2 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all duration-200"><Edit3 className="w-4 h-4" /></button>
+                        <button className="p-2 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all duration-200"><Trash2 className="w-4 h-4" /></button>
                       </div>
                     </div>
                   </div>

@@ -122,7 +122,66 @@ const BookingWizard = () => {
     setIsLoading(true);
     setError('');
     try {
-      await bookingService.lockSlot(serviceId, bookingData.time);
+      // 1. Lock the slot
+      const lockRes = await bookingService.lockSlot(serviceId, bookingData.time);
+      const { reservation_id, razorpay_order } = lockRes.data;
+
+      // 2. Handle Payment if required
+      if (razorpay_order) {
+        const options = {
+          key: import.meta.env.VITE_RAZORPAY_KEY_ID || 'rzp_test_SkaqCSkJRNkpUX',
+          amount: razorpay_order.amount,
+          currency: razorpay_order.currency,
+          name: 'Zilla Booking',
+          description: `Booking for ${service?.name || 'Service'}`,
+          order_id: razorpay_order.id,
+          handler: async (response) => {
+            try {
+              setIsLoading(true);
+              // 3. Verify Payment and Confirm Booking
+              const verifyRes = await bookingService.verifyPayment({
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              });
+              
+              if (verifyRes.success) {
+                navigate('/confirmation', {
+                  state: {
+                    booking: {
+                      ...verifyRes.data,
+                      serviceName: service?.name || service?.title,
+                      date: bookingData.date,
+                      time: bookingData.time,
+                      userDetails: bookingData.userDetails,
+                    }
+                  }
+                });
+              }
+            } catch (err) {
+              setError(err.response?.data?.error?.message || 'Payment verification failed');
+            } finally {
+              setIsLoading(false);
+            }
+          },
+          prefill: {
+            name: bookingData.userDetails.name,
+            email: bookingData.userDetails.email,
+            contact: bookingData.userDetails.phone
+          },
+          theme: { color: '#000000' }
+        };
+
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', (response) => {
+          setError(`Payment failed: ${response.error.description}`);
+        });
+        rzp.open();
+        setIsLoading(false);
+        return; // Wait for handler
+      }
+
+      // 3. If no payment, create booking directly
       const res = await bookingService.createBooking({
         ...bookingData,
         serviceId,
@@ -209,10 +268,10 @@ const BookingWizard = () => {
                 key={i}
                 disabled={isDisabled}
                 onClick={() => setBookingData(prev => ({ ...prev, date: format(date, 'yyyy-MM-dd') }))}
-                className={`aspect-square flex items-center justify-center rounded-xl text-sm font-bold transition-all ${
+                className={`aspect-square flex items-center justify-center rounded-xl text-sm font-bold transition-all duration-200 ${
                   !isCurrentMonth ? 'text-gray-200' :
-                  isSelected ? 'bg-black text-white shadow-lg' :
-                  isDisabled ? 'text-gray-200 cursor-not-allowed' :
+                  isSelected ? 'bg-black text-white' :
+                  isDisabled ? 'text-gray-200 opacity-40 cursor-not-allowed' :
                   'text-gray-700 hover:bg-gray-100'
                 }`}
               >
@@ -236,12 +295,12 @@ const BookingWizard = () => {
                 <button
                   key={r.id}
                   onClick={() => setBookingData(prev => ({ ...prev, resourceId: r.id }))}
-                  className={`flex items-center gap-3 px-4 py-2 rounded-xl border-2 transition-all ${
+                  className={`flex items-center gap-3 px-4 py-2 rounded-xl border-2 transition-all duration-200 ${
                     bookingData.resourceId === r.id
                       ? 'border-primary bg-primary/5 text-primary'
                     : 'border-gray-100 bg-white text-gray-600 hover:border-gray-200'
                 }`}
-              >
+                >
                 <div className={`w-10 h-10 rounded-xl flex items-center justify-center font-bold text-sm ${
                   bookingData.resourceId === r.id ? 'bg-primary text-white' : 'bg-gray-100 text-gray-400'
                 }`}>
@@ -259,7 +318,7 @@ const BookingWizard = () => {
           {/* Left: Date Picker */}
           <div className="space-y-6">
             <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">Date picker</h3>
-            <div className="bg-white border border-gray-100 rounded-[32px] p-10 shadow-sm">
+            <div className="bg-white border border-gray-100 rounded-[32px] p-10">
               {renderCalendar()}
               
               <div className="mt-10 pt-8 border-t border-gray-50">
@@ -276,22 +335,22 @@ const BookingWizard = () => {
               <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">Slots</h3>
               <span className="text-[10px] font-bold text-gray-400 uppercase">(schedule = Weekly)</span>
             </div>
-            <div className="bg-white border border-gray-100 rounded-[32px] p-10 shadow-sm min-h-[400px] flex flex-col">
+            <div className="bg-white border border-gray-100 rounded-[32px] p-10 min-h-[400px] flex flex-col">
               <div className="grid grid-cols-2 gap-4">
                 {slots.length > 0 ? slots.map(slot => (
                   <button
-                    key={slot.id}
+                    key={slot.id || slot.time}
                     disabled={!slot.available}
                     onClick={() => setBookingData(prev => ({ ...prev, time: slot.time }))}
-                    className={`py-4 px-6 rounded-2xl border-2 font-bold text-sm transition-all ${
+                    className={`py-4 px-6 rounded-2xl border-2 font-bold text-sm transition-all duration-200 ${
                       bookingData.time === slot.time
-                        ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]'
+                        ? 'bg-primary border-primary text-white scale-[1.02]'
                         : slot.available
-                        ? 'border-gray-100 text-gray-700 hover:border-primary/30 hover:bg-gray-50'
-                        : 'bg-gray-50 border-gray-50 text-gray-300 cursor-not-allowed'
+                        ? 'border-gray-100 text-gray-700 hover:border-primary/50 hover:bg-gray-50'
+                        : 'bg-gray-50 border-gray-50 text-gray-300 opacity-40 cursor-not-allowed'
                     }`}
                   >
-                    {slot.time}
+                    {format(new Date(slot.time), 'hh:mm a')}
                   </button>
                 )) : (
                   <div className="col-span-2 py-20 text-center">
@@ -307,12 +366,12 @@ const BookingWizard = () => {
                   <div className="flex items-center gap-6 bg-gray-50 w-max rounded-2xl p-2 border border-gray-100">
                     <button 
                       onClick={() => setBookingData(prev => ({ ...prev, capacity: Math.max(1, prev.capacity - 1) }))}
-                      className="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm hover:text-primary transition-colors"
+                      className="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm hover:text-primary active:scale-95 transition-all duration-200"
                     >-</button>
                     <span className="w-8 text-center font-black text-lg text-gray-800">{bookingData.capacity}</span>
                     <button 
                       onClick={() => setBookingData(prev => ({ ...prev, capacity: prev.capacity + 1 }))}
-                      className="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm hover:text-primary transition-colors"
+                      className="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm hover:text-primary active:scale-95 transition-all duration-200"
                     >+</button>
                   </div>
                 </div>
@@ -326,7 +385,7 @@ const BookingWizard = () => {
           <Button 
             disabled={!bookingData.time || (resources.length > 0 && !bookingData.resourceId) || isLoading}
             onClick={handleNext}
-            className="px-12 py-5 text-lg rounded-2xl shadow-2xl shadow-primary/30"
+            className="px-12 py-5 text-lg rounded-2xl shadow-lg shadow-primary/20 active:scale-95"
           >
             {isLoading ? <Loader /> : (isRescheduling ? 'Confirm Reschedule' : 'Continue to Details')}
           </Button>

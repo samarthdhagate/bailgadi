@@ -44,7 +44,24 @@ const verifyRazorpaySignature = (orderId, paymentId, signature) => {
   return expectedSignature === signature;
 };
 
+/**
+ * Verify Razorpay Webhook Signature.
+ * @param {string} rawBody - The raw request body as string
+ * @param {string} signature - The X-Razorpay-Signature header
+ */
+const verifyWebhookSignature = (rawBody, signature) => {
+  if (!env.RAZORPAY_WEBHOOK_SECRET) return true; // Skip check if secret not set (demo mode)
+  
+  const expectedSignature = crypto
+    .createHmac('sha256', env.RAZORPAY_WEBHOOK_SECRET)
+    .update(rawBody)
+    .digest('hex');
+
+  return expectedSignature === signature;
+};
+
 module.exports = {
   createRazorpayOrder,
   verifyRazorpaySignature,
+  verifyWebhookSignature,
 };
