@@ -53,8 +53,14 @@ export const authService = {
     return response.data;
   },
   
+  googleLogin: async (token) => {
+    const response = await axiosInstance.post('/auth/google', { token });
+    return response.data;
+  },
+
   getGoogleAuthUrl: async () => {
     const response = await axiosInstance.get('/auth/google');
     return response.data;
   },
 };
+

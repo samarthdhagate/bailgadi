@@ -15,8 +15,14 @@ const listPublished = async (req, res, next) => {
     const result = await query(
       `SELECT f.id, f.name, f.duration_mins AS duration_min, f.max_capacity AS capacity,
               f.advance_payment, f.manual_confirm AS manual_confirmation,
+<<<<<<< HEAD
               f.base_price AS price, f.status, f.created_at,
               f.organiser_id, u.full_name AS provider_name
+=======
+              f.base_price, f.status, f.created_at,
+              f.organiser_id, u.full_name AS provider_name,
+              f.type, f.description
+>>>>>>> ee9c71e2d56dba14f2302bcd2e2e58cd8b6b8b93
        FROM facilities f
        JOIN users u ON f.organiser_id = u.id
        WHERE f.status = 'published' AND f.deleted_at IS NULL
@@ -39,7 +45,7 @@ const listMine = async (req, res, next) => {
               status, advance_payment, manual_confirm AS manual_confirmation,
               base_price AS price, schedule_type, working_hours, working_tz,
               questions_schema, cancellation_hrs, intro_message, confirm_message,
-              assignment_mode, booking_mode, created_at
+              assignment_mode, booking_mode, created_at, type, description
        FROM facilities
        WHERE organiser_id = $1 AND deleted_at IS NULL
        ORDER BY created_at DESC`,
@@ -70,7 +76,7 @@ const getById = async (req, res, next) => {
               status, advance_payment, manual_confirm AS manual_confirmation,
               base_price AS price, schedule_type, working_hours, working_tz,
               questions_schema, cancellation_hrs, intro_message, confirm_message,
-              assignment_mode, booking_mode, created_at
+              assignment_mode, booking_mode, created_at, type, description
        FROM facilities
        WHERE id = $1 AND organiser_id = $2 AND deleted_at IS NULL`,
       [id, req.user.user_id]
@@ -105,15 +111,17 @@ const create = async (req, res, next) => {
       advance_payment = false,
       manual_confirmation = false,
       base_price = 0,
+      type = 'General',
+      description = '',
     } = req.body;
 
     const result = await query(
-      `INSERT INTO facilities (organiser_id, name, duration_mins, max_capacity, advance_payment, manual_confirm, base_price)
-       VALUES ($1, $2, $3, $4, $5, $6, $7)
+      `INSERT INTO facilities (organiser_id, name, duration_mins, max_capacity, advance_payment, manual_confirm, base_price, type, description)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
        RETURNING id, name, duration_mins AS duration_min, max_capacity AS capacity,
                  advance_payment, manual_confirm AS manual_confirmation, base_price,
-                 status, created_at`,
-      [req.user.user_id, name, duration_min, capacity, advance_payment, manual_confirmation, base_price]
+                 status, created_at, type, description`,
+      [req.user.user_id, name, duration_min, capacity, advance_payment, manual_confirmation, base_price, type, description]
     );
 
     res.status(201).json({ success: true, data: result.rows[0] });
@@ -128,7 +136,7 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, duration_min, capacity, advance_payment, manual_confirmation, base_price } = req.body;
+    const { name, duration_min, capacity, advance_payment, manual_confirmation, base_price, type, description } = req.body;
 
     const result = await query(
       `UPDATE facilities
@@ -137,12 +145,14 @@ const update = async (req, res, next) => {
            max_capacity = COALESCE($3, max_capacity),
            advance_payment = COALESCE($4, advance_payment),
            manual_confirm = COALESCE($5, manual_confirm),
-           base_price = COALESCE($6, base_price)
-       WHERE id = $7 AND organiser_id = $8 AND deleted_at IS NULL
+           base_price = COALESCE($6, base_price),
+           type = COALESCE($7, type),
+           description = COALESCE($8, description)
+       WHERE id = $9 AND organiser_id = $10 AND deleted_at IS NULL
        RETURNING id, name, duration_mins AS duration_min, max_capacity AS capacity,
                  advance_payment, manual_confirm AS manual_confirmation, base_price,
-                 status, created_at`,
-      [name, duration_min, capacity, advance_payment, manual_confirmation, base_price, id, req.user.user_id]
+                 status, created_at, type, description`,
+      [name, duration_min, capacity, advance_payment, manual_confirmation, base_price, type, description, id, req.user.user_id]
     );
 
     if (result.rows.length === 0) {
@@ -219,3 +229,4 @@ const togglePublish = async (req, res, next) => {
 };
 
 module.exports = { listPublished, listMine, getById, create, update, remove, togglePublish };
+
