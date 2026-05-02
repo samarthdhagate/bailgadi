@@ -318,40 +318,92 @@ const BookingWizard = () => {
         );
       case 3: // Payment (originally step 5)
         return (
-          <div className="flex flex-col gap-6">
-            <h2 className="text-xl font-bold">Payment</h2>
-            <Card className="bg-gray-50 border-none">
-              <div className="space-y-2 mb-4">
-                <div className="flex justify-between">
-                  <span className="text-gray-600">{service?.title}</span>
-                  <span className="font-medium">${service?.price}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-gray-600">Taxes (5%)</span>
-                  <span className="font-medium">${(service?.price * 0.05).toFixed(2)}</span>
-                </div>
-                <div className="border-t border-gray-200 pt-2 mt-2 flex justify-between font-bold text-lg">
-                  <span>Total</span>
-                  <span>${(service?.price * 1.05).toFixed(2)}</span>
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
+            {/* Left: Payment Method Selection */}
+            <div className="lg:col-span-2 space-y-10">
+              <div>
+                <h3 className="text-sm font-bold text-gray-400 uppercase tracking-wider mb-6">Choose a payment method</h3>
+                <div className="space-y-6">
+                  {/* Credit Card Option */}
+                  <div className="space-y-6">
+                    <label className="flex items-center gap-3 cursor-pointer group">
+                      <input type="radio" name="paymentMethod" defaultChecked className="w-5 h-5 accent-primary" />
+                      <span className="font-bold text-gray-700 group-hover:text-primary transition-colors">Credit Card</span>
+                    </label>
+                    
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pl-8">
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-bold text-gray-500 mb-2">Name on Card</label>
+                        <Input placeholder="John Doe" />
+                      </div>
+                      <div className="md:col-span-2">
+                        <label className="block text-sm font-bold text-gray-500 mb-2">Card Number</label>
+                        <Input placeholder="•••• •••• •••• ••••" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-500 mb-2">Expiration Date</label>
+                        <Input placeholder="MM / YY" />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-bold text-gray-500 mb-2">Security Code</label>
+                        <Input placeholder="CVV" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Other Options (Placeholders) */}
+                  {['Debit Card', 'UPI Pay', 'PayPal'].map(method => (
+                    <label key={method} className="flex items-center gap-3 cursor-pointer group pl-0">
+                      <input type="radio" name="paymentMethod" className="w-5 h-5 accent-primary" />
+                      <span className="font-bold text-gray-700 group-hover:text-primary transition-colors">{method}</span>
+                    </label>
+                  ))}
                 </div>
               </div>
-            </Card>
-            
-            <div className="grid grid-cols-2 gap-4">
-              {['Credit Card', 'Debit Card', 'UPI', 'PayPal'].map(method => (
+
+              <div className="pt-6 border-t border-gray-50">
                 <button 
-                  key={method}
-                  className="p-4 border border-gray-200 rounded-xl text-sm font-medium hover:border-primary transition-all flex flex-col items-center gap-2"
+                  onClick={() => setStep(2)}
+                  className="text-gray-400 hover:text-primary font-medium transition-colors"
                 >
-                  <CreditCard className="w-6 h-6 text-gray-400" />
-                  {method}
+                  Go back to details
                 </button>
-              ))}
+              </div>
             </div>
 
-            <div className="flex justify-between mt-4">
-              <Button variant="secondary" onClick={() => setStep(2)}>Back</Button>
-              <Button isLoading={isLoading} onClick={submitBooking}>Pay & Confirm</Button>
+            {/* Right: Order Summary */}
+            <div>
+              <Card className="p-8 sticky top-8">
+                <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest mb-6">Order Summary</h3>
+                
+                <div className="space-y-4 mb-8">
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-800 font-medium">{service?.title}</span>
+                    <span className="font-bold text-gray-800">${service?.price}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Subtotal</span>
+                    <span className="font-medium text-gray-800">${service?.price}</span>
+                  </div>
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">Taxes</span>
+                    <span className="font-medium text-gray-800">${(service?.price * 0.1).toFixed(2)}</span>
+                  </div>
+                </div>
+
+                <div className="pt-6 border-t border-gray-100 mb-8 flex justify-between items-center">
+                  <span className="text-xl font-bold text-gray-800">Total</span>
+                  <span className="text-2xl font-black text-primary">${(service?.price * 1.1).toFixed(2)}</span>
+                </div>
+
+                <Button 
+                  isLoading={isLoading} 
+                  onClick={submitBooking}
+                  className="w-full py-4 text-lg"
+                >
+                  Pay Now
+                </Button>
+              </Card>
             </div>
           </div>
         );

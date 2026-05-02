@@ -1,91 +1,109 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { CheckCircle, Calendar, Clock, MapPin, Users, Download, Share2, Plus } from 'lucide-react';
+import { format } from 'date-fns';
+import { CheckCircle } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 
 const BookingConfirmation = () => {
-  const { state } = useLocation();
+  const location = useLocation();
   const navigate = useNavigate();
-  const booking = state?.booking;
+  const { booking } = location.state || {};
 
   if (!booking) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <Button onClick={() => navigate('/dashboard')}>Go to Dashboard</Button>
+      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+        <div className="text-center">
+          <h2 className="text-2xl font-bold text-gray-800">No booking found</h2>
+          <Button className="mt-4" onClick={() => navigate('/dashboard')}>Back to Dashboard</Button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background py-12 px-4">
-      <div className="max-w-2xl mx-auto text-center">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-green-100 text-green-600 rounded-full mb-6">
-          <CheckCircle className="w-10 h-10" />
-        </div>
-        <h1 className="text-3xl font-bold text-gray-900 mb-2">Booking Confirmed!</h1>
-        <p className="text-gray-500 mb-10">We've sent a confirmation email to {booking.userDetails.email}</p>
+    <div className="min-h-screen bg-gray-50 py-12 px-4">
+      <div className="max-w-4xl mx-auto bg-white rounded-[40px] p-12 shadow-sm border border-gray-100">
+        <div className="flex flex-col gap-10">
+          {/* Header */}
+          <div className="border-b border-gray-100 pb-8">
+            <h1 className="text-4xl font-bold text-gray-800">Appointment confirmed</h1>
+          </div>
 
-        <Card className="text-left mb-8">
-          <div className="flex justify-between items-start border-b border-gray-100 pb-4 mb-6">
-            <div>
-              <p className="text-sm text-gray-500 mb-1">Booking ID</p>
-              <p className="font-mono font-bold text-lg text-primary">{booking.id}</p>
+          <div className="space-y-10">
+            {/* Time */}
+            <div className="grid grid-cols-1 md:grid-cols-4 items-start gap-4">
+              <span className="text-2xl font-bold text-gray-800">Time</span>
+              <div className="md:col-span-3">
+                <p className="text-2xl font-medium text-gray-700 mb-4">
+                  {format(new Date(booking.date), 'MMM dd')}, {booking.time}
+                </p>
+                <div className="flex gap-4">
+                  <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
+                    Google calendar
+                  </button>
+                  <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
+                    Outlook calendar
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-bold uppercase">
-              {booking.status}
+
+            {/* Duration */}
+            <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+              <span className="text-2xl font-bold text-gray-800">Duration</span>
+              <div className="md:col-span-3">
+                <p className="text-2xl font-medium text-gray-700">30 min</p>
+              </div>
+            </div>
+
+            {/* Capacity (Conditional) */}
+            {booking.capacity > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-4 items-center gap-4">
+                <span className="text-2xl font-bold text-gray-800 whitespace-nowrap">No of people</span>
+                <div className="md:col-span-3">
+                  <p className="text-2xl font-medium text-gray-700">{booking.capacity}</p>
+                </div>
+              </div>
+            )}
+
+            {/* Venue */}
+            <div className="grid grid-cols-1 md:grid-cols-4 items-start gap-4">
+              <span className="text-2xl font-bold text-gray-800">Venue</span>
+              <div className="md:col-span-3">
+                <p className="text-2xl font-medium text-gray-700 leading-relaxed">
+                  Doctor's Office<br />
+                  64 Doctor Street<br />
+                  Springfield 380005<br />
+                  Ahmedabad
+                </p>
+              </div>
             </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="flex items-center gap-3">
-              <Calendar className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500">Date</p>
-                <p className="font-medium">{booking.date}</p>
-              </div>
+          {/* Footer Area */}
+          <div className="mt-12 pt-10 border-t border-gray-100 flex flex-col md:flex-row items-center justify-between gap-8">
+            <div className="bg-gray-50 px-6 py-4 rounded-2xl border border-gray-100 max-w-md">
+              <p className="text-gray-600 font-medium italic">
+                Thank you for your trust we look forward to meeting you
+              </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Clock className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500">Time & Duration</p>
-                <p className="font-medium">{booking.time} (45 mins)</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <MapPin className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500">Venue</p>
-                <p className="font-medium">Downtown Salon, New York</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <Users className="w-5 h-5 text-gray-400" />
-              <div>
-                <p className="text-xs text-gray-500">Guests</p>
-                <p className="font-medium">{booking.capacity} People</p>
-              </div>
+            
+            <div className="flex gap-4">
+              <button 
+                onClick={() => navigate('/bookings')}
+                className="px-8 py-3 border border-gray-200 rounded-xl text-lg font-bold text-gray-600 hover:bg-gray-50 transition-colors uppercase"
+              >
+                cancel
+              </button>
+              <button 
+                onClick={() => navigate(`/booking/${booking.serviceId}`)}
+                className="px-8 py-3 border border-gray-200 rounded-xl text-lg font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+              >
+                Reschedule
+              </button>
             </div>
           </div>
-        </Card>
-
-        <div className="flex flex-wrap items-center justify-center gap-4">
-          <Button variant="outline" className="flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Add to Google Calendar
-          </Button>
-          <Button variant="outline" className="flex items-center gap-2">
-            <Plus className="w-4 h-4" /> Add to Outlook
-          </Button>
-        </div>
-
-        <div className="mt-12 flex items-center justify-center gap-6">
-          <button className="text-gray-600 hover:text-primary font-medium">Cancel Booking</button>
-          <button 
-            onClick={() => navigate('/dashboard')}
-            className="text-primary font-bold hover:underline"
-          >
-            Back to Dashboard
-          </button>
         </div>
       </div>
     </div>
