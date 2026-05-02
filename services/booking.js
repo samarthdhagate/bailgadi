@@ -14,8 +14,8 @@ export const bookingService = {
       return {
         data: [
           {
-            id: 1,
-            title: 'Haircut & Styling',
+            id: '82a5264d-e4fc-4e36-8bcb-701fdcc658ab',
+            name: 'Haircut & Styling',
             location: 'Downtown Salon',
             description: 'Get a fresh new look with our professional stylists.',
             image: 'https://images.unsplash.com/photo-1560066984-138dadb4c035?auto=format&fit=crop&q=80&w=400',

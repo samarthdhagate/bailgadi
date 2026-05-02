@@ -20,6 +20,12 @@ const generateConfirmationCode = () => {
  * Aligned with v5 schema: facilities -> time_slots -> reservations.
  */
 const lockSlot = async (user_id, facility_id, start_time, attendee_count = 1) => {
+  // Validate UUID format to prevent DB crash
+  const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+  if (!uuidRegex.test(facility_id)) {
+    throw new AppError('Invalid service ID format. Please use a valid service.', 400, 'INVALID_SERVICE_ID');
+  }
+
   const slotStart = new Date(start_time);
   if (slotStart <= new Date()) {
     throw new AppError('Cannot lock a slot in the past.', 400, 'SLOT_IN_PAST');
@@ -71,14 +77,32 @@ const lockSlot = async (user_id, facility_id, start_time, attendee_count = 1) =>
     if (existingRes.rows.length > 0) {
       // User already has a hold, allow them to re-use it
       const reservation = existingRes.rows[0];
+      // Check for existing payment
+      const paymentRes = await dbClient.query(
+        'SELECT order_id, amount, currency FROM payments WHERE reservation_id = $1 AND status = \'pending\'',
+        [reservation.id]
+      );
+
       await dbClient.query('COMMIT');
       
-      return { 
+      const response = { 
         locked: true, 
         reservation_id: reservation.id, 
         expires_in: Math.max(0, Math.floor((new Date(reservation.expires_at) - new Date()) / 1000)),
         reused: true
       };
+
+      if (paymentRes.rows.length > 0) {
+        const p = paymentRes.rows[0];
+        response.payment_order = {
+          id: p.order_id,
+          amount: Math.round(p.amount * 100),
+          currency: p.currency,
+          key_id: process.env.RAZORPAY_KEY_ID
+        };
+      }
+
+      return response;
     }
 
     if (slot.confirmed_count + slot.reserved_count + Number(attendee_count) > slot.total_capacity) {
