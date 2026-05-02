@@ -11,16 +11,13 @@ const DashboardLayout = ({ children, title }) => {
     customer: [
       { label: 'Dashboard', icon: Calendar, path: '/dashboard' },
       { label: 'My Bookings', icon: User, path: '/bookings' },
-      { label: 'Settings', icon: Settings, path: '/settings' },
     ],
     organiser: [
       { label: 'Appointments', icon: Calendar, path: '/organiser' },
-      { label: 'Settings', icon: Settings, path: '/settings' },
     ],
     admin: [
       { label: 'Dashboard', icon: Calendar, path: '/admin' },
       { label: 'Users', icon: User, path: '/admin/users' },
-      { label: 'Settings', icon: Settings, path: '/settings' },
     ]
   };
 
@@ -46,15 +43,19 @@ const DashboardLayout = ({ children, title }) => {
         </nav>
 
         <div className="p-4 border-t border-gray-200">
-          <div className="flex items-center gap-3 px-4 py-3 mb-2">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold">
+          <button
+            onClick={() => navigate('/settings')}
+            className="w-full flex items-center gap-3 px-4 py-3 mb-2 hover:bg-gray-50 rounded-xl transition-all text-left group"
+          >
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold group-hover:bg-primary group-hover:text-white transition-all">
               {user?.name?.[0]?.toUpperCase() || 'U'}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{user?.name || 'User'}</p>
+              <p className="text-sm font-bold text-gray-900 truncate">{user?.name || 'User'}</p>
               <p className="text-xs text-gray-500 truncate capitalize">{role}</p>
             </div>
-          </div>
+            <Settings className="w-4 h-4 text-gray-300 group-hover:text-primary transition-colors" />
+          </button>
           <button
             onClick={logout}
             className="w-full flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-red-50 rounded-xl transition-colors"
