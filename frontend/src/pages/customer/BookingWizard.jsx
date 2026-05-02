@@ -54,7 +54,7 @@ const BookingWizard = () => {
   }, [serviceId]);
 
   useEffect(() => {
-    if (step === 2 && bookingData.date) {
+    if (step === 1 && bookingData.date) {
       const fetchSlots = async () => {
         setIsLoading(true);
         try {
