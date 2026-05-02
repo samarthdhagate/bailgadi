@@ -19,31 +19,20 @@ const AuthLayout = () => {
           
           {/* Left Side: Punchline & Marketing Text */}
           <div className="flex-1 text-center lg:text-left max-w-2xl">
-            <div className="flex items-center gap-4 mb-8 justify-center lg:justify-start">
+            <div className="flex items-center gap-4 mb-8 justify-center lg:justify-start drop-shadow-lg">
               <img src="/zilla_logo.png" alt="Zilla" className="w-14 h-14" />
               <h1 className="text-4xl font-black text-white tracking-tighter">zilla</h1>
             </div>
             
-            <h2 className="text-5xl lg:text-7xl font-black text-white leading-[1.1] mb-8 tracking-tight">
+            <h2 className="text-5xl lg:text-7xl font-black text-white leading-[1.1] mb-8 tracking-tight drop-shadow-2xl">
               Easy <br/>
               <span className="text-primary italic">scheduling</span> <br/>
               ahead
             </h2>
             
-            <p className="text-xl lg:text-2xl text-slate-300 font-medium leading-relaxed mb-10 max-w-xl">
+            <p className="text-xl lg:text-2xl text-white font-medium leading-relaxed mb-10 max-w-xl drop-shadow-lg">
               Join the next generation of professionals who easily book meetings with the #1 scheduling tool for creators and businesses.
             </p>
-
-            <div className="flex flex-wrap items-center gap-6 justify-center lg:justify-start text-slate-400">
-              <div className="flex -space-x-3">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-10 h-10 rounded-full border-2 border-slate-900 bg-slate-800 flex items-center justify-center overflow-hidden">
-                    <img src={`https://i.pravatar.cc/100?u=${i}`} alt="User" />
-                  </div>
-                ))}
-              </div>
-              <p className="text-sm font-bold uppercase tracking-widest">+ 20M PROFESSIONALS</p>
-            </div>
           </div>
 
           {/* Right Side: Login/Auth Card */}
