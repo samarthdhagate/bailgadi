@@ -190,7 +190,7 @@ const QuestionBuilder = ({ questions = [], onChange }) => {
                 </label>
 
                 <div className="flex gap-4">
-                  <Button variant="secondary" className="px-8" onClick={() => setIsAddingUser(false)}>Cancel</Button>
+                  <Button variant="secondary" className="px-8" onClick={() => setIsAdding(false)}>Cancel</Button>
                   <Button className="px-10" onClick={addQuestion}>Add Question</Button>
                 </div>
               </div>
@@ -198,7 +198,7 @@ const QuestionBuilder = ({ questions = [], onChange }) => {
           </div>
         ) : (
           <button
-            onClick={() => setIsAddingUser(true)}
+            onClick={() => setIsAdding(true)}
             className="mt-8 group flex items-center gap-3 px-8 py-4 bg-primary/5 text-primary rounded-2xl font-black text-xs uppercase tracking-widest hover:bg-primary hover:text-white transition-all"
           >
             <Plus className="w-5 h-5 transition-transform group-hover:rotate-90" />
