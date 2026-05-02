@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Send, Bot, Sparkles, User as UserIcon, Loader2 } from 'lucide-react';
+import axiosInstance from '../services/api/axiosInstance';
 
 const ChatbotFrame = () => {
   const [messages, setMessages] = useState([
@@ -22,21 +23,30 @@ const ChatbotFrame = () => {
 
     const userMessage = { role: 'user', content: input };
     setMessages(prev => [...prev, userMessage]);
+    const currentInput = input;
     setInput('');
     setIsTyping(true);
 
-    // TODO: Connect to backend API
-    // Example: const response = await api.post('/chat', { message: input });
-    
-    // Simulating Bot Response
-    setTimeout(() => {
-      const botResponse = { 
+    try {
+      // Connect to Zilla Backend AI API
+      const response = await axiosInstance.post('/ai/chat', { message: currentInput });
+      
+      if (response.data && response.data.success) {
+        setMessages(prev => [...prev, { 
+          role: 'bot', 
+          content: response.data.data.content 
+        }]);
+      } else {
+        throw new Error('Failed to get response');
+      }
+    } catch (err) {
+      setMessages(prev => [...prev, { 
         role: 'bot', 
-        content: "I've received your message. My backend logic is being connected, but I'm ready to help you manage your schedule!" 
-      };
-      setMessages(prev => [...prev, botResponse]);
+        content: "I'm having a bit of trouble connecting to my brain right now. Please try again in a moment!" 
+      }]);
+    } finally {
       setIsTyping(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -54,7 +64,7 @@ const ChatbotFrame = () => {
         <Sparkles className="w-5 h-5 ml-auto text-white/50" />
       </div>
 
-      {/* Messages Area - Now truly functional with scrolling support for new messages */}
+      {/* Messages Area */}
       <div className="flex-1 p-6 overflow-y-auto space-y-6 bg-gray-50/30 scrollbar-hide">
         {messages.map((msg, idx) => (
           <div key={idx} className={`flex items-start gap-3 ${msg.role === 'user' ? 'flex-row-reverse' : ''}`}>

@@ -17,6 +17,7 @@ const serviceRoutes = require('./routes/service.routes');
 const availabilityRoutes = require('./routes/availability.routes');
 const bookingRoutes = require('./routes/booking.routes');
 const paymentRoutes = require('./routes/payment.routes');
+const aiRoutes = require('./routes/ai.routes');
 
 const app = express();
 
@@ -76,6 +77,7 @@ app.use('/api/services', serviceRoutes);
 app.use('/api/availability', availabilityRoutes);
 app.use('/api/bookings', bookingRoutes);
 app.use('/api/payments', paymentRoutes);
+app.use('/api/ai', aiRoutes);
 
 // ─── 404 Handler ────────────────────────────────────────────────────
 app.use((_req, res) => {
