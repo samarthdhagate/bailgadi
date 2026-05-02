@@ -213,49 +213,106 @@ const BookingWizard = () => {
     switch (step) {
       case 2: // Details (originally step 4)
         return (
-          <div className="flex flex-col gap-6">
-            <h2 className="text-xl font-bold">Your Details</h2>
-            <div className="space-y-4">
-              <Input
-                label="Full Name"
-                placeholder="John Doe"
-                value={bookingData.userDetails.name}
-                onChange={(e) => setBookingData(prev => ({ 
-                  ...prev, 
-                  userDetails: { ...prev.userDetails, name: e.target.value } 
-                }))}
-                required
-              />
-              <Input
-                label="Email Address"
-                type="email"
-                placeholder="john@example.com"
-                value={bookingData.userDetails.email}
-                onChange={(e) => setBookingData(prev => ({ 
-                  ...prev, 
-                  userDetails: { ...prev.userDetails, email: e.target.value } 
-                }))}
-                required
-              />
-              <Input
-                label="Phone Number"
-                placeholder="+1 234 567 890"
-                value={bookingData.userDetails.phone}
-                onChange={(e) => setBookingData(prev => ({ 
-                  ...prev, 
-                  userDetails: { ...prev.userDetails, phone: e.target.value } 
-                }))}
-                required
-              />
+          <div className="flex flex-col gap-8 max-w-4xl mx-auto">
+            <div className="border-b border-gray-100 pb-6">
+              <h2 className="text-3xl font-bold text-gray-800">Details</h2>
+              <p className="text-gray-500 mt-2">Please provide your contact information and answer a few questions.</p>
             </div>
-            <div className="flex justify-between mt-4">
-              <Button variant="secondary" onClick={() => setStep(1)}>Back</Button>
+
+            <div className="space-y-8 py-4">
+              {/* Standard Fields */}
+              <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                <label className="font-bold text-gray-700">Full Name</label>
+                <div className="md:col-span-2">
+                  <Input
+                    placeholder="John Doe"
+                    value={bookingData.userDetails.name}
+                    onChange={(e) => setBookingData(prev => ({ 
+                      ...prev, 
+                      userDetails: { ...prev.userDetails, name: e.target.value } 
+                    }))}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                <label className="font-bold text-gray-700">Email Address</label>
+                <div className="md:col-span-2">
+                  <Input
+                    type="email"
+                    placeholder="john@example.com"
+                    value={bookingData.userDetails.email}
+                    onChange={(e) => setBookingData(prev => ({ 
+                      ...prev, 
+                      userDetails: { ...prev.userDetails, email: e.target.value } 
+                    }))}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
+                <label className="font-bold text-gray-700">Phone Number</label>
+                <div className="md:col-span-2">
+                  <Input
+                    placeholder="+1 234 567 890"
+                    value={bookingData.userDetails.phone}
+                    onChange={(e) => setBookingData(prev => ({ 
+                      ...prev, 
+                      userDetails: { ...prev.userDetails, phone: e.target.value } 
+                    }))}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Dynamic Questions from Organiser */}
+              {service?.questions?.map((q) => (
+                <div key={q.id} className="grid grid-cols-1 md:grid-cols-3 items-start gap-4">
+                  <label className="font-bold text-gray-700 pt-3">{q.label}{q.required && '*'}</label>
+                  <div className="md:col-span-2">
+                    {q.type === 'textarea' ? (
+                      <textarea
+                        className="input-field min-h-[120px]"
+                        placeholder={`Enter ${q.label.toLowerCase()}...`}
+                        required={q.required}
+                        value={bookingData.userDetails[q.id] || ''}
+                        onChange={(e) => setBookingData(prev => ({ 
+                          ...prev, 
+                          userDetails: { ...prev.userDetails, [q.id]: e.target.value } 
+                        }))}
+                      />
+                    ) : (
+                      <Input
+                        placeholder={`Enter ${q.label.toLowerCase()}...`}
+                        required={q.required}
+                        value={bookingData.userDetails[q.id] || ''}
+                        onChange={(e) => setBookingData(prev => ({ 
+                          ...prev, 
+                          userDetails: { ...prev.userDetails, [q.id]: e.target.value } 
+                        }))}
+                      />
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex flex-col items-center gap-4 pt-10 border-t border-gray-50">
               <Button 
                 onClick={handleNext}
                 disabled={!bookingData.userDetails.name || !bookingData.userDetails.email}
+                className="px-16 py-4 text-lg min-w-[250px]"
               >
-                {service?.price > 0 ? 'Go to Payment' : 'Confirm Booking'}
+                {service?.price > 0 ? 'Proceed to payment' : 'Confirm'}
               </Button>
+              <button 
+                onClick={() => setStep(1)}
+                className="text-gray-400 hover:text-primary font-medium transition-colors"
+              >
+                Go back to selection
+              </button>
             </div>
           </div>
         );
