@@ -1,70 +1,104 @@
-// Mock persistent data for the session
-let appointments = [
-  { 
-    id: 1, 
-    title: 'Dental care', 
-    duration: '00:30', 
-    location: 'Doctor\'s Office', 
-    status: 'published',
-    resources: ['A1', 'A2'],
-    bookings: 1,
-    scheduleType: 'weekly',
-    questions: [
-      { id: 1, label: 'Name', type: 'text', required: true },
-      { id: 2, label: 'Phone', type: 'phone', required: true }
-    ],
-    introMessage: 'Schedule your visit today...',
-    confirmMessage: 'Thank you for your trust...'
-  },
-  { 
-    id: 2, 
-    title: 'Tennis court', 
-    duration: '01:00', 
-    location: 'Sports Complex', 
-    status: 'published',
-    resources: ['R1', 'R2'],
-    bookings: 3,
-    scheduleType: 'flexible'
-  }
-];
-
-let meetings = [
-  { id: 1, subject: 'Cavity', appointment: 'Dental care', name: 'Vipin jindal', resource: '', time: 'Dec 12 4:00', answers: '+91987454632', status: 'Booked' },
-  { id: 2, subject: 'Routine', appointment: 'Dental care', name: 'Tarak gor', resource: 'Court 1', time: 'Dec 13 9:00', answers: '+91478798465', status: 'Request' }
-];
+import axiosInstance from './api/axiosInstance';
 
 export const organiserService = {
+  /**
+   * Get organiser's own services.
+   * GET /api/services/my
+   */
+  getServices: async () => {
+    const response = await axiosInstance.get('/services/my');
+    return response.data;
+  },
+
+  /**
+   * Compatibility alias for AppointmentList.
+   */
   getAppointments: async () => {
-    await new Promise(r => setTimeout(r, 500));
-    return { data: appointments };
+    const response = await axiosInstance.get('/services/my');
+    return response.data;
   },
-  
-  getAppointmentById: async (id) => {
-    await new Promise(r => setTimeout(r, 500));
-    const app = appointments.find(a => a.id === parseInt(id));
-    return { data: app || appointments[0] };
+
+  /**
+   * Fetch a single service by ID.
+   */
+  getServiceById: async (id) => {
+    const response = await axiosInstance.get(`/services/${id}`);
+    return response.data;
   },
-  
-  createAppointment: async (data) => {
-    await new Promise(r => setTimeout(r, 800));
-    const newApp = { ...data, id: appointments.length + 1, bookings: 0, status: 'draft' };
-    appointments.push(newApp);
-    return { data: newApp };
+
+  /**
+   * Create a new service.
+   * POST /api/services
+   */
+  createService: async (data) => {
+    const response = await axiosInstance.post('/services', data);
+    return response.data;
   },
-  
-  updateAppointment: async (id, data) => {
-    await new Promise(r => setTimeout(r, 800));
-    appointments = appointments.map(a => a.id === parseInt(id) ? { ...a, ...data } : a);
-    return { data: data };
+
+  /**
+   * Update a service.
+   * PUT /api/services/:id
+   */
+  updateService: async (id, data) => {
+    const response = await axiosInstance.put(`/services/${id}`, data);
+    return response.data;
   },
-  
+
+  /**
+   * Toggle publish status.
+   * PATCH /api/services/:id/publish
+   */
+  togglePublish: async (id) => {
+    const response = await axiosInstance.patch(`/services/${id}/publish`);
+    return response.data;
+  },
+
+  /**
+   * Get provider's bookings.
+   * GET /api/bookings/provider
+   */
+  getBookings: async () => {
+    const response = await axiosInstance.get('/bookings/provider');
+    return response.data;
+  },
+
+  /**
+   * Manually confirm a booking.
+   */
+  confirmBooking: async (id) => {
+    const response = await axiosInstance.patch(`/bookings/${id}/confirm`);
+    return response.data;
+  },
+
+  /**
+   * Set working hours.
+   */
+  setWorkingHours: async (workingHours) => {
+    const response = await axiosInstance.post('/availability/working-hours', {
+      working_hours: workingHours,
+    });
+    return response.data;
+  },
+
+  /**
+   * Get working hours.
+   */
+  getWorkingHours: async () => {
+    const response = await axiosInstance.get('/availability/working-hours');
+    return response.data;
+  },
+
+  // Mocked/Placeholder methods for new UI features from main
   getMeetings: async () => {
-    await new Promise(r => setTimeout(r, 500));
-    return { data: meetings };
+    // Redirect to getBookings for now as "Meetings" = "Bookings" in this context
+    const response = await axiosInstance.get('/bookings/provider');
+    return response.data;
   },
   
   updateMeetingStatus: async (id, status) => {
-    meetings = meetings.map(m => m.id === id ? { ...m, status } : m);
+    if (status === 'Confirmed') {
+      return await organiserService.confirmBooking(id);
+    }
     return { data: true };
   }
 };

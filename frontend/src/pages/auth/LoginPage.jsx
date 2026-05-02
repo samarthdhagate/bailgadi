@@ -20,14 +20,15 @@ const LoginPage = () => {
 
     try {
       const response = await authService.login({ email, password });
-      
-      login({
-        token: response.data.token,
-        role: response.data.user.role,
-        user: response.data.user
-      });
+
+      if (response.success) {
+        login(response.data);
+      } else {
+        setError(response.error?.message || 'Login failed. Please try again.');
+      }
     } catch (err) {
-      setError(err.response?.data?.error?.message || 'Invalid email or password');
+      const message = err.response?.data?.error?.message || 'Invalid email or password.';
+      setError(message);
     } finally {
       setIsLoading(false);
     }

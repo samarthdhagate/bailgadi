@@ -1,0 +1,83 @@
+import axiosInstance from './api/axiosInstance';
+
+export const authService = {
+  /**
+   * Register a new user.
+   * POST /api/auth/signup
+   */
+  signup: async ({ full_name, email, password, role = 'customer' }) => {
+    const response = await axiosInstance.post('/auth/signup', {
+      full_name,
+      email,
+      password,
+      role,
+    });
+    return response.data;
+  },
+
+  /**
+   * Verify email with OTP.
+   * POST /api/auth/verify-otp
+   */
+  verifyOtp: async ({ email, otp }) => {
+    const response = await axiosInstance.post('/auth/verify-otp', {
+      email,
+      otp,
+    });
+    return response.data;
+  },
+
+  /**
+   * Login — returns access_token + sets refresh cookie.
+   * POST /api/auth/login
+   */
+  login: async ({ email, password }) => {
+    const response = await axiosInstance.post('/auth/login', {
+      email,
+      password,
+    });
+    return response.data;
+  },
+
+  /**
+   * Refresh access token using HttpOnly cookie.
+   * POST /api/auth/refresh
+   */
+  refresh: async () => {
+    const response = await axiosInstance.post('/auth/refresh');
+    return response.data;
+  },
+
+  /**
+   * Logout — clears refresh cookie.
+   * POST /api/auth/logout
+   */
+  logout: async () => {
+    const response = await axiosInstance.post('/auth/logout');
+    return response.data;
+  },
+
+  /**
+   * Request password reset OTP.
+   * POST /api/auth/forgot-password
+   */
+  forgotPassword: async ({ email }) => {
+    const response = await axiosInstance.post('/auth/forgot-password', {
+      email,
+    });
+    return response.data;
+  },
+
+  /**
+   * Reset password with OTP.
+   * POST /api/auth/reset-password
+   */
+  resetPassword: async ({ email, otp, new_password }) => {
+    const response = await axiosInstance.post('/auth/reset-password', {
+      email,
+      otp,
+      new_password,
+    });
+    return response.data;
+  },
+};

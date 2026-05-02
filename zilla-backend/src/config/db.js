@@ -8,8 +8,8 @@ const { env } = require('./env');
 
 const pool = new Pool({
   connectionString: env.DATABASE_URL,
-  ssl: {
-    rejectUnauthorized: false, // Required for Neon serverless
+  ssl: env.DATABASE_URL.includes('localhost') ? false : {
+    rejectUnauthorized: false,
   },
   max: 20,
   idleTimeoutMillis: 30000,

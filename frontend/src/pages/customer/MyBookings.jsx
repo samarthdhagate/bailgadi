@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, User, CheckCircle, Clock3, XCircle } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
@@ -7,6 +8,7 @@ import ErrorMessage from '../../components/ErrorMessage';
 import { bookingService } from '@services/booking';
 
 const MyBookings = () => {
+  const navigate = useNavigate();
   const [bookings, setBookings] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState('');
@@ -15,7 +17,7 @@ const MyBookings = () => {
     const fetchBookings = async () => {
       try {
         const response = await bookingService.getMyBookings();
-        setBookings(response.data);
+        setBookings(response.data || []);
       } catch (err) {
         setError('Failed to load your bookings.');
       } finally {
@@ -26,30 +28,60 @@ const MyBookings = () => {
     fetchBookings();
   }, []);
 
+  const handleCancel = async (bookingId) => {
+    if (!window.confirm('Are you sure you want to cancel this booking?')) return;
+    try {
+      await bookingService.cancelBooking(bookingId);
+      setBookings((prev) =>
+        prev.map((b) => (b.id === bookingId ? { ...b, status: 'cancelled' } : b))
+      );
+    } catch (err) {
+      alert(err.response?.data?.error?.message || 'Failed to cancel booking.');
+    }
+  };
+
   const getStatusStyle = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
+      case 'booked':
       case 'confirmed':
         return 'bg-green-100 text-green-700 border-green-200';
       case 'pending':
+      case 'locked':
         return 'bg-yellow-100 text-yellow-700 border-yellow-200';
       case 'cancelled':
         return 'bg-red-100 text-red-700 border-red-200';
+      case 'rescheduled':
+        return 'bg-blue-100 text-blue-700 border-blue-200';
       default:
         return 'bg-gray-100 text-gray-700 border-gray-200';
     }
   };
 
   const getStatusIcon = (status) => {
-    switch (status.toLowerCase()) {
+    switch (status?.toLowerCase()) {
+      case 'booked':
       case 'confirmed':
         return <CheckCircle className="w-4 h-4" />;
       case 'pending':
+      case 'locked':
         return <Clock3 className="w-4 h-4" />;
       case 'cancelled':
         return <XCircle className="w-4 h-4" />;
       default:
         return null;
     }
+  };
+
+  const formatDate = (isoString) => {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    return d.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
+  };
+
+  const formatTime = (isoString) => {
+    if (!isoString) return '';
+    const d = new Date(isoString);
+    return d.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
@@ -76,19 +108,21 @@ const MyBookings = () => {
                       <Calendar className="w-6 h-6" />
                     </div>
                     <div>
-                      <h3 className="text-lg font-bold text-gray-800 mb-1">{booking.serviceName}</h3>
+                      <h3 className="text-lg font-bold text-gray-800 mb-1">{booking.service_name}</h3>
                       <div className="flex flex-wrap gap-4 text-sm text-gray-500">
                         <div className="flex items-center gap-1.5">
                           <User className="w-4 h-4" />
-                          <span>{booking.resourceName}</span>
+                          <span>{booking.provider_name}</span>
                         </div>
                         <div className="flex items-center gap-1.5">
                           <Clock className="w-4 h-4" />
-                          <span>{booking.date} at {booking.time}</span>
+                          <span>{formatDate(booking.start_time)} at {formatTime(booking.start_time)}</span>
                         </div>
-                        <div className="font-medium text-primary">
-                          {booking.price > 0 ? `$${booking.price}` : 'Free'}
-                        </div>
+                        {booking.confirmation_code && (
+                          <div className="font-mono text-primary font-medium">
+                            #{booking.confirmation_code}
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -98,17 +132,22 @@ const MyBookings = () => {
                       {getStatusIcon(booking.status)}
                       {booking.status}
                     </div>
-                    <div className="flex gap-2">
-                      <button 
-                        onClick={() => navigate(`/booking/${booking.serviceId || 1}`, { state: { reschedulingBooking: booking } })}
-                        className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
-                      >
-                        Reschedule
-                      </button>
-                      <button className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors">
-                        Cancel
-                      </button>
-                    </div>
+                    {booking.status !== 'cancelled' && (
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => navigate(`/booking/${booking.service_id}`, { state: { reschedulingBooking: booking } })}
+                          className="px-4 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 rounded-xl transition-colors"
+                        >
+                          Reschedule
+                        </button>
+                        <button
+                          onClick={() => handleCancel(booking.id)}
+                          className="px-4 py-2 text-sm font-medium text-red-600 hover:bg-red-50 rounded-xl transition-colors"
+                        >
+                          Cancel
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
               </Card>
