@@ -37,3 +37,7 @@ Thumbs.db
 
 # Vite specific
 *.timestamp-*
+
+# Generated Artifacts
+graphify-out/
+.gemini/
