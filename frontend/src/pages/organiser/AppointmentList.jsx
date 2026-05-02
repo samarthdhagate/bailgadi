@@ -51,10 +51,10 @@ const AppointmentList = () => {
 
   return (
     <DashboardLayout title="Overview">
-      <div className="flex flex-col xl:flex-row gap-8 h-full min-h-[calc(100vh-16rem)]">
+      <div className="flex flex-col xl:flex-row gap-8 h-[calc(100vh-8rem)] overflow-hidden">
         
         {/* Left Column: Mini Calendar */}
-        <div className="w-full xl:w-80 flex flex-col gap-6">
+        <div className="w-full xl:w-80 flex flex-col gap-6 flex-shrink-0">
           <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Calendar</h2>
           <MiniCalendar events={mockEvents} />
           
@@ -72,7 +72,7 @@ const AppointmentList = () => {
         </div>
 
         {/* Middle Column: Appointment List */}
-        <div className="flex-1 flex flex-col gap-6">
+        <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-4 scrollbar-hide">
           <div className="flex items-center justify-between px-2">
             <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Upcoming Appointments</h2>
             <div className="flex gap-2">
@@ -135,7 +135,7 @@ const AppointmentList = () => {
         </div>
 
         {/* Right Column: Chatbot */}
-        <div className="w-full xl:w-96 flex flex-col gap-6 sticky top-0 h-[calc(100vh-12rem)]">
+        <div className="w-full xl:w-96 flex flex-col gap-6 flex-shrink-0">
           <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Assistant</h2>
           <div className="flex-1 min-h-0">
             <ChatbotFrame />
