@@ -1,11 +1,13 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus } from 'lucide-react';
+import { Search, Plus, Filter, MoreHorizontal, Calendar as CalendarIcon, Clock, Share2, Edit3, Trash2 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
+import MiniCalendar from '../../components/MiniCalendar';
+import ChatbotFrame from '../../components/ChatbotFrame';
 import { organiserService } from '@services/organiser';
 
 const AppointmentList = () => {
@@ -41,93 +43,100 @@ const AppointmentList = () => {
   };
 
   return (
-    <DashboardLayout title="Appointments">
-      <div className="flex flex-col gap-8">
-        {/* Top Controls */}
-        <div className="flex flex-wrap items-center justify-between gap-4">
-          <div className="flex gap-4">
-            <Button onClick={() => navigate('/organiser/editor/new')} className="bg-white text-gray-800 border-2 border-gray-100 hover:border-primary hover:text-primary px-8">
-              New
-            </Button>
-            <div className="flex gap-2">
-              <Button variant="secondary" className="px-6">Reporting</Button>
+    <DashboardLayout title="Overview">
+      <div className="flex flex-col xl:flex-row gap-8 h-full min-h-[calc(100vh-16rem)]">
+        
+        {/* Left Column: Mini Calendar */}
+        <div className="w-full xl:w-80 flex flex-col gap-6">
+          <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Calendar</h2>
+          <MiniCalendar />
+          
+          <div className="bg-primary/5 rounded-[30px] p-6 border border-primary/10">
+            <h4 className="text-xs font-black text-primary uppercase tracking-widest mb-4">Quick Stats</h4>
+            <div className="space-y-4">
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-gray-500 italic">Total Bookings</span>
+                <span className="text-xl font-black text-primary">24</span>
+              </div>
+              <div className="flex justify-between items-center">
+                <span className="text-xs font-bold text-gray-500 italic">Conversion</span>
+                <span className="text-xl font-black text-primary">12%</span>
+              </div>
             </div>
           </div>
-          
-          <div className="relative flex-1 max-w-xl">
-            <Search className="w-5 h-5 text-gray-400 absolute left-4 top-1/2 -translate-y-1/2" />
-            <input
-              type="text"
-              placeholder="Search appointments..."
-              className="w-full pl-12 pr-4 py-3 bg-white border border-gray-100 rounded-xl shadow-sm focus:ring-2 focus:ring-primary outline-none transition-all"
-            />
+        </div>
+
+        {/* Middle Column: Appointment List */}
+        <div className="flex-1 flex flex-col gap-6">
+          <div className="flex items-center justify-between px-2">
+            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Upcoming Appointments</h2>
+            <div className="flex gap-2">
+               <button className="p-2 bg-white border border-gray-100 rounded-xl text-gray-400 hover:text-primary transition-all shadow-sm">
+                 <Filter className="w-4 h-4" />
+               </button>
+               <button onClick={() => navigate('/organiser/editor/new')} className="p-2 bg-primary text-white rounded-xl shadow-lg shadow-primary/20 hover:scale-110 active:scale-95 transition-all">
+                 <Plus className="w-4 h-4" />
+               </button>
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-4">
+            {isLoading ? (
+              <Loader />
+            ) : error ? (
+              <ErrorMessage message={error} />
+            ) : appointments.length === 0 ? (
+              <Card className="text-center py-20 border-2 border-dashed border-gray-100 bg-white/50">
+                <p className="text-gray-400 font-bold italic">No appointments found. Start by creating one!</p>
+                <Button onClick={() => navigate('/organiser/editor/new')} className="mt-6">Create New</Button>
+              </Card>
+            ) : (
+              <div className="grid gap-4">
+                {appointments.map((app) => (
+                  <div key={app.id} className="group relative bg-white border border-gray-100 rounded-[32px] p-6 hover:shadow-2xl hover:shadow-black/5 transition-all duration-500">
+                    <div className="flex items-center gap-6">
+                      <div className="w-16 h-16 rounded-2xl bg-gray-50 border border-gray-100 overflow-hidden flex-shrink-0">
+                        {app.image ? (
+                          <img src={app.image} className="w-full h-full object-cover" />
+                        ) : (
+                          <div className="w-full h-full flex items-center justify-center text-gray-200">
+                            <CalendarIcon className="w-6 h-6" />
+                          </div>
+                        )}
+                      </div>
+                      
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="text-lg font-black text-gray-800 truncate">{app.name}</h3>
+                          {app.is_published && <div className="w-2 h-2 rounded-full bg-orange-400 animate-pulse" title="Published" />}
+                        </div>
+                        <div className="flex items-center gap-4 text-xs font-bold text-gray-400 uppercase tracking-tighter">
+                          <span className="flex items-center gap-1.5"><Clock className="w-3.5 h-3.5 text-primary" /> {app.duration_min}m</span>
+                          <span className="flex items-center gap-1.5"><CalendarIcon className="w-3.5 h-3.5 text-primary" /> {app.bookings || 0} Bookings</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                        <button className="p-2.5 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"><Share2 className="w-4 h-4" /></button>
+                        <button onClick={() => navigate(`/organiser/editor/${app.id}`)} className="p-2.5 bg-gray-50 text-gray-400 hover:text-primary hover:bg-primary/5 rounded-xl transition-all"><Edit3 className="w-4 h-4" /></button>
+                        <button className="p-2.5 bg-gray-50 text-gray-400 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"><Trash2 className="w-4 h-4" /></button>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 
-        {/* Appointment List */}
-        <div className="flex flex-col gap-4">
-          {isLoading ? (
-            <Loader />
-          ) : error ? (
-            <ErrorMessage message={error} />
-          ) : appointments.length === 0 ? (
-            <Card className="text-center py-20 border-2 border-dashed border-gray-100">
-              <p className="text-gray-400">No appointments found. Click "New" to create one.</p>
-            </Card>
-          ) : (
-            appointments.map((app) => (
-              <Card key={app.id} className="p-6 hover:shadow-md transition-all relative overflow-hidden group">
-                {/* Published Badge */}
-                {app.is_published && (
-                  <div className="absolute top-4 -right-10 bg-orange-100 text-orange-600 text-[10px] font-black uppercase px-12 py-1 rotate-45 shadow-sm border border-orange-200">
-                    Published
-                  </div>
-                )}
-
-                <div className="flex flex-wrap items-center justify-between gap-8">
-                  {/* Name & Duration */}
-                  <div className="flex items-center gap-12 min-w-[300px]">
-                    <div className="flex-1">
-                      <h3 className="text-xl font-bold text-gray-800 mb-1">{app.name}</h3>
-                      <p className="text-sm font-bold text-red-500 uppercase tracking-tighter">
-                        {app.duration_min} Min <span className="text-gray-400 font-medium lowercase">Duration</span>
-                      </p>
-                    </div>
-
-                    {/* Resources */}
-                    <div className="flex gap-2">
-                      {(app.resources || ['A1', 'A2']).map((res, i) => (
-                        <div key={i} className="w-10 h-10 rounded-lg border-2 border-gray-100 flex items-center justify-center font-bold text-xs text-gray-500 bg-gray-50">
-                          {res}
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-
-                  {/* Stats & Actions */}
-                  <div className="flex items-center gap-10 flex-1 justify-end">
-                    <div className="text-right">
-                      <p className="text-sm font-bold text-gray-800">{app.bookings || 0} Meeting</p>
-                      <p className="text-xs text-gray-400 font-medium">Upcoming</p>
-                    </div>
-
-                    <div className="flex gap-3">
-                      <button className="px-6 py-2 rounded-lg border-2 border-gray-100 font-bold text-gray-600 hover:border-primary hover:text-primary transition-all">
-                        Share
-                      </button>
-                      <button 
-                        onClick={() => navigate(`/organiser/editor/${app.id}`)}
-                        className="px-6 py-2 rounded-lg border-2 border-gray-100 font-bold text-gray-600 hover:border-primary hover:text-primary transition-all"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </Card>
-            ))
-          )}
+        {/* Right Column: Chatbot */}
+        <div className="w-full xl:w-96 flex flex-col gap-6">
+          <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Assistant</h2>
+          <div className="h-[600px] xl:h-full">
+            <ChatbotFrame />
+          </div>
         </div>
+
       </div>
     </DashboardLayout>
   );
