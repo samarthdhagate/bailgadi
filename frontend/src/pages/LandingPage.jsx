@@ -83,7 +83,7 @@ const LandingPage = () => {
           </div>
 
           <div className="hidden lg:block relative">
-            <div className="relative z-10 bg-white rounded-[40px] shadow-2xl shadow-black/40 border border-gray-100 overflow-hidden aspect-[4/3]">
+            <div className="relative z-10 bg-white rounded-[40px] shadow-2xl shadow-black/40 border border-gray-100 overflow-hidden aspect-[4/5]">
               {screenshots.map((slide, i) => (
                 <div 
                   key={i}
@@ -94,11 +94,11 @@ const LandingPage = () => {
                   <div className="p-8 border-b border-gray-100">
                     <h3 className="text-2xl font-bold text-gray-800 tracking-tight">{slide.title}</h3>
                   </div>
-                  <div className="flex-1 bg-gray-50 p-8 flex flex-col gap-6">
+                  <div className="flex-1 bg-gray-50 p-6 flex flex-col gap-4">
                     <div className="flex-1 rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-white">
                       <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
                     </div>
-                    <p className="text-gray-500 font-medium text-lg leading-relaxed">{slide.content}</p>
+                    <p className="text-gray-500 font-bold text-lg leading-snug px-2">{slide.content}</p>
                   </div>
                 </div>
               ))}
