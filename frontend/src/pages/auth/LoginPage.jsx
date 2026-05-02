@@ -82,6 +82,17 @@ const LoginPage = () => {
     }
   };
 
+  const handleGoogleLogin = async () => {
+    try {
+      const response = await authService.getGoogleAuthUrl();
+      if (response.success && response.data.url) {
+        window.location.href = response.data.url;
+      }
+    } catch (err) {
+      setError('Could not initiate Google login. Please try again.');
+    }
+  };
+
   return (
     <form onSubmit={handleSubmit} className="flex flex-col gap-4">
       <h2 className="text-2xl font-semibold text-gray-800 mb-2">Login</h2>
@@ -129,8 +140,6 @@ const LoginPage = () => {
           width="100%"
         />
       </div>
-
-
 
       <div className="grid grid-cols-3 gap-2 mt-2">
         <button type="button" onClick={() => handleDemoAccess('customer')} className="py-2 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all">Customer</button>

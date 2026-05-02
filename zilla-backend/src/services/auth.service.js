@@ -315,7 +315,7 @@ const googleLogin = async (data) => {
   let email, name, picture, google_id;
 
   if (typeof data === 'string') {
-    // Treat as idToken
+    // Treat as idToken (from @react-oauth/google)
     const { OAuth2Client } = require('google-auth-library');
     const client = new OAuth2Client(env.GOOGLE_CLIENT_ID);
 
@@ -342,9 +342,9 @@ const googleLogin = async (data) => {
     google_id = data.google_id;
   }
 
-  // Check if user exists
+  // Check if user exists by email
   let result = await query(
-    'SELECT id, full_name, email, role, is_verified FROM users WHERE email = $1',
+    'SELECT id, full_name, email, role, is_verified, google_id FROM users WHERE email = $1',
     [email]
   );
 
@@ -352,17 +352,25 @@ const googleLogin = async (data) => {
 
   if (result.rows.length === 0) {
     // Create new user (social login bypasses OTP)
+    const randomPassword = crypto.randomBytes(16).toString('hex');
+    const password_hash = await bcrypt.hash(randomPassword, SALT_ROUNDS);
+
     const signupResult = await query(
-      `INSERT INTO users (full_name, email, role, is_verified, profile_image)
-       VALUES ($1, $2, 'customer', TRUE, $3)
+      `INSERT INTO users (full_name, email, password_hash, role, google_id, is_verified, profile_image)
+       VALUES ($1, $2, $3, 'customer', $4, TRUE, $5)
        RETURNING id, full_name, email, role`,
-      [name, email, picture]
+      [name, email, password_hash, google_id, picture]
     );
     user = signupResult.rows[0];
   } else {
     user = result.rows[0];
-    // Update profile image if missing
-    await query('UPDATE users SET profile_image = $1 WHERE id = $2 AND profile_image IS NULL', [picture, user.id]);
+    // Update google_id and profile_image if missing or different
+    if (user.google_id !== google_id) {
+      await query('UPDATE users SET google_id = $1, is_verified = TRUE WHERE id = $2', [google_id, user.id]);
+    }
+    if (picture) {
+      await query('UPDATE users SET profile_image = $1 WHERE id = $2 AND profile_image IS NULL', [picture, user.id]);
+    }
   }
 
   // Generate tokens
@@ -386,6 +394,7 @@ const googleLogin = async (data) => {
 };
 
 module.exports = {
+
   signup,
   verifyOTP,
   login,
