@@ -1,5 +1,5 @@
 /**
- * Service controller — handles CRUD for organiser services.
+ * Service controller — handles CRUD for organiser facilities (services).
  * Business logic is simple enough to live directly in the controller.
  */
 
@@ -12,14 +12,14 @@ const { AppError } = require('../middleware/error.middleware');
 const listPublished = async (req, res, next) => {
   try {
     const result = await query(
-      `SELECT s.id, s.name, s.duration_min, s.capacity, s.advance_payment,
-              s.manual_confirmation, s.created_at, p.user_id AS provider_user_id,
-              u.full_name AS provider_name
-       FROM services s
-       JOIN providers p ON s.provider_id = p.id
-       JOIN users u ON p.user_id = u.id
-       WHERE s.is_published = TRUE
-       ORDER BY s.created_at DESC`
+      `SELECT f.id, f.name, f.duration_mins AS duration_min, f.max_capacity AS capacity, 
+              f.advance_payment, f.manual_confirm AS manual_confirmation, f.created_at, 
+              f.organiser_id AS provider_user_id, u.full_name AS provider_name,
+              f.type, f.description, f.base_price AS price
+       FROM facilities f
+       JOIN users u ON f.organiser_id = u.id
+       WHERE f.status = 'published'
+       ORDER BY f.created_at DESC`
     );
 
     res.json({ success: true, data: result.rows });
@@ -33,25 +33,14 @@ const listPublished = async (req, res, next) => {
  */
 const listMine = async (req, res, next) => {
   try {
-    // Get provider_id for the current user
-    const providerResult = await query(
-      'SELECT id FROM providers WHERE user_id = $1',
-      [req.user.user_id]
-    );
-
-    if (providerResult.rows.length === 0) {
-      throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');
-    }
-
-    const provider_id = providerResult.rows[0].id;
-
     const result = await query(
-      `SELECT id, name, duration_min, capacity, is_published, advance_payment,
-              manual_confirmation, created_at
-       FROM services
-       WHERE provider_id = $1
+      `SELECT id, name, duration_mins AS duration_min, max_capacity AS capacity, 
+              (status = 'published') AS is_published, advance_payment,
+              manual_confirm AS manual_confirmation, created_at, type, description, base_price AS price
+       FROM facilities
+       WHERE organiser_id = $1
        ORDER BY created_at DESC`,
-      [provider_id]
+      [req.user.user_id]
     );
 
     res.json({ success: true, data: result.rows });
@@ -67,22 +56,13 @@ const getById = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const providerResult = await query(
-      'SELECT id FROM providers WHERE user_id = $1',
-      [req.user.user_id]
-    );
-
-    if (providerResult.rows.length === 0) {
-      throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');
-    }
-
-    const provider_id = providerResult.rows[0].id;
     const result = await query(
-      `SELECT id, name, duration_min, capacity, is_published, advance_payment,
-              manual_confirmation, created_at
-       FROM services
-       WHERE id = $1 AND provider_id = $2`,
-      [id, provider_id]
+      `SELECT id, name, duration_mins AS duration_min, max_capacity AS capacity, 
+              (status = 'published') AS is_published, advance_payment,
+              manual_confirm AS manual_confirmation, created_at, type, description, base_price AS price
+       FROM facilities
+       WHERE id = $1 AND organiser_id = $2`,
+      [id, req.user.user_id]
     );
 
     if (result.rows.length === 0) {
@@ -100,25 +80,13 @@ const getById = async (req, res, next) => {
  */
 const create = async (req, res, next) => {
   try {
-    const { name, duration_min, capacity = 1, advance_payment = false, manual_confirmation = false } = req.body;
-
-    // Get provider_id
-    const providerResult = await query(
-      'SELECT id FROM providers WHERE user_id = $1',
-      [req.user.user_id]
-    );
-
-    if (providerResult.rows.length === 0) {
-      throw new AppError('Provider profile not found. Complete your profile first.', 404, 'PROVIDER_NOT_FOUND');
-    }
-
-    const provider_id = providerResult.rows[0].id;
+    const { name, duration_min, capacity = 1, advance_payment = false, manual_confirmation = false, type = 'General', description = '', price = 0 } = req.body;
 
     const result = await query(
-      `INSERT INTO services (provider_id, name, duration_min, capacity, advance_payment, manual_confirmation)
-       VALUES ($1, $2, $3, $4, $5, $6)
-       RETURNING *`,
-      [provider_id, name, duration_min, capacity, advance_payment, manual_confirmation]
+      `INSERT INTO facilities (organiser_id, name, duration_mins, max_capacity, advance_payment, manual_confirm, type, description, base_price)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+       RETURNING id, name, duration_mins AS duration_min, max_capacity AS capacity, advance_payment, manual_confirm AS manual_confirmation`,
+      [req.user.user_id, name, duration_min, capacity, advance_payment, manual_confirmation, type, description, price]
     );
 
     res.status(201).json({ success: true, data: result.rows[0] });
@@ -133,30 +101,21 @@ const create = async (req, res, next) => {
 const update = async (req, res, next) => {
   try {
     const { id } = req.params;
-    const { name, duration_min, capacity, advance_payment, manual_confirmation } = req.body;
-
-    // Verify ownership
-    const providerResult = await query(
-      'SELECT id FROM providers WHERE user_id = $1',
-      [req.user.user_id]
-    );
-
-    if (providerResult.rows.length === 0) {
-      throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');
-    }
-
-    const provider_id = providerResult.rows[0].id;
+    const { name, duration_min, capacity, advance_payment, manual_confirmation, type, description, price } = req.body;
 
     const result = await query(
-      `UPDATE services
+      `UPDATE facilities
        SET name = COALESCE($1, name),
-           duration_min = COALESCE($2, duration_min),
-           capacity = COALESCE($3, capacity),
+           duration_mins = COALESCE($2, duration_mins),
+           max_capacity = COALESCE($3, max_capacity),
            advance_payment = COALESCE($4, advance_payment),
-           manual_confirmation = COALESCE($5, manual_confirmation)
-       WHERE id = $6 AND provider_id = $7
-       RETURNING *`,
-      [name, duration_min, capacity, advance_payment, manual_confirmation, id, provider_id]
+           manual_confirm = COALESCE($5, manual_confirm),
+           type = COALESCE($6, type),
+           description = COALESCE($7, description),
+           base_price = COALESCE($8, base_price)
+       WHERE id = $9 AND organiser_id = $10
+       RETURNING id, name, duration_mins AS duration_min, max_capacity AS capacity`,
+      [name, duration_min, capacity, advance_payment, manual_confirmation, type, description, price, id, req.user.user_id]
     );
 
     if (result.rows.length === 0) {
@@ -176,20 +135,9 @@ const remove = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const providerResult = await query(
-      'SELECT id FROM providers WHERE user_id = $1',
-      [req.user.user_id]
-    );
-
-    if (providerResult.rows.length === 0) {
-      throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');
-    }
-
-    const provider_id = providerResult.rows[0].id;
-
     const result = await query(
-      'DELETE FROM services WHERE id = $1 AND provider_id = $2 RETURNING id',
-      [id, provider_id]
+      'DELETE FROM facilities WHERE id = $1 AND organiser_id = $2 RETURNING id',
+      [id, req.user.user_id]
     );
 
     if (result.rows.length === 0) {
@@ -209,33 +157,23 @@ const togglePublish = async (req, res, next) => {
   try {
     const { id } = req.params;
 
-    const providerResult = await query(
-      'SELECT id FROM providers WHERE user_id = $1',
-      [req.user.user_id]
-    );
-
-    if (providerResult.rows.length === 0) {
-      throw new AppError('Provider profile not found.', 404, 'PROVIDER_NOT_FOUND');
-    }
-
-    const provider_id = providerResult.rows[0].id;
-
     const result = await query(
-      `UPDATE services
-       SET is_published = NOT is_published
-       WHERE id = $1 AND provider_id = $2
-       RETURNING id, name, is_published`,
-      [id, provider_id]
+      `UPDATE facilities
+       SET status = CASE WHEN status = 'published' THEN 'draft' ELSE 'published' END
+       WHERE id = $1 AND organiser_id = $2
+       RETURNING id, name, status`,
+      [id, req.user.user_id]
     );
 
     if (result.rows.length === 0) {
       throw new AppError('Service not found or you do not own this service.', 404, 'SERVICE_NOT_FOUND');
     }
 
-    res.json({ success: true, data: result.rows[0] });
+    res.json({ success: true, data: { ...result.rows[0], is_published: result.rows[0].status === 'published' } });
   } catch (err) {
     next(err);
   }
 };
 
 module.exports = { listPublished, listMine, getById, create, update, remove, togglePublish };
+

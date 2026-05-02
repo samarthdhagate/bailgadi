@@ -7,7 +7,6 @@ import Button from '../../components/Button';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
 import MiniCalendar from '../../components/MiniCalendar';
-import ChatbotFrame from '../../components/ChatbotFrame';
 import { bookingService } from '@services/booking';
 
 const CustomerDashboard = () => {
@@ -181,15 +180,6 @@ const CustomerDashboard = () => {
             )}
           </div>
         </div>
-
-        {/* Right Column: Chatbot */}
-        <div className="w-full xl:w-96 flex flex-col gap-6 flex-shrink-0">
-          <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Zilla Assistant</h2>
-          <div className="flex-1 min-h-0">
-            <ChatbotFrame />
-          </div>
-        </div>
-
       </div>
     </DashboardLayout>
   );
