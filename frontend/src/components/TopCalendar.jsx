@@ -1,20 +1,16 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { format, addDays, startOfToday, eachDayOfInterval, isSameDay } from 'date-fns';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 const TopCalendar = ({ events = [] }) => {
   const scrollRef = useRef(null);
-  const today = startOfToday();
-  const [days, setDays] = useState([]);
+  const today = useMemo(() => startOfToday(), []);
+  const days = useMemo(() => eachDayOfInterval({
+    start: addDays(today, -30),
+    end: addDays(today, 30)
+  }), [today]);
 
   useEffect(() => {
-    // Generate 60 days of dates (30 before today, 30 after)
-    const interval = eachDayOfInterval({
-      start: addDays(today, -30),
-      end: addDays(today, 30)
-    });
-    setDays(interval);
-    
     // Scroll to today after mount
     setTimeout(() => {
       if (scrollRef.current) {

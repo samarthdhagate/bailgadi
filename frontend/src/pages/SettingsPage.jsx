@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
-import { User, Lock, Save, AlertCircle } from 'lucide-react';
+import { User, Lock, AlertCircle } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import Card from '../components/Card';
 import Input from '../components/Input';
 import Button from '../components/Button';
-import { useAuth } from '../context/AuthContext';
+import { useAuth } from '../context/useAuth';
 
 const SettingsPage = () => {
   const { user } = useAuth();

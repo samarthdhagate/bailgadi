@@ -55,10 +55,20 @@ app.use(cors({
 
 // ─── Body Parsing ───────────────────────────────────────────────────
 // Raw body for webhook signature verification (must come BEFORE express.json)
-app.use('/api/payments/webhook', express.raw({ type: 'application/json' }), (req, _res, next) => {
-  req.rawBody = req.body.toString('utf8');
-  req.body = JSON.parse(req.rawBody);
-  next();
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }), (req, res, next) => {
+  try {
+    req.rawBody = req.body.toString('utf8');
+    req.body = JSON.parse(req.rawBody);
+    next();
+  } catch {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_WEBHOOK_BODY',
+        message: 'Request body must be valid JSON.',
+      },
+    });
+  }
 });
 
 app.use(express.json({ limit: '10mb' }));

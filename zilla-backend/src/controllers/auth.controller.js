@@ -5,6 +5,7 @@
 const authService = require('../services/auth.service');
 const googleAuthService = require('../services/googleAuth.service');
 const { env } = require('../config/env');
+const logger = require('../utils/logger');
 
 const signup = async (req, res, next) => {
   try {
@@ -12,6 +13,7 @@ const signup = async (req, res, next) => {
     const result = await authService.signup({ full_name, email, password, role });
     res.status(201).json({ success: true, data: result });
   } catch (err) {
+    logger.error('Signup error', { error: err.message, email: req.body.email });
     next(err);
   }
 };
@@ -34,7 +36,7 @@ const login = async (req, res, next) => {
     // Set refresh token as HttpOnly cookie
     res.cookie('refreshToken', result.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
@@ -69,7 +71,7 @@ const logout = async (req, res, next) => {
 
     res.clearCookie('refreshToken', {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
     });
@@ -108,7 +110,7 @@ const googleLogin = async (req, res, next) => {
     // Set refresh token as HttpOnly cookie
     res.cookie('refreshToken', result.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',
@@ -144,6 +146,9 @@ const initGoogleAuth = async (req, res, next) => {
 const googleCallback = async (req, res, next) => {
   try {
     const { code } = req.query;
+    if (!code) {
+      return res.redirect(`${env.FRONTEND_URL}/login?error=google_failed`);
+    }
     const payload = await googleAuthService.getGoogleUserInfo(code);
 
     const result = await authService.googleLogin({
@@ -156,7 +161,7 @@ const googleCallback = async (req, res, next) => {
     // Set refresh token as HttpOnly cookie
     res.cookie('refreshToken', result.refresh_token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env.NODE_ENV === 'production',
       sameSite: 'strict',
       maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
       path: '/',

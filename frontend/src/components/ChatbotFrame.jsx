@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Send, Bot, Sparkles, User as UserIcon, Loader2 } from 'lucide-react';
+import { Send, Bot, Sparkles, User as UserIcon } from 'lucide-react';
 import axiosInstance from '@services/api/axiosInstance';
 
 const ChatbotFrame = () => {

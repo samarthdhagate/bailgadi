@@ -1,9 +1,8 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { format, addMinutes, parse } from 'date-fns';
-import { CheckCircle, Clock, MapPin, Calendar, ExternalLink, ArrowRight } from 'lucide-react';
+import { CheckCircle, Clock, MapPin, Calendar, ArrowRight } from 'lucide-react';
 import Button from '../../components/Button';
-import Card from '../../components/Card';
 
 const BookingConfirmation = () => {
   const location = useLocation();
@@ -13,7 +12,11 @@ const BookingConfirmation = () => {
   const generateGoogleCalendarUrl = () => {
     if (!booking) return '';
     try {
-      const startDateTime = parse(`${booking.date} ${booking.time}`, 'yyyy-MM-dd hh:mm a', new Date());
+      const fromIso = booking.time ? new Date(booking.time) : null;
+      const startDateTime =
+        fromIso && !Number.isNaN(fromIso.getTime())
+          ? fromIso
+          : parse(`${booking.date} ${booking.time}`, 'yyyy-MM-dd hh:mm a', new Date());
       const endDateTime = addMinutes(startDateTime, 30);
       const formatForGoogle = (date) => format(date, "yyyyMMdd'T'HHmmss'Z'");
       const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';

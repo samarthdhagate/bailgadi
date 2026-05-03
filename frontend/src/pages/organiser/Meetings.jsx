@@ -1,16 +1,13 @@
-import React, { useState, useEffect } from 'react';
-import { Search, ChevronDown, Filter, X } from 'lucide-react';
+import React, { useState } from 'react';
+import { Search, ChevronDown, X } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
-import Button from '../../components/Button';
-import { organiserService } from '@services/organiser';
 
 const Meetings = () => {
-  const [meetings, setMeetings] = useState([
+  const [meetings] = useState([
     { id: 1, subject: 'Cavity', appointment: 'Dental care', bookedBy: 'Vipin', resource: '', start: 'Dec 12 4:00', end: 'Dec 12 4:30', capacity: '', status: 'Booked' },
     { id: 2, subject: 'Routine', appointment: 'Dental care', bookedBy: 'Mayur', resource: '', start: 'Dec 15 4:00', end: 'Dec 15 4:30', capacity: '', status: 'Request' }
   ]);
-  const [isLoading, setIsLoading] = useState(false);
 
   return (
     <DashboardLayout title="Meetings">

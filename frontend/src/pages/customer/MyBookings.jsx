@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import { Calendar, Clock, User, CheckCircle, Clock3, XCircle, CreditCard } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
-import Button from '../../components/Button';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
 import { bookingService } from '@services/booking';

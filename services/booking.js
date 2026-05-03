@@ -140,14 +140,6 @@ export const bookingService = {
     };
   },
 
-  createPaymentOrder: async (bookingId, amount) => {
-    const response = await axiosInstance.post('/payments/create-order', {
-      booking_id: bookingId,
-      amount,
-    });
-    return response.data;
-  },
-
   verifyPayment: async ({ razorpay_order_id, razorpay_payment_id, razorpay_signature }) => {
     const response = await axiosInstance.post('/payments/verify', {
       razorpay_order_id,
@@ -155,5 +147,5 @@ export const bookingService = {
       razorpay_signature,
     });
     return response.data;
-  }
+  },
 };
