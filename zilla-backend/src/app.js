@@ -24,7 +24,7 @@ const app = express();
 
 // ─── Security Middleware ────────────────────────────────────────────
 app.use(helmet());
-const allowedOrigins = new Set([env.FRONTEND_URL]);
+const allowedOrigins = new Set([env.FRONTEND_URL, 'https://zilla-frontend-chi.vercel.app']);
 if (env.NODE_ENV === 'development') {
   allowedOrigins.add('http://localhost:5173');
   allowedOrigins.add('http://127.0.0.1:5173');
@@ -50,7 +50,7 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Bypass-Tunnel-Reminder'],
 }));
 
 // ─── Body Parsing ───────────────────────────────────────────────────
