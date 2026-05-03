@@ -3,6 +3,13 @@ import { Send, Bot, Sparkles, User as UserIcon, Loader2 } from 'lucide-react';
 import axiosInstance from '@services/api/axiosInstance';
 
 const ChatbotFrame = () => {
+  const quickPrompts = [
+    'Show my appointments',
+    'Free slots tomorrow',
+    'Available services',
+    'How payment works',
+  ];
+
   const [messages, setMessages] = useState([
     { role: 'bot', content: "Hi! I'm Zilla AI. How can I help you manage your appointments today?" }
   ]);
@@ -18,18 +25,18 @@ const ChatbotFrame = () => {
     scrollToBottom();
   }, [messages]);
 
-  const handleSend = async () => {
-    if (!input.trim()) return;
+  const sendMessage = async (messageText) => {
+    const trimmedMessage = messageText.trim();
+    if (!trimmedMessage || isTyping) return;
 
-    const userMessage = { role: 'user', content: input };
+    const userMessage = { role: 'user', content: trimmedMessage };
     setMessages(prev => [...prev, userMessage]);
-    const currentInput = input;
     setInput('');
     setIsTyping(true);
 
     try {
       // Connect to Zilla Backend AI API
-      const response = await axiosInstance.post('/ai/chat', { message: currentInput });
+      const response = await axiosInstance.post('/ai/chat', { message: trimmedMessage });
       
       if (response.data && response.data.success) {
         setMessages(prev => [...prev, { 
@@ -39,14 +46,18 @@ const ChatbotFrame = () => {
       } else {
         throw new Error('Failed to get response');
       }
-    } catch (err) {
+    } catch {
       setMessages(prev => [...prev, { 
         role: 'bot', 
-        content: "I'm having a bit of trouble connecting to my brain right now. Please try again in a moment!" 
+        content: "I couldn't reach the assistant service. Please try again in a moment."
       }]);
     } finally {
       setIsTyping(false);
     }
+  };
+
+  const handleSend = () => {
+    sendMessage(input);
   };
 
   return (
@@ -102,20 +113,35 @@ const ChatbotFrame = () => {
 
       {/* Input Area */}
       <div className="p-6 border-t border-gray-50 bg-white flex-shrink-0">
+        <div className="mb-4 flex gap-2 overflow-x-auto pb-1 scrollbar-hide">
+          {quickPrompts.map((prompt) => (
+            <button
+              key={prompt}
+              type="button"
+              disabled={isTyping}
+              onClick={() => sendMessage(prompt)}
+              className="shrink-0 rounded-xl border border-gray-100 bg-gray-50 px-3 py-2 text-[10px] font-black uppercase tracking-wider text-gray-500 transition-all hover:border-primary/30 hover:text-primary disabled:opacity-50"
+            >
+              {prompt}
+            </button>
+          ))}
+        </div>
         <div className="relative group">
           <input 
             type="text" 
             placeholder="Type your message..."
             value={input}
+            disabled={isTyping}
             onChange={(e) => setInput(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleSend()}
+            onKeyDown={(e) => e.key === 'Enter' && handleSend()}
             className="w-full pl-6 pr-14 py-4 bg-gray-50 border border-gray-100 rounded-2xl text-sm font-bold text-gray-700 outline-none focus:border-primary/30 focus:ring-4 focus:ring-primary/5 transition-all"
           />
           <button 
             onClick={handleSend}
-            className="absolute right-2 top-2 p-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary/30 hover:scale-110 active:scale-95 transition-all"
+            disabled={isTyping || !input.trim()}
+            className="absolute right-2 top-2 p-2.5 bg-primary text-white rounded-xl shadow-lg shadow-primary/30 hover:scale-110 active:scale-95 transition-all disabled:opacity-50 disabled:hover:scale-100"
           >
-            <Send className="w-4 h-4" />
+            {isTyping ? <Loader2 className="w-4 h-4 animate-spin" /> : <Send className="w-4 h-4" />}
           </button>
         </div>
         <p className="text-center text-[10px] text-gray-300 font-bold uppercase tracking-widest mt-4">

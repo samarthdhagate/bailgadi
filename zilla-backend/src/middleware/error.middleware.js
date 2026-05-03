@@ -58,6 +58,13 @@ const errorHandler = (err, req, res, _next) => {
     statusCode = 400;
     code = 'REFERENCE_ERROR';
     message = 'Referenced record does not exist.';
+    if (process.env.NODE_ENV !== 'production') {
+      message = [
+        message,
+        err.constraint ? `Constraint: ${err.constraint}.` : null,
+        err.detail ? `Detail: ${err.detail}` : null,
+      ].filter(Boolean).join(' ');
+    }
   }
 
   // Log server errors

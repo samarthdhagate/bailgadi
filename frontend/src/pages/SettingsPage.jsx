@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Lock, Save, AlertCircle } from 'lucide-react';
 import DashboardLayout from '../components/DashboardLayout';
 import Card from '../components/Card';
 import Input from '../components/Input';
 import Button from '../components/Button';
 import { useAuth } from '../context/AuthContext';
+import axiosInstance from '@services/api/axiosInstance';
 
 const SettingsPage = () => {
   const { user } = useAuth();
@@ -13,9 +14,9 @@ const SettingsPage = () => {
   const [message, setMessage] = useState({ type: '', text: '' });
 
   const [profileData, setProfileData] = useState({
-    name: user?.full_name || user?.name || '',
+    name: user?.full_name || '',
     email: user?.email || '',
-    phone: '+1 234 567 890' // Mock data
+    phone: '' 
   });
 
   const [passwordData, setPasswordData] = useState({
@@ -29,11 +30,14 @@ const SettingsPage = () => {
     setIsLoading(true);
     setMessage({ type: '', text: '' });
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await axiosInstance.put('/auth/profile', profileData);
       setMessage({ type: 'success', text: 'Profile updated successfully!' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.error?.message || 'Failed to update profile.' });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   const handlePasswordUpdate = async (e) => {
@@ -46,12 +50,15 @@ const SettingsPage = () => {
     setIsLoading(true);
     setMessage({ type: '', text: '' });
     
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      await axiosInstance.put('/auth/change-password', passwordData);
       setMessage({ type: 'success', text: 'Password changed successfully!' });
       setPasswordData({ currentPassword: '', newPassword: '', confirmPassword: '' });
+    } catch (err) {
+      setMessage({ type: 'error', text: err.response?.data?.error?.message || 'Failed to update password.' });
+    } finally {
       setIsLoading(false);
-    }, 1000);
+    }
   };
 
   return (
@@ -108,12 +115,7 @@ const SettingsPage = () => {
                   value={profileData.email}
                   onChange={(e) => setProfileData({ ...profileData, email: e.target.value })}
                   required
-                  disabled // Email usually can't be changed easily
-                />
-                <Input
-                  label="Phone Number"
-                  value={profileData.phone}
-                  onChange={(e) => setProfileData({ ...profileData, phone: e.target.value })}
+                  disabled 
                 />
               </div>
 

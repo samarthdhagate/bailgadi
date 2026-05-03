@@ -108,6 +108,20 @@ const redisExists = async (key) => {
   }
 };
 
+/**
+ * Get TTL of a key in seconds.
+ * Returns -1 if key exists but has no expiration, -2 if key doesn't exist.
+ */
+const redisTTL = async (key) => {
+  if (!isRedisAvailable()) return -2;
+  try {
+    const result = await redis.ttl(key);
+    return result;
+  } catch (err) {
+    return -2;
+  }
+};
+
 module.exports = {
   redis,
   redisEnabled,
@@ -117,4 +131,5 @@ module.exports = {
   redisSetNX,
   redisDel,
   redisExists,
+  redisTTL,
 };

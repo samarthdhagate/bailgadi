@@ -1,6 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Calendar, User, Settings, LayoutDashboard, Briefcase, FileText } from 'lucide-react';
+import { LogOut, User, Settings, LayoutDashboard, Briefcase, FileText } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 
 const DashboardLayout = ({ children, title }) => {
@@ -12,14 +12,18 @@ const DashboardLayout = ({ children, title }) => {
     customer: [
       { label: 'Marketplace', icon: LayoutDashboard, path: '/dashboard' },
       { label: 'My Bookings', icon: Briefcase, path: '/bookings' },
+      { label: 'Settings', icon: Settings, path: '/settings' },
     ],
     organiser: [
       { label: 'Overview', icon: LayoutDashboard, path: '/organiser' },
       { label: 'Services', icon: FileText, path: '/organiser/editor/new' },
+      { label: 'Meetings', icon: Briefcase, path: '/organiser/meetings' },
+      { label: 'Settings', icon: Settings, path: '/settings' },
     ],
     admin: [
       { label: 'System', icon: LayoutDashboard, path: '/admin' },
       { label: 'Directory', icon: User, path: '/admin/users' },
+      { label: 'Settings', icon: Settings, path: '/settings' },
     ]
   };
 
@@ -74,13 +78,11 @@ const DashboardLayout = ({ children, title }) => {
             <h1 className="text-sm font-black text-gray-900 uppercase tracking-[0.4em]">{title}</h1>
           </div>
           
-          <div className="flex gap-3">
-            <button 
-              onClick={() => navigate('/organiser/reporting')}
-              className="px-6 py-2 text-[10px] font-black text-gray-400 uppercase tracking-widest border border-gray-100 rounded-xl hover:border-primary hover:text-primary transition-all bg-gray-50"
-            >
-              Intelligence
-            </button>
+          <div className="flex items-center gap-3">
+            <div className="hidden sm:block text-right">
+              <p className="text-xs font-black text-gray-700 truncate max-w-[180px]">{displayName}</p>
+              <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">{role}</p>
+            </div>
           </div>
         </header>
         

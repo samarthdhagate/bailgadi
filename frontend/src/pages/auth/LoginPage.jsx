@@ -40,27 +40,6 @@ const LoginPage = () => {
     }
   }, [token, role, navigate]);
 
-  const handleDemoAccess = async (roleType) => {
-    setIsLoading(true);
-    setError('');
-    try {
-      const email = `${roleType}@zilla.com`;
-      const password = 'password123';
-      const response = await authService.login({ email, password });
-      
-      if (response.success) {
-        login(response.data);
-      } else {
-        setError('Demo login failed.');
-      }
-    } catch (err) {
-      setError('Demo login failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsLoading(true);
@@ -139,12 +118,6 @@ const LoginPage = () => {
           shape="pill"
           width="100%"
         />
-      </div>
-
-      <div className="grid grid-cols-3 gap-2 mt-2">
-        <button type="button" onClick={() => handleDemoAccess('customer')} className="py-2 bg-blue-50 text-blue-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-blue-100 hover:bg-blue-100 transition-all">Customer</button>
-        <button type="button" onClick={() => handleDemoAccess('organiser')} className="py-2 bg-purple-50 text-purple-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-purple-100 hover:bg-purple-100 transition-all">Organiser</button>
-        <button type="button" onClick={() => handleDemoAccess('admin')} className="py-2 bg-red-50 text-red-600 rounded-lg text-[10px] font-black uppercase tracking-widest border border-red-100 hover:bg-red-100 transition-all">Admin</button>
       </div>
       <p className="text-center text-sm text-gray-600 mt-4">
         Don't have an account?{' '}

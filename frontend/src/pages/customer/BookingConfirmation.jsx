@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { format, addMinutes, parse } from 'date-fns';
-import { CheckCircle, Clock, MapPin, Users } from 'lucide-react';
+import { format, addMinutes, parseISO, isValid } from 'date-fns';
+import { CheckCircle } from 'lucide-react';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
 
@@ -10,28 +10,84 @@ const BookingConfirmation = () => {
   const navigate = useNavigate();
   const { booking, isRescheduling } = location.state || {};
 
+  const getBookingStart = () => {
+    const rawStart = booking?.slot_start || booking?.start_time || booking?.time;
+    if (rawStart) {
+      const parsed = parseISO(rawStart);
+      if (isValid(parsed)) return parsed;
+    }
+
+    if (booking?.date && booking?.time) {
+      const parsed = parseISO(`${booking.date}T${booking.time}`);
+      if (isValid(parsed)) return parsed;
+    }
+
+    return null;
+  };
+
+  const getCalendarData = () => {
+    const start = getBookingStart();
+    if (!booking || !start) return null;
+
+    const end = addMinutes(start, Number(booking.duration_min || booking.duration || 30));
+    return {
+      start,
+      end,
+      title: `Appointment: ${booking.serviceName || booking.service_name || 'Booking'}`,
+      details: `Confirmation Code: ${booking.confirmation_code || booking.id || 'N/A'}\nStatus: ${booking.status || 'confirmed'}`,
+      venue: booking.location || "Doctor's Office, Ahmedabad",
+    };
+  };
+
+  const formatCalendarDate = (date) => format(date, "yyyyMMdd'T'HHmmss");
+
   const generateGoogleCalendarUrl = () => {
-    if (!booking) return '';
-
     try {
-      // Assuming booking.date is 'YYYY-MM-DD' and booking.time is 'HH:MM AM/PM'
-      const startDateTime = parse(`${booking.date} ${booking.time}`, 'yyyy-MM-dd hh:mm a', new Date());
-      const endDateTime = addMinutes(startDateTime, 30); // Default 30 min duration
+      const calendarData = getCalendarData();
+      if (!calendarData) return '';
 
-      const formatForGoogle = (date) => format(date, "yyyyMMdd'T'HHmmss'Z'");
-      
       const baseUrl = 'https://calendar.google.com/calendar/render?action=TEMPLATE';
-      const text = encodeURIComponent(`Appointment: ${booking.serviceName || 'Booking'}`);
-      const dates = `${formatForGoogle(startDateTime)}/${formatForGoogle(endDateTime)}`;
-      const details = encodeURIComponent(`Confirmation Code: ${booking.confirmation_code || booking.id}\nStatus: ${booking.status}`);
-      const location = encodeURIComponent(booking.location || 'Ahmedabad, India');
+      const text = encodeURIComponent(calendarData.title);
+      const dates = `${formatCalendarDate(calendarData.start)}/${formatCalendarDate(calendarData.end)}`;
+      const details = encodeURIComponent(calendarData.details);
+      const eventLocation = encodeURIComponent(calendarData.venue);
 
-      return `${baseUrl}&text=${text}&dates=${dates}&details=${details}&location=${location}`;
+      return `${baseUrl}&text=${text}&dates=${dates}&details=${details}&location=${eventLocation}`;
     } catch (e) {
       console.error('Error generating calendar URL:', e);
-      return '#';
+      return '';
     }
   };
+
+  const generateOutlookCalendarUrl = () => {
+    const calendarData = getCalendarData();
+    if (!calendarData) return '';
+
+    const params = new URLSearchParams({
+      path: '/calendar/action/compose',
+      rru: 'addevent',
+      subject: calendarData.title,
+      startdt: calendarData.start.toISOString(),
+      enddt: calendarData.end.toISOString(),
+      body: calendarData.details,
+      location: calendarData.venue,
+    });
+
+    return `https://outlook.live.com/calendar/0/deeplink/compose?${params.toString()}`;
+  };
+
+  const openCalendarLink = (url) => {
+    if (!url) {
+      alert('Calendar link is not available for this booking yet.');
+      return;
+    }
+
+    window.open(url, '_blank', 'noopener,noreferrer');
+  };
+
+  const bookingStart = getBookingStart();
+  const displayDate = bookingStart ? format(bookingStart, 'PPP') : booking?.date;
+  const displayTime = bookingStart ? format(bookingStart, 'p') : booking?.time;
 
   if (!booking) {
     return (
@@ -67,19 +123,22 @@ const BookingConfirmation = () => {
               <span className="text-2xl font-bold text-gray-800">Time</span>
               <div className="md:col-span-3">
                 <p className="text-2xl font-medium text-gray-700 mb-4">
-                  {booking.date}, {booking.time}
+                  {displayDate}, {displayTime}
                 </p>
                 <div className="flex gap-4">
-                  <a 
-                    href={generateGoogleCalendarUrl()}
-                    target="_blank"
-                    rel="noopener noreferrer"
+                  <button
+                    type="button"
+                    onClick={() => openCalendarLink(generateGoogleCalendarUrl())}
                     className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors flex items-center gap-2"
                   >
                     <img src="https://www.gstatic.com/calendar/images/dynamiclogo_2020q4/calendar_31_2x.png" alt="Google Calendar" className="w-4 h-4" />
                     Google calendar
-                  </a>
-                  <button className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors">
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => openCalendarLink(generateOutlookCalendarUrl())}
+                    className="px-4 py-2 border border-gray-200 rounded-lg text-sm font-bold text-gray-600 hover:bg-gray-50 transition-colors"
+                  >
                     Outlook calendar
                   </button>
                 </div>

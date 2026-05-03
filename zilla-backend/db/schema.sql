@@ -53,6 +53,7 @@ CREATE TABLE users (
   otp_expires_at TIMESTAMPTZ,
   oauth_provider VARCHAR(30),
   oauth_token    TEXT,
+  refresh_token  TEXT,
   created_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   updated_at     TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
   CONSTRAINT users_email_unique    UNIQUE (email),
@@ -118,14 +119,13 @@ CREATE TABLE facilities (
   updated_at       TIMESTAMPTZ   NOT NULL DEFAULT NOW()
 );
 CREATE TABLE facility_images (
-    id SERIAL PRIMARY KEY,
-    facility_id INTEGER NOT NULL
-        REFERENCES facilities(id) ON DELETE CASCADE,
-    image_url TEXT NOT NULL,
-    alt_text TEXT,
-    display_order INTEGER DEFAULT 0,
-    is_primary BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  facility_id UUID NOT NULL REFERENCES facilities(id) ON DELETE CASCADE,
+  image_url TEXT NOT NULL,
+  alt_text TEXT,
+  display_order INTEGER DEFAULT 0,
+  is_primary BOOLEAN DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TRIGGER trg_facilities_updated_at
@@ -146,6 +146,17 @@ CREATE TRIGGER trg_facility_tz_check
 BEFORE INSERT OR UPDATE OF working_tz ON facilities
 FOR EACH ROW EXECUTE FUNCTION trg_validate_facility_tz();
 
+-- =============================================================================
+-- FACILITY_STAFF — Junction table: which staff members are assigned to facility
+-- =============================================================================
+
+CREATE TABLE facility_staff (
+  id          SERIAL       PRIMARY KEY,
+  facility_id UUID         NOT NULL REFERENCES facilities(id) ON DELETE CASCADE,
+  user_id     UUID         NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  created_at  TIMESTAMPTZ  NOT NULL DEFAULT NOW(),
+  UNIQUE(facility_id, user_id)
+);
 
 -- =============================================================================
 -- RESOURCES

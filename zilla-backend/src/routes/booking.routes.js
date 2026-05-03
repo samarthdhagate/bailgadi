@@ -25,6 +25,14 @@ router.post(
   bookingController.lockSlot
 );
 
+// GET /api/bookings/timer — get remaining time for slot lock [auth: customer]
+router.get(
+  '/timer',
+  verifyToken,
+  requireRole('customer'),
+  bookingController.getSlotTimer
+);
+
 // POST /api/bookings — create booking [auth: customer]
 router.post(
   '/',
@@ -98,6 +106,19 @@ router.patch(
     validateRequest,
   ],
   bookingController.confirmBooking
+);
+
+// PATCH /api/bookings/:id/status — organiser lifecycle update
+router.patch(
+  '/:id/status',
+  verifyToken,
+  requireRole('organiser'),
+  [
+    param('id').isUUID().withMessage('Invalid booking ID.'),
+    body('status').isIn(['confirmed', 'cancelled', 'no_show']).withMessage('Invalid booking status.'),
+    validateRequest,
+  ],
+  bookingController.updateProviderBookingStatus
 );
 
 module.exports = router;

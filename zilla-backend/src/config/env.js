@@ -20,6 +20,7 @@ const optionalVars = {
   RAZORPAY_KEY_ID: '',
   RAZORPAY_KEY_SECRET: '',
   RAZORPAY_WEBHOOK_SECRET: '',
+  RAZORPAY_DEMO_MODE: 'true',
   SMTP_HOST: 'smtp.gmail.com',
   SMTP_PORT: '587',
   SMTP_USER: '',

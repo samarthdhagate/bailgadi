@@ -6,7 +6,7 @@ const bookingService = require('../services/booking.service');
 
 const lockSlot = async (req, res, next) => {
   try {
-    const { service_id, start_time } = req.body;
+    const { service_id, start_time, attendee_count } = req.body;
 
     if (!service_id || !start_time) {
       return res.status(400).json({
@@ -18,7 +18,7 @@ const lockSlot = async (req, res, next) => {
       });
     }
 
-    const result = await bookingService.lockSlot(req.user.user_id, service_id, start_time);
+    const result = await bookingService.lockSlot(req.user.user_id, service_id, start_time, attendee_count || 1);
     res.json({ success: true, data: result });
   } catch (err) {
     next(err);
@@ -27,7 +27,7 @@ const lockSlot = async (req, res, next) => {
 
 const createBooking = async (req, res, next) => {
   try {
-    const { service_id, start_time, notes } = req.body;
+    const { service_id, start_time, notes, attendee_count } = req.body;
 
     if (!service_id || !start_time) {
       return res.status(400).json({
@@ -43,7 +43,8 @@ const createBooking = async (req, res, next) => {
       req.user.user_id,
       service_id,
       start_time,
-      notes || null
+      notes || null,
+      attendee_count || 1
     );
 
     res.status(201).json({ success: true, data: result });
@@ -121,6 +122,52 @@ const confirmBooking = async (req, res, next) => {
   }
 };
 
+const updateProviderBookingStatus = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+    const { status } = req.body;
+
+    const result = await bookingService.updateProviderBookingStatus(id, req.user.user_id, status);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+const verifyPayment = async (req, res, next) => {
+  try {
+    const result = await bookingService.verifyAndConfirmBooking(req.user.user_id, req.body);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
+/**
+ * Get remaining time for a slot lock
+ * GET /api/bookings/timer?service_id=xxx&start_time=xxx
+ */
+const getSlotTimer = async (req, res, next) => {
+  try {
+    const { service_id, start_time } = req.query;
+
+    if (!service_id || !start_time) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'service_id and start_time are required.',
+        },
+      });
+    }
+
+    const result = await bookingService.getSlotTimerInfo(req.user.user_id, service_id, start_time);
+    res.json({ success: true, data: result });
+  } catch (err) {
+    next(err);
+  }
+};
+
 module.exports = {
   lockSlot,
   createBooking,
@@ -130,4 +177,7 @@ module.exports = {
   cancelBooking,
   rescheduleBooking,
   confirmBooking,
+  updateProviderBookingStatus,
+  verifyPayment,
+  getSlotTimer,
 };

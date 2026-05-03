@@ -10,6 +10,16 @@ export const organiserService = {
     return response.data;
   },
 
+  getResources: async (serviceId) => {
+    const response = await axiosInstance.get(`/resources/${serviceId}`);
+    return response.data;
+  },
+
+  createResource: async (serviceId, data) => {
+    const response = await axiosInstance.post(`/resources/${serviceId}`, data);
+    return response.data;
+  },
+
   /**
    * Compatibility alias for AppointmentList.
    */
@@ -44,6 +54,11 @@ export const organiserService = {
     return response.data;
   },
 
+  deleteService: async (id) => {
+    const response = await axiosInstance.delete(`/services/${id}`);
+    return response.data;
+  },
+
   /**
    * Toggle publish status.
    * PATCH /api/services/:id/publish
@@ -67,6 +82,14 @@ export const organiserService = {
    */
   confirmBooking: async (id) => {
     const response = await axiosInstance.patch(`/bookings/${id}/confirm`);
+    return response.data;
+  },
+
+  updateMeetingStatus: async (id, status) => {
+    const normalizedStatus = String(status || '').toLowerCase().replace(/\s+/g, '_');
+    const response = await axiosInstance.patch(`/bookings/${id}/status`, {
+      status: normalizedStatus,
+    });
     return response.data;
   },
 
@@ -95,10 +118,4 @@ export const organiserService = {
     return response.data;
   },
   
-  updateMeetingStatus: async (id, status) => {
-    if (status === 'Confirmed') {
-      return await organiserService.confirmBooking(id);
-    }
-    return { data: true };
-  }
 };

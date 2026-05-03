@@ -1,7 +1,8 @@
 import React from 'react';
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import ProtectedRoute from './routes/ProtectedRoute';
+import ChatWidget from './components/ChatWidget';
 
 // Auth Pages
 import AuthLayout from './pages/auth/AuthLayout';
@@ -29,7 +30,12 @@ import Reporting from './pages/organiser/Reporting';
 import ResourceEditor from './pages/organiser/ResourceEditor';
 import UserEditor from './pages/organiser/UserEditor';
 
-import ChatWidget from './components/ChatWidget';
+const CustomerSection = () => (
+  <>
+    <Outlet />
+    <ChatWidget />
+  </>
+);
 
 function App() {
   return (
@@ -44,10 +50,12 @@ function App() {
 
         {/* Protected Customer Routes */}
         <Route element={<ProtectedRoute allowedRoles={['customer']} />}>
-          <Route path="/dashboard" element={<CustomerDashboard />} />
-          <Route path="/bookings" element={<MyBookings />} />
-          <Route path="/booking/:serviceId" element={<BookingWizard />} />
-          <Route path="/confirmation" element={<BookingConfirmation />} />
+          <Route element={<CustomerSection />}>
+            <Route path="/dashboard" element={<CustomerDashboard />} />
+            <Route path="/bookings" element={<MyBookings />} />
+            <Route path="/booking/:serviceId" element={<BookingWizard />} />
+            <Route path="/confirmation" element={<BookingConfirmation />} />
+          </Route>
         </Route>
 
         {/* Protected Organiser Routes */}
@@ -75,7 +83,6 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-      <ChatWidget />
     </AuthProvider>
   );
 }

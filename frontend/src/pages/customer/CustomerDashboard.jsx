@@ -18,12 +18,64 @@ const CustomerDashboard = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const navigate = useNavigate();
 
-  // Mock events for the mini calendar
-  const mockEvents = [
-    new Date(Date.now() + 86400000 * 2), // 2 days later
-    new Date(Date.now() + 86400000 * 5), // 5 days later
-    new Date(Date.now() + 86400000 * 8)  // 8 days later
-  ];
+  const [bookings, setBookings] = useState([]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  useEffect(() => {
+    const fetchBookings = async () => {
+      try {
+        const response = await bookingService.getMyBookings();
+        setBookings(response.data || []);
+      } catch (err) {
+        console.error('Failed to load bookings for calendar', err);
+      }
+    };
+    fetchBookings();
+  }, []);
+
+  const getBookingStart = (booking) => {
+    const rawStart = booking.slot_start || booking.start_time || booking.time;
+    if (!rawStart) return null;
+    const parsed = new Date(rawStart);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  };
+
+  const isSameCalendarDay = (dateA, dateB) => (
+    dateA &&
+    dateB &&
+    dateA.getFullYear() === dateB.getFullYear() &&
+    dateA.getMonth() === dateB.getMonth() &&
+    dateA.getDate() === dateB.getDate()
+  );
+
+  const openBookingDetails = (booking) => {
+    const start = getBookingStart(booking);
+    navigate('/confirmation', {
+      state: {
+        booking: {
+          ...booking,
+          serviceName: booking.service_name || booking.serviceName,
+          date: start?.toISOString().split('T')[0],
+          time: start?.toISOString(),
+        }
+      }
+    });
+  };
+
+  // Compute real events and next appointment from actual user bookings
+  const now = new Date();
+  const futureBookings = bookings
+    .filter(b => (b.status === 'confirmed' || b.status === 'booked') && getBookingStart(b) > now)
+    .sort((a, b) => getBookingStart(a) - getBookingStart(b));
+    
+  const realEvents = bookings
+    .filter(b => b.status !== 'cancelled')
+    .map(getBookingStart)
+    .filter(Boolean);
+  const nextAppointment = futureBookings.length > 0 ? futureBookings[0] : null;
+  const selectedDayBookings = bookings
+    .filter(b => b.status !== 'cancelled' && isSameCalendarDay(getBookingStart(b), selectedDate))
+    .sort((a, b) => getBookingStart(a) - getBookingStart(b));
 
   useEffect(() => {
     const fetchServices = async () => {
@@ -65,17 +117,57 @@ const CustomerDashboard = () => {
         {/* Left Column: Mini Calendar */}
         <div className="w-full xl:w-80 flex flex-col gap-6 flex-shrink-0">
           <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2">Your Schedule</h2>
-          <MiniCalendar events={mockEvents} />
+          <MiniCalendar events={realEvents} selectedDate={selectedDate} onSelectDate={setSelectedDate} />
           
-          <div className="bg-primary/5 rounded-3xl p-6 border border-primary/10 relative overflow-hidden group">
+          <button
+            type="button"
+            onClick={() => nextAppointment && openBookingDetails(nextAppointment)}
+            className="bg-primary/5 rounded-3xl p-6 border border-primary/10 relative overflow-hidden group text-left hover:border-primary/30 transition-all disabled:cursor-default"
+            disabled={!nextAppointment}
+          >
             <div className="flex items-center gap-3">
               <div className="w-8 h-8 rounded-xl bg-primary/10 flex items-center justify-center text-primary">
                 <Bell className="w-4 h-4 animate-bounce" />
               </div>
               <div className="flex-1 min-w-0">
                 <h4 className="text-[10px] font-black text-primary uppercase tracking-widest mb-0.5">Next Appointment</h4>
-                <p className="text-xs font-bold text-gray-700 truncate italic">Hair Cut with Mike — Tomorrow, 10:00 AM</p>
+                {nextAppointment ? (
+                  <p className="text-xs font-bold text-gray-700 truncate italic">
+                    {nextAppointment.service_name} — {getBookingStart(nextAppointment)?.toLocaleDateString()}
+                  </p>
+                ) : (
+                  <p className="text-xs font-bold text-gray-500 truncate italic">No upcoming appointments</p>
+                )}
               </div>
+            </div>
+          </button>
+
+          <div className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Selected Day</h3>
+              <span className="text-xs font-black text-gray-700">{selectedDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}</span>
+            </div>
+            <div className="space-y-3">
+              {selectedDayBookings.length > 0 ? selectedDayBookings.map((booking) => {
+                const start = getBookingStart(booking);
+                return (
+                  <button
+                    key={booking.id}
+                    type="button"
+                    onClick={() => openBookingDetails(booking)}
+                    className="w-full rounded-2xl border border-gray-100 p-3 text-left hover:border-primary/30 hover:bg-primary/5 transition-all"
+                  >
+                    <p className="truncate text-sm font-black text-gray-800">{booking.service_name || booking.serviceName}</p>
+                    <p className="mt-1 text-xs font-bold text-gray-400">
+                      {start ? start.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) : 'Time unavailable'}
+                    </p>
+                  </button>
+                );
+              }) : (
+                <div className="rounded-2xl border border-dashed border-gray-100 p-4 text-center">
+                  <p className="text-xs font-bold text-gray-400">No bookings on this date</p>
+                </div>
+              )}
             </div>
           </div>
         </div>

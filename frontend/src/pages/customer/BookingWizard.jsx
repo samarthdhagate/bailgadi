@@ -1,13 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { 
   ChevronLeft, 
-  ChevronRight, 
-  Calendar as CalendarIcon, 
-  Clock, 
-  Users, 
-  CreditCard, 
-  CheckCircle 
+  ChevronRight
 } from 'lucide-react';
 import { 
   format, 
@@ -19,17 +14,44 @@ import {
   endOfWeek, 
   isSameMonth, 
   isSameDay, 
-  addDays, 
   eachDayOfInterval, 
   isPast,
   isToday
 } from 'date-fns';
 import { bookingService } from '@services/booking';
 import Button from '../../components/Button';
-import Card from '../../components/Card';
 import Input from '../../components/Input';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
+import SlotTimer from '../../components/SlotTimer';
+
+const loadRazorpayCheckout = () => {
+  if (window.Razorpay) return Promise.resolve(true);
+
+  const existingScript = document.querySelector('script[src="https://checkout.razorpay.com/v1/checkout.js"]');
+  if (existingScript) {
+    return new Promise((resolve) => {
+      existingScript.addEventListener('load', () => resolve(true), { once: true });
+      existingScript.addEventListener('error', () => resolve(false), { once: true });
+      setTimeout(() => resolve(Boolean(window.Razorpay)), 1500);
+    });
+  }
+
+  return new Promise((resolve) => {
+    const script = document.createElement('script');
+    script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+    script.async = true;
+    script.onload = () => resolve(true);
+    script.onerror = () => resolve(false);
+    document.body.appendChild(script);
+  });
+};
+
+const normalizeRazorpayContact = (phone) => {
+  const digits = String(phone || '').replace(/\D/g, '');
+  if (digits.length > 10 && digits.startsWith('91')) return digits.slice(-10);
+  return digits;
+};
 
 const BookingWizard = () => {
   const { serviceId } = useParams();
@@ -39,8 +61,12 @@ const BookingWizard = () => {
   
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
+  const [paymentStatus, setPaymentStatus] = useState('');
   const [error, setError] = useState('');
-  const [isRescheduling, setIsRescheduling] = useState(!!existingBooking);
+  const [isRescheduling] = useState(!!existingBooking);
+  const [showTimer, setShowTimer] = useState(false);
+  const [lockedSlotTime, setLockedSlotTime] = useState(null);
+  const [reservationId, setReservationId] = useState(null);
   
   const [bookingData, setBookingData] = useState({
     serviceId: serviceId,
@@ -59,6 +85,13 @@ const BookingWizard = () => {
   const [resources, setResources] = useState([]);
   const [slots, setSlots] = useState([]);
   const [service, setService] = useState(null);
+  const servicePrice = Number(service?.price ?? service?.base_price ?? service?.frozen_price ?? 0);
+  const requiresPayment = !isRescheduling && servicePrice > 0;
+  const selectedSlot = slots.find(slot => slot.time === bookingData.time);
+  const maxBookableCapacity = Math.max(1, Math.min(
+    Number(service?.capacity || 1),
+    Number(selectedSlot?.remaining_capacity || service?.capacity || 1)
+  ));
 
   useEffect(() => {
     const init = async () => {
@@ -68,13 +101,9 @@ const BookingWizard = () => {
         const currentService = (res.data || []).find(s => String(s.id) === String(serviceId));
         setService(currentService);
 
-        // Fetch resources (mocked for now in service, but let's set some defaults)
         const resData = await bookingService.getResources(serviceId);
         setResources(resData.data || []);
-        if (resData.data?.length > 0 && !bookingData.resourceId) {
-          setBookingData(prev => ({ ...prev, resourceId: resData.data[0].id }));
-        }
-      } catch (err) {
+      } catch {
         setError('Failed to load service details');
       } finally {
         setIsLoading(false);
@@ -84,6 +113,12 @@ const BookingWizard = () => {
   }, [serviceId]);
 
   useEffect(() => {
+    if (requiresPayment) {
+      loadRazorpayCheckout();
+    }
+  }, [requiresPayment]);
+
+  useEffect(() => {
     if (step === 1 && bookingData.date) {
       const fetchSlots = async () => {
         setIsLoading(true);
@@ -91,7 +126,7 @@ const BookingWizard = () => {
         try {
           const res = await bookingService.getSlots(serviceId, bookingData.date);
           setSlots(res.data || []);
-        } catch (err) {
+        } catch {
           setError('Failed to load available slots');
         } finally {
           setIsLoading(false);
@@ -107,9 +142,16 @@ const BookingWizard = () => {
       return;
     }
 
+    // Step 1 → 2: Lock slot and show timer
+    if (step === 1) {
+      lockSlotAndAdvance();
+      return;
+    }
+
+    // Step 2 → Payment/Confirmation
     if (step === 2) {
-      if (service?.price > 0) {
-        setStep(3);
+      if (requiresPayment) {
+        submitBooking();
       } else {
         submitBooking();
       }
@@ -118,17 +160,240 @@ const BookingWizard = () => {
     }
   };
 
-  const submitBooking = async () => {
+  /**
+   * Lock slot when transitioning from step 1 to step 2 (details page)
+   * Timer starts here and covers the details filling + payment time
+   */
+  const lockSlotAndAdvance = async () => {
+    if (isLoading || !bookingData.time) return;
+
     setIsLoading(true);
     setError('');
     try {
-      await bookingService.lockSlot(serviceId, bookingData.time);
+      const lockRes = await bookingService.lockSlot(serviceId, bookingData.time, bookingData.capacity);
+
+      // Lock successful, show timer and move to details step
+      if (lockRes.data?.locked) {
+        setLockedSlotTime(bookingData.time);
+        setShowTimer(true);
+        setReservationId(lockRes.data.reservation_id);
+        setStep(2);
+        setPaymentStatus('');
+      } else {
+        setError('Failed to lock slot. Please try again.');
+      }
+    } catch (err) {
+      console.error('Lock slot error:', err);
+      setError(err.response?.data?.error?.message || 'Failed to lock slot');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handlePaymentVerified = (verifyRes) => {
+    setShowTimer(false);
+    setLockedSlotTime(null);
+    navigate('/confirmation', {
+      state: {
+        booking: {
+          ...verifyRes.data,
+          serviceName: service?.name || service?.title,
+          date: bookingData.date,
+          time: bookingData.time,
+          capacity: bookingData.capacity,
+          userDetails: bookingData.userDetails,
+        }
+      }
+    });
+  };
+
+  const verifyPaymentResponse = async (response) => {
+    const verifyRes = await bookingService.verifyPayment({
+      razorpay_payment_id: response.razorpay_payment_id,
+      razorpay_order_id: response.razorpay_order_id,
+      razorpay_signature: response.razorpay_signature,
+    });
+
+    handlePaymentVerified(verifyRes);
+  };
+
+  const cancelPendingPayment = async (order, reason) => {
+    if (!order?.id && !order?.reservation_id) return;
+
+    try {
+      await bookingService.cancelPayment({
+        razorpay_order_id: order.id,
+        reservation_id: order.reservation_id,
+        reason,
+      });
+    } catch (err) {
+      console.error('Failed to cancel pending payment', err);
+    }
+  };
+
+  const submitBooking = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setPaymentStatus('');
+    setError('');
+    try {
+      // Slot is already locked from step 1→2 transition
+      // Just proceed with payment using the existing reservation
+      if (!reservationId) {
+        setError('Reservation not found. Please start over.');
+        setShowTimer(false);
+        setStep(1);
+        setIsLoading(false);
+        return;
+      }
+
+      setPaymentStatus(requiresPayment ? 'Creating Razorpay order...' : '');
+
+      let order = null;
+
+      if (requiresPayment) {
+        try {
+          const orderRes = await bookingService.createPaymentOrder(reservationId);
+          if (orderRes?.success && orderRes?.data?.order_id) {
+            order = {
+              id: orderRes.data.order_id,
+              amount: orderRes.data.amount,
+              currency: orderRes.data.currency,
+              key_id: orderRes.data.key_id,
+              demo: orderRes.data.demo,
+              reservation_id: reservationId,
+            };
+          }
+        } catch (err) {
+          throw new Error('Failed to create payment order');
+        }
+  const submitBooking = async () => {
+    if (isLoading) return;
+
+    setIsLoading(true);
+    setPaymentStatus('');
+    setError('');
+    try {
+      // Slot is already locked from step 1→2 transition
+      // Just proceed with payment using the existing reservation
+      if (!reservationId) {
+        setError('Reservation not found. Please start over.');
+        setShowTimer(false);
+        setStep(1);
+        setIsLoading(false);
+        return;
+      }
+
+      setPaymentStatus(requiresPayment ? 'Creating Razorpay order...' : '');
+
+      let order = null;
+
+      if (requiresPayment) {
+        try {
+          const orderRes = await bookingService.createPaymentOrder(reservationId);
+          if (orderRes?.success && orderRes?.data?.order_id) {
+            order = {
+              id: orderRes.data.order_id,
+              amount: orderRes.data.amount,
+              currency: orderRes.data.currency,
+              key_id: orderRes.data.key_id,
+              demo: orderRes.data.demo,
+              reservation_id: reservationId,
+            };
+          }
+        } catch (err) {
+          throw new Error('Failed to create payment order');
+        }
+      }
+
+      if (order) {
+        if (order.demo) {
+          setError('Razorpay is in demo mode. Add valid test keys and set RAZORPAY_DEMO_MODE=false on the backend.');
+          await cancelPendingPayment(order, 'demo_mode_blocked');
+          setPaymentStatus('');
+          setIsLoading(false);
+          return;
+        }
+
+        setPaymentStatus('Opening Razorpay...');
+        const razorpayLoaded = await loadRazorpayCheckout();
+        if (!order.key_id || !razorpayLoaded || !window.Razorpay) {
+          setError('Razorpay checkout could not load. Please refresh and try again.');
+          await cancelPendingPayment(order, 'checkout_load_failed');
+          setPaymentStatus('');
+          setIsLoading(false);
+          return;
+        }
+
+        let paymentCompleted = false;
+        const options = {
+          key: order.key_id,
+          amount: order.amount,
+          currency: order.currency,
+          name: 'Zilla',
+          description: 'Appointment booking payment',
+          order_id: order.id,
+          handler: async (response) => {
+            paymentCompleted = true;
+            try {
+              setPaymentStatus('Verifying payment...');
+              setIsLoading(true);
+              await verifyPaymentResponse({
+                ...response,
+                reservation_id: order.reservation_id,
+              });
+            } catch (err) {
+              setError(err.response?.data?.error?.message || 'Payment verification failed.');
+              await cancelPendingPayment(order, 'verification_failed');
+              setPaymentStatus('');
+              setIsLoading(false);
+            }
+          },
+          prefill: {
+            name: bookingData.userDetails.name,
+            email: bookingData.userDetails.email,
+            contact: normalizeRazorpayContact(bookingData.userDetails.phone)
+          },
+          modal: {
+            ondismiss: async () => {
+              if (paymentCompleted) return;
+              setError('Payment was cancelled. Your booking has not been confirmed.');
+              setPaymentStatus('');
+              await cancelPendingPayment(order, 'dismissed');
+              setIsLoading(false);
+            },
+          },
+          retry: {
+            enabled: true,
+            max_count: 4,
+          },
+          theme: { color: '#000000' }
+        };
+        const rzp = new window.Razorpay(options);
+        rzp.on('payment.failed', function (response){
+          setError(response?.error?.description || 'Payment attempt failed. Please retry in Razorpay or close the popup to cancel.');
+          setPaymentStatus('Payment failed. Retry in Razorpay or close the popup to cancel.');
+        });
+        rzp.open();
+        return; // wait for payment handler
+      }
+
+      if (requiresPayment) {
+        throw new Error('Unable to create payment order. Please try again.');
+      }
+
+      // No payment required
       const res = await bookingService.createBooking({
         ...bookingData,
         serviceId,
         startTime: bookingData.time,
       });
       
+      setShowTimer(false);
+      setLockedSlotTime(null);
+      setReservationId(null);
+
       navigate('/confirmation', {
         state: {
           booking: {
@@ -142,9 +407,20 @@ const BookingWizard = () => {
       });
     } catch (err) {
       setError(err.response?.data?.error?.message || 'Failed to confirm booking');
-    } finally {
+      setPaymentStatus('');
       setIsLoading(false);
     }
+  };
+
+  /**
+   * Handle timer expiration - lock expired, reset to slot selection
+   */
+  const handleTimerExpired = () => {
+    setShowTimer(false);
+    setLockedSlotTime(null);
+    setReservationId(null);
+    setError('Your slot lock has expired. Please try booking again.');
+    setStep(1);
   };
 
   // --- Calendar Helpers ---
@@ -153,12 +429,6 @@ const BookingWizard = () => {
     const monthEnd = endOfMonth(monthStart);
     const startDate = startOfWeek(monthStart);
     const endDate = endOfWeek(monthEnd);
-
-    const dateFormat = "d";
-    const rows = [];
-    let days = [];
-    let day = startDate;
-    let formattedDate = "";
 
     const calendarDays = eachDayOfInterval({
       start: startDate,
@@ -274,26 +544,32 @@ const BookingWizard = () => {
           <div className="space-y-6">
             <div className="flex items-center justify-between">
               <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest">Slots</h3>
-              <span className="text-[10px] font-bold text-gray-400 uppercase">(schedule = Weekly)</span>
             </div>
             <div className="bg-white border border-gray-100 rounded-[32px] p-10 shadow-sm min-h-[400px] flex flex-col">
               <div className="grid grid-cols-2 gap-4">
-                {slots.length > 0 ? slots.map(slot => (
+                {slots.length > 0 ? slots.map(slot => {
+                  const displayTime = new Date(slot.time).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                  const remainingCapacity = Number(slot.remaining_capacity || 0);
+                  return (
                   <button
                     key={slot.id}
-                    disabled={!slot.available}
-                    onClick={() => setBookingData(prev => ({ ...prev, time: slot.time }))}
+                    disabled={!slot.available || remainingCapacity <= 0}
+                    onClick={() => setBookingData(prev => ({ ...prev, time: slot.time, capacity: Math.min(prev.capacity, remainingCapacity || 1) }))}
                     className={`py-4 px-6 rounded-2xl border-2 font-bold text-sm transition-all ${
                       bookingData.time === slot.time
                         ? 'bg-primary border-primary text-white shadow-xl shadow-primary/20 scale-[1.02]'
-                        : slot.available
+                        : slot.available && remainingCapacity > 0
                         ? 'border-gray-100 text-gray-700 hover:border-primary/30 hover:bg-gray-50'
                         : 'bg-gray-50 border-gray-50 text-gray-300 cursor-not-allowed'
                     }`}
                   >
-                    {slot.time}
+                    {displayTime}
+                    {service?.capacity > 1 && (
+                      <span className="mt-1 block text-[10px] opacity-70">{remainingCapacity} left</span>
+                    )}
                   </button>
-                )) : (
+                  );
+                }) : (
                   <div className="col-span-2 py-20 text-center">
                     <p className="text-gray-400 font-medium">No slots available for this date.</p>
                   </div>
@@ -301,7 +577,7 @@ const BookingWizard = () => {
               </div>
 
               {/* Number of People (if enabled) */}
-              {service?.capacity > 1 && (
+              {service?.capacity > 1 && selectedSlot && (
                 <div className="mt-auto pt-10 border-t border-gray-50">
                   <p className="text-xs font-black text-gray-400 uppercase tracking-widest mb-4">Number of people</p>
                   <div className="flex items-center gap-6 bg-gray-50 w-max rounded-2xl p-2 border border-gray-100">
@@ -311,7 +587,8 @@ const BookingWizard = () => {
                     >-</button>
                     <span className="w-8 text-center font-black text-lg text-gray-800">{bookingData.capacity}</span>
                     <button 
-                      onClick={() => setBookingData(prev => ({ ...prev, capacity: prev.capacity + 1 }))}
+                      disabled={bookingData.capacity >= maxBookableCapacity}
+                      onClick={() => setBookingData(prev => ({ ...prev, capacity: Math.min(maxBookableCapacity, prev.capacity + 1) }))}
                       className="w-10 h-10 rounded-xl bg-white flex items-center justify-center font-bold text-gray-600 shadow-sm hover:text-primary transition-colors"
                     >+</button>
                   </div>
@@ -346,6 +623,16 @@ const BookingWizard = () => {
               <h2 className="text-3xl font-bold text-gray-800 tracking-tighter">Details</h2>
               <p className="text-gray-500 mt-2 font-medium">Please provide your contact information to confirm your booking.</p>
             </div>
+
+            {/* Timer - shown at top when slot is locked */}
+            {showTimer && lockedSlotTime && (
+              <SlotTimer 
+                serviceId={serviceId} 
+                startTime={lockedSlotTime}
+                isVisible={true}
+                onExpired={handleTimerExpired}
+              />
+            )}
 
             <div className="space-y-8 py-4">
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
@@ -398,89 +685,46 @@ const BookingWizard = () => {
             <div className="flex flex-col items-center gap-6 pt-10 border-t border-gray-50">
               <Button 
                 onClick={handleNext}
-                disabled={!bookingData.userDetails.name || !bookingData.userDetails.email}
+                disabled={!bookingData.userDetails.name || !bookingData.userDetails.email || isLoading}
                 className="px-20 py-5 text-xl min-w-[300px] rounded-2xl shadow-2xl shadow-primary/30"
               >
-                {service?.price > 0 ? 'Proceed to payment' : 'Confirm Appointment'}
+                {isLoading ? <Loader /> : (requiresPayment ? 'Book Appointment' : 'Confirm Appointment')}
               </Button>
+              {paymentStatus && (
+                <p className="max-w-md text-center text-xs font-bold text-primary">
+                  {paymentStatus}
+                </p>
+              )}
+              {showTimer && lockedSlotTime && (
+                <div className="w-full max-w-md">
+                  <SlotTimer
+                    serviceId={serviceId}
+                    startTime={lockedSlotTime}
+                    isVisible={showTimer}
+                    onExpired={() => {
+                      setShowTimer(false);
+                      setError('Your slot lock has expired. Please try booking again.');
+                    }}
+                  />
+                </div>
+              )}
+              {requiresPayment && (
+                <p className="max-w-md text-center text-xs font-bold text-gray-400">
+                  Razorpay test mode: use UPI ID success@razorpay or a Razorpay test card. Real UPI apps can fail in test mode.
+                </p>
+              )}
               <button 
-                onClick={() => setStep(1)}
+                onClick={() => {
+                  setStep(1);
+                  setShowTimer(false);
+                  setLockedSlotTime(null);
+                  setReservationId(null);
+                  setError('');
+                }}
                 className="text-gray-400 hover:text-primary font-bold transition-all uppercase tracking-widest text-xs"
               >
                 ← Back to selection
               </button>
-            </div>
-          </div>
-        );
-      case 3:
-        return (
-          <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 max-w-6xl mx-auto">
-            <div className="lg:col-span-2 space-y-10">
-              <div>
-                <h3 className="text-sm font-black text-gray-400 uppercase tracking-widest mb-8">Choose a payment method</h3>
-                <div className="space-y-6">
-                  <div className="space-y-8 p-8 bg-gray-50 rounded-[32px] border border-gray-100">
-                    <label className="flex items-center gap-3 cursor-pointer group">
-                      <input type="radio" name="paymentMethod" defaultChecked className="w-6 h-6 accent-primary" />
-                      <span className="font-black text-xl text-gray-800">Credit / Debit Card</span>
-                    </label>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      <div className="md:col-span-2">
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Card Number</label>
-                        <Input placeholder="0000 0000 0000 0000" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">Expiry</label>
-                        <Input placeholder="MM / YY" />
-                      </div>
-                      <div>
-                        <label className="block text-xs font-black text-gray-400 uppercase tracking-widest mb-2">CVV</label>
-                        <Input placeholder="•••" />
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              <div className="pt-6">
-                <button 
-                  onClick={() => setStep(2)}
-                  className="text-gray-400 hover:text-primary font-bold uppercase tracking-widest text-xs"
-                >
-                  ← Go back to details
-                </button>
-              </div>
-            </div>
-
-            <div>
-              <Card className="p-10 sticky top-8 bg-white border border-gray-100 rounded-[40px] shadow-2xl shadow-black/5">
-                <h3 className="text-xs font-black text-gray-400 uppercase tracking-widest mb-8 text-center">Summary</h3>
-                
-                <div className="space-y-6 mb-10">
-                  <div className="flex justify-between items-center">
-                    <span className="text-gray-500 font-bold">{service?.name || service?.title}</span>
-                    <span className="font-black text-gray-800">₹{service?.price}</span>
-                  </div>
-                  <div className="flex justify-between items-center text-sm">
-                    <span className="text-gray-400">Convenience Fee</span>
-                    <span className="font-bold text-gray-800">₹40</span>
-                  </div>
-                </div>
-
-                <div className="pt-8 border-t border-gray-100 mb-10 flex justify-between items-center">
-                  <span className="text-2xl font-black text-gray-800">Total</span>
-                  <span className="text-3xl font-black text-primary">₹{Number(service?.price || 0) + 40}</span>
-                </div>
-
-                <Button 
-                  isLoading={isLoading} 
-                  onClick={submitBooking}
-                  className="w-full py-5 text-xl rounded-2xl shadow-2xl shadow-primary/30"
-                >
-                  Pay & Confirm
-                </Button>
-              </Card>
             </div>
           </div>
         );
@@ -502,7 +746,7 @@ const BookingWizard = () => {
           </button>
 
           <div className="flex items-center gap-4">
-            {[1, 2, 3].filter(s => s < 3 || service?.price > 0).map((s) => (
+            {[1, 2].map((s) => (
               <div key={s} className={`w-3 h-3 rounded-full transition-all duration-500 ${
                 step === s ? 'bg-primary w-8' : 
                 step > s ? 'bg-green-500' : 'bg-gray-200'

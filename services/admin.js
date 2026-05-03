@@ -1,59 +1,94 @@
 import axiosInstance from './api/axiosInstance';
 
 export const adminService = {
-  /**
-   * Get admin dashboard stats.
-   * Derives stats from the bookings list since there's no dedicated stats endpoint.
-   * GET /api/bookings/all
-   */
+  // ─── Stats ────────────────────────────────────────────────────────
   getStats: async () => {
-    try {
-      const response = await axiosInstance.get('/bookings/all');
-      const bookings = response.data.data || [];
-
-      const stats = {
-        totalUsers: new Set(bookings.map((b) => b.user_id)).size,
-        totalBookings: bookings.length,
-        activeServices: new Set(bookings.map((b) => b.service_id)).size,
-        revenue: bookings
-          .filter((b) => b.status === 'booked')
-          .reduce((sum, b) => sum + (b.amount || 0), 0),
-      };
-
-      return { data: stats };
-    } catch (err) {
-      // Fallback to zeros if endpoint fails
-      return {
-        data: { totalUsers: 0, totalBookings: 0, activeServices: 0, revenue: 0 },
-      };
-    }
+    const response = await axiosInstance.get('/admin/stats');
+    return response.data;
   },
 
-  /**
-   * Get all users.
-   * Note: No dedicated admin user-list endpoint in backend yet.
-   * This is a placeholder that returns an empty list.
-   * TODO: Add GET /api/admin/users endpoint to the backend.
-   */
+  // ─── Users ────────────────────────────────────────────────────────
   getUsers: async () => {
-    // Placeholder — backend does not have a user-listing endpoint yet
-    return { data: [] };
+    const response = await axiosInstance.get('/admin/users');
+    return response.data;
   },
 
-  /**
-   * Get all bookings (admin view).
-   * GET /api/bookings/all
-   */
+  updateUser: async (id, data) => {
+    const response = await axiosInstance.put(`/admin/users/${id}`, data);
+    return response.data;
+  },
+
+  deleteUser: async (id) => {
+    const response = await axiosInstance.delete(`/admin/users/${id}`);
+    return response.data;
+  },
+
+  // ─── Facilities ───────────────────────────────────────────────────
+  getFacilities: async () => {
+    const response = await axiosInstance.get('/admin/facilities');
+    return response.data;
+  },
+
+  getFacility: async (id) => {
+    const response = await axiosInstance.get(`/admin/facilities/${id}`);
+    return response.data;
+  },
+
+  updateFacility: async (id, data) => {
+    const response = await axiosInstance.put(`/admin/facilities/${id}`, data);
+    return response.data;
+  },
+
+  deleteFacility: async (id) => {
+    const response = await axiosInstance.delete(`/admin/facilities/${id}`);
+    return response.data;
+  },
+
+  // ─── Time Slots ───────────────────────────────────────────────────
+  getSlots: async (facilityId, date) => {
+    const params = date ? { date } : {};
+    const response = await axiosInstance.get(`/admin/facilities/${facilityId}/slots`, { params });
+    return response.data;
+  },
+
+  createSlot: async (facilityId, data) => {
+    const response = await axiosInstance.post(`/admin/facilities/${facilityId}/slots`, data);
+    return response.data;
+  },
+
+  bulkCreateSlots: async (facilityId, data) => {
+    const response = await axiosInstance.post(`/admin/facilities/${facilityId}/slots/bulk`, data);
+    return response.data;
+  },
+
+  updateSlot: async (slotId, data) => {
+    const response = await axiosInstance.put(`/admin/slots/${slotId}`, data);
+    return response.data;
+  },
+
+  deleteSlot: async (slotId) => {
+    const response = await axiosInstance.delete(`/admin/slots/${slotId}`);
+    return response.data;
+  },
+
+  // ─── Bookings ─────────────────────────────────────────────────────
   getBookings: async () => {
-    const response = await axiosInstance.get('/bookings/all');
-    const bookings = (response.data.data || []).map((b) => ({
-      id: b.confirmation_code || b.id,
-      service: b.service_name,
-      user: b.customer_name,
-      date: new Date(b.start_time).toLocaleDateString(),
-      status: b.status.charAt(0).toUpperCase() + b.status.slice(1),
-      amount: b.amount || 0,
-    }));
-    return { data: bookings };
+    const response = await axiosInstance.get('/admin/bookings');
+    return response.data;
+  },
+
+  updateBookingStatus: async (id, status) => {
+    const response = await axiosInstance.put(`/admin/bookings/${id}/status`, { status });
+    return response.data;
+  },
+
+  createBooking: async (data) => {
+    const response = await axiosInstance.post('/admin/bookings', data);
+    return response.data;
+  },
+
+  deleteBooking: async (id) => {
+    const response = await axiosInstance.delete(`/admin/bookings/${id}`);
+    return response.data;
   },
 };
