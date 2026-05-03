@@ -82,7 +82,13 @@ const verifyRazorpaySignature = (orderId, paymentId, signature) => {
  * @param {string} signature - The X-Razorpay-Signature header
  */
 const verifyWebhookSignature = (rawBody, signature) => {
-  if (!env.RAZORPAY_WEBHOOK_SECRET) return true; // Skip check if secret not set (demo mode)
+  if (!env.RAZORPAY_WEBHOOK_SECRET) {
+    if (process.env.NODE_ENV === 'production') {
+       throw new Error('CRITICAL: RAZORPAY_WEBHOOK_SECRET is missing in production environment.');
+    }
+    console.warn('WARNING: RAZORPAY_WEBHOOK_SECRET is missing. Skipping signature check in non-production mode.');
+    return true; 
+  }
   
   const expectedSignature = crypto
     .createHmac('sha256', env.RAZORPAY_WEBHOOK_SECRET)

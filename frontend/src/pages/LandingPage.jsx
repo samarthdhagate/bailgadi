@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ArrowRight } from 'lucide-react';
 
 const screenshots = [
   {
@@ -43,17 +42,17 @@ const LandingPage = () => {
       </div>
 
       {/* Top Navigation */}
-      <header className="relative z-20 h-20 px-6 lg:px-20 flex items-center justify-between bg-white/10 backdrop-blur-md border-b border-white/10">
+      <header className="relative z-20 h-20 px-6 lg:px-20 flex items-center justify-between bg-white/10 border-b border-white/10">
         <div className="flex items-center gap-12">
-          <div className="flex items-center gap-3 cursor-pointer">
+          <div className="flex items-center gap-4 cursor-pointer">
             <img src="/zilla_logo.png" alt="Zilla" className="w-10 h-10" />
             <span className="text-2xl font-black text-white tracking-tighter">zilla</span>
           </div>
         </div>
 
         <div className="flex items-center gap-6">
-          <button onClick={() => navigate('/login')} className="text-sm font-bold text-white hover:text-primary transition-colors">Log In</button>
-          <button onClick={() => navigate('/signup')} className="px-6 py-2.5 bg-primary text-white rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-primary/20 transition-all">
+          <button onClick={() => navigate('/login')} className="text-sm font-bold text-white hover:text-primary active:opacity-70 transition-colors duration-200">Log In</button>
+          <button onClick={() => navigate('/signup')} className="px-6 py-3 bg-primary text-white rounded-xl text-sm font-bold hover:shadow-lg hover:shadow-primary/20 active:scale-95 transition-all duration-200">
             Get started
           </button>
         </div>
@@ -70,7 +69,7 @@ const LandingPage = () => {
                 <span className="text-primary italic">scheduling</span> <br />
                 ahead
               </h2>
-              <p className="text-xl lg:text-2xl text-white/90 font-medium leading-relaxed max-w-xl drop-shadow-md">
+              <p className="text-xl lg:text-2xl text-white/90 font-medium leading-relaxed max-w-xl">
                 Book appointments and meetings, all in one place.
                 From haircuts to consultations, schedule everything effortlessly.
                 Simple, fast, and built for everyday life.
@@ -78,7 +77,7 @@ const LandingPage = () => {
             </div>
 
             <div className="flex flex-wrap gap-4">
-              <button onClick={() => navigate('/login')} className="px-10 py-5 bg-white text-gray-800 rounded-2xl font-bold text-lg shadow-2xl shadow-black/20 hover:-translate-y-1 transition-all flex items-center gap-4 border border-gray-100">
+              <button onClick={() => navigate('/login')} className="px-10 py-5 bg-white text-gray-800 rounded-2xl font-bold text-lg shadow-2xl shadow-black/20 hover:scale-[1.02] active:scale-95 transition-all duration-200 flex items-center gap-4">
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                   <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                   <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-1 .67-2.28 1.07-3.71 1.07-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -91,18 +90,18 @@ const LandingPage = () => {
           </div>
 
           <div className="hidden lg:block relative">
-            <div className="relative z-10 bg-white rounded-[40px] shadow-2xl shadow-black/40 border border-gray-100 overflow-hidden aspect-[16/9] w-[750px] h-[600px]">
+            <div className="relative z-10 bg-white rounded-[40px] shadow-2xl shadow-black/40 overflow-hidden aspect-[16/9] w-[750px] h-[600px]">
               {screenshots.map((slide, i) => (
                 <div
                   key={i}
-                  className={`absolute inset-0 transition-all duration-1000 ease-in-out flex flex-col ${activeSlide === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
+                  className={`absolute inset-0 transition-all duration-200 ease-in-out flex flex-col ${activeSlide === i ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-8 pointer-events-none'
                     }`}
                 >
                   <div className="p-8 border-b border-gray-100">
                     <h3 className="text-2xl font-bold text-gray-800 tracking-tight">{slide.title}</h3>
                   </div>
-                  <div className="flex-1 bg-gray-50 p-6 flex flex-col gap-4">
-                    <div className="flex-1 rounded-2xl overflow-hidden shadow-lg border border-gray-200 bg-white">
+                  <div className="flex-1 bg-gray-50 p-8 flex flex-col gap-6">
+                    <div className="flex-1 rounded-2xl overflow-hidden border border-gray-200 bg-white">
                       <img src={slide.image} alt={slide.title} className="w-full h-full object-cover" />
                     </div>
                     <p className="text-gray-500 font-bold text-lg leading-snug px-2">{slide.content}</p>

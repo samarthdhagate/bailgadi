@@ -5,6 +5,7 @@
 
 const { Pool } = require('pg');
 const { env } = require('./env');
+const logger = require('../utils/logger');
 
 const pool = new Pool({
   connectionString: env.DATABASE_URL,
@@ -17,12 +18,12 @@ const pool = new Pool({
 });
 
 pool.on('error', (err) => {
-  console.error('Unexpected PostgreSQL pool error:', err);
+  logger.error('Unexpected PostgreSQL pool error', { error: err.message });
 });
 
 pool.on('connect', () => {
   if (env.NODE_ENV === 'development') {
-    console.log('📦 New PostgreSQL client connected');
+    logger.info('📦 New PostgreSQL client connected');
   }
 });
 

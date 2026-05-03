@@ -11,7 +11,6 @@ export const bookingService = {
       params: { service_id: serviceId, date },
     });
     return response.data;
-  },
 
   getResources: async (serviceId) => {
     const response = await axiosInstance.get(`/resources/${serviceId}`);
@@ -69,5 +68,5 @@ export const bookingService = {
   cancelPayment: async (paymentData) => {
     const response = await axiosInstance.post('/payments/cancel', paymentData);
     return response.data;
-  }
+  },
 };

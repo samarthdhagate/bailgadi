@@ -10,7 +10,22 @@ const authController = require('../controllers/auth.controller');
 const { authLimiter } = require('../middleware/rateLimit.middleware');
 const { validateRequest } = require('./helpers/validation');
 
-// Apply rate limiter to all auth routes
+// --- Google OAuth Flows ---
+// 1. Redirect flow: Initiate login
+router.get('/google', authController.initGoogleAuth);
+// 2. Redirect flow: Handle callback
+router.get('/google/callback', authController.googleCallback);
+// 3. Token flow: Verify token from frontend (e.g., @react-oauth/google)
+router.post(
+  '/google',
+  [
+    body('token').notEmpty().withMessage('Google token is required.'),
+    validateRequest,
+  ],
+  authController.googleLogin
+);
+
+// --- Standard Auth Flows (Rate Limited) ---
 router.use(authLimiter);
 
 // POST /api/auth/signup
@@ -51,22 +66,6 @@ router.post(
   authController.login
 );
 
-// GET /api/auth/google — initiate Google redirection flow
-router.get('/google', authController.initGoogleAuth);
-
-// GET /api/auth/google/callback — handle Google callback
-router.get('/google/callback', authController.googleCallback);
-
-// POST /api/auth/google — verify Google token from frontend
-router.post(
-  '/google',
-  [
-    body('token').notEmpty().withMessage('Google token is required.'),
-    validateRequest,
-  ],
-  authController.googleLogin
-);
-
 
 // POST /api/auth/refresh
 router.post('/refresh', authController.refresh);
@@ -95,10 +94,6 @@ router.post(
   ],
   authController.resetPassword
 );
-
-// Google OAuth
-router.get('/google', authController.googleLogin);
-router.get('/google/callback', authController.googleCallback);
 
 module.exports = router;
 

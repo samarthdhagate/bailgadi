@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import ErrorMessage from '../../components/ErrorMessage';
 import { authService } from '@services/auth';
 import { GoogleLogin } from '@react-oauth/google';
@@ -58,17 +58,6 @@ const LoginPage = () => {
       setError(message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      const response = await authService.getGoogleAuthUrl();
-      if (response.success && response.data.url) {
-        window.location.href = response.data.url;
-      }
-    } catch (err) {
-      setError('Could not initiate Google login. Please try again.');
     }
   };
 

@@ -5,12 +5,13 @@
 
 const Redis = require('ioredis');
 const { env } = require('./env');
+const logger = require('../utils/logger');
 
 let redis = null;
 let redisAvailable = false;
 
 // Enabled only when the user actually configured Redis (don’t treat env defaults as “enabled”).
-const redisEnabled = Boolean(process.env.REDIS_URL || process.env.REDIS_HOST || process.env.REDIS_PORT);
+const redisEnabled = Boolean(env.REDIS_URL || env.REDIS_HOST || env.REDIS_PORT);
 
 const redisConfig = env.REDIS_URL || {
   host: env.REDIS_HOST,
@@ -23,20 +24,26 @@ const redisConfig = env.REDIS_URL || {
   }
 };
 
-try {
-  redis = new Redis(redisConfig);
+if (redisEnabled) {
+  try {
+    redis = new Redis(redisConfig);
 
-  redis.on('connect', () => {
-    redisAvailable = true;
-    console.log('🔴 Redis client connected successfully');
-  });
+    redis.on('connect', () => {
+      redisAvailable = true;
+      logger.info('🔴 Redis client connected successfully');
+    });
 
-  redis.on('error', (err) => {
-    redisAvailable = false;
-    console.warn('⚠️  Redis connection error:', err.message);
-  });
-} catch (err) {
-  console.warn('⚠️  Redis initialization failed:', err.message);
+    redis.on('error', (err) => {
+      redisAvailable = false;
+      logger.warn('⚠️  Redis connection error', { error: err.message });
+    });
+  } catch (err) {
+    logger.warn('⚠️  Redis initialization failed', { error: err.message });
+  }
+} else {
+  if (env.NODE_ENV === 'development') {
+    logger.info('ℹ️  Redis skipped: Not configured in .env');
+  }
 }
 
 /**

@@ -25,7 +25,7 @@ const app = express();
 
 // ─── Security Middleware ────────────────────────────────────────────
 app.use(helmet());
-const allowedOrigins = new Set([env.FRONTEND_URL]);
+const allowedOrigins = new Set([env.FRONTEND_URL, 'https://zilla-frontend-chi.vercel.app']);
 if (env.NODE_ENV === 'development') {
   allowedOrigins.add('http://localhost:5173');
   allowedOrigins.add('http://127.0.0.1:5173');
@@ -51,15 +51,25 @@ app.use(cors({
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'ngrok-skip-browser-warning', 'Bypass-Tunnel-Reminder'],
 }));
 
 // ─── Body Parsing ───────────────────────────────────────────────────
 // Raw body for webhook signature verification (must come BEFORE express.json)
-app.use('/api/payments/webhook', express.raw({ type: 'application/json' }), (req, _res, next) => {
-  req.rawBody = req.body.toString('utf8');
-  req.body = JSON.parse(req.rawBody);
-  next();
+app.use('/api/payments/webhook', express.raw({ type: 'application/json' }), (req, res, next) => {
+  try {
+    req.rawBody = req.body.toString('utf8');
+    req.body = JSON.parse(req.rawBody);
+    next();
+  } catch {
+    res.status(400).json({
+      success: false,
+      error: {
+        code: 'INVALID_WEBHOOK_BODY',
+        message: 'Request body must be valid JSON.',
+      },
+    });
+  }
 });
 
 app.use(express.json({ limit: '10mb' }));

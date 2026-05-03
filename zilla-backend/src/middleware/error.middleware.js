@@ -3,6 +3,8 @@
  * All errors propagated via next(err) land here.
  */
 
+const { env } = require('../config/env');
+
 /**
  * Custom application error class.
  * Usage: throw new AppError('Slot already booked', 409, 'SLOT_TAKEN');
@@ -80,7 +82,7 @@ const errorHandler = (err, req, res, _next) => {
     success: false,
     error: {
       code,
-      message: process.env.NODE_ENV === 'production' && statusCode >= 500
+      message: env.NODE_ENV === 'production' && statusCode >= 500
         ? 'An unexpected error occurred.'
         : message,
     },

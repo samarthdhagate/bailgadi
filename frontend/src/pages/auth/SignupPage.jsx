@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { User, Building2 } from 'lucide-react';
 import Input from '../../components/Input';
@@ -6,7 +6,7 @@ import Button from '../../components/Button';
 import ErrorMessage from '../../components/ErrorMessage';
 import { authService } from '@services/auth';
 import { GoogleLogin } from '@react-oauth/google';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 
 const SignupPage = () => {
   const [role, setRole] = useState('customer'); // 'customer' or 'organiser'
@@ -22,7 +22,14 @@ const SignupPage = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
   const navigate = useNavigate();
+  const redirectTimerRef = useRef(null);
   const { login } = useAuth();
+
+  useEffect(() => {
+    return () => {
+      if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+    };
+  }, []);
 
   const handleGoogleSuccess = async (credentialResponse) => {
     setIsLoading(true);
@@ -63,8 +70,12 @@ const SignupPage = () => {
       });
 
       if (response.success) {
-        setSuccess(response.data.message || 'Account created successfully. You can log in now.');
-        setTimeout(() => navigate('/login'), 3000);
+        setSuccess(
+          response.data.message ||
+            'Account created. Check your email for the OTP, then verify before signing in.'
+        );
+        if (redirectTimerRef.current) clearTimeout(redirectTimerRef.current);
+        redirectTimerRef.current = setTimeout(() => navigate('/login'), 3000);
       } else {
         setError(response.error?.message || 'Signup failed. Please try again.');
       }
@@ -73,17 +84,6 @@ const SignupPage = () => {
       setError(message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    try {
-      const response = await authService.getGoogleAuthUrl();
-      if (response.success && response.data.url) {
-        window.location.href = response.data.url;
-      }
-    } catch (err) {
-      setError('Could not initiate Google login. Please try again.');
     }
   };
 
@@ -210,14 +210,14 @@ const SignupPage = () => {
         />
       </div>
 
-          <p className="text-center text-sm text-gray-600">
-            Already have an account?{' '}
-            <Link to="/login" className="text-primary font-bold hover:underline">
-              Sign In
-            </Link>
-          </p>
-        </form>
-        );
+      <p className="text-center text-sm text-gray-600">
+        Already have an account?{' '}
+        <Link to="/login" className="text-primary font-bold hover:underline">
+          Sign In
+        </Link>
+      </p>
+    </form>
+  );
 };
 
-        export default SignupPage;
+export default SignupPage;

@@ -45,8 +45,9 @@ const generateRefreshToken = (user_id, role) => {
  * Signup — create user, generate OTP, send email.
  */
 const signup = async ({ full_name, email, password, role = 'customer' }) => {
+  const cleanEmail = email.toLowerCase().trim();
   // Check if user exists
-  const existing = await query('SELECT id FROM users WHERE email = $1', [email]);
+  const existing = await query('SELECT id FROM users WHERE email = $1', [cleanEmail]);
   if (existing.rows.length > 0) {
     throw new AppError('An account with this email already exists.', 409, 'EMAIL_EXISTS');
   }
@@ -56,31 +57,23 @@ const signup = async ({ full_name, email, password, role = 'customer' }) => {
 
   // Generate OTP
   const otp = generateOTP();
-  const otp_expires_at = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
+  const otp_expires_at = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000);
 
-  // Insert user, auto-verifying for demo purposes since we lack an OTP UI
+  // Insert user as verified by default
   const result = await query(
-    `INSERT INTO users (full_name, email, password_hash, role, otp_token, otp_expires_at, is_verified)
-     VALUES ($1, $2, $3, $4, $5, $6, TRUE)
+    `INSERT INTO users (full_name, email, password_hash, role, otp_code, otp_expires_at, is_verified)
+     VALUES ($1, $2, $3, $4, $5, $6, FALSE)
      RETURNING id, full_name, email, role`,
-    [full_name, email, password_hash, role, otp, otp_expires_at]
+    [full_name, cleanEmail, password_hash, role, otp, otp_expires_at]
   );
 
   const user = result.rows[0];
 
-  // Auto-create provider record if organiser
-  if (user.role === 'organiser') {
-    await query(
-      'INSERT INTO providers (user_id) VALUES ($1) ON CONFLICT DO NOTHING',
-      [user.id]
-    );
-  }
-
-  // Send OTP email (fire-and-forget) - kept just for the email notification
-  notificationService.sendOTP(email, otp);
+  // Send OTP
+  notificationService.sendOTP(cleanEmail, otp);
 
   return {
-    message: 'Account created and verified automatically for demo purposes.',
+    message: 'Account created successfully. Please verify your email with the OTP sent to your address.',
     user: user,
   };
 };
@@ -90,7 +83,7 @@ const signup = async ({ full_name, email, password, role = 'customer' }) => {
  */
 const verifyOTP = async ({ email, otp }) => {
   const result = await query(
-    'SELECT id, role, otp_token, otp_expires_at, is_verified FROM users WHERE email = $1',
+    'SELECT id, role, otp_code, otp_expires_at, is_verified FROM users WHERE email = $1',
     [email]
   );
 
@@ -104,7 +97,7 @@ const verifyOTP = async ({ email, otp }) => {
     throw new AppError('Email is already verified.', 400, 'ALREADY_VERIFIED');
   }
 
-  if (user.otp_token !== otp) {
+  if (user.otp_code !== otp) {
     throw new AppError('Invalid OTP code.', 400, 'INVALID_OTP');
   }
 
@@ -114,18 +107,10 @@ const verifyOTP = async ({ email, otp }) => {
 
   // Mark as verified, clear OTP
   await query(
-    `UPDATE users SET is_verified = TRUE, otp_token = NULL, otp_expires_at = NULL
+    `UPDATE users SET is_verified = TRUE, otp_code = NULL, otp_expires_at = NULL
      WHERE id = $1`,
     [user.id]
   );
-
-  // Auto-create provider record if organiser
-  if (user.role === 'organiser') {
-    await query(
-      'INSERT INTO providers (user_id) VALUES ($1) ON CONFLICT DO NOTHING',
-      [user.id]
-    );
-  }
 
   return { message: 'Email verified successfully. You can now log in.' };
 };
@@ -134,9 +119,10 @@ const verifyOTP = async ({ email, otp }) => {
  * Login — verify credentials, issue tokens, set refresh cookie.
  */
 const login = async ({ email, password }) => {
+  const cleanEmail = email.toLowerCase().trim();
   const result = await query(
     'SELECT id, full_name, email, password_hash, role, is_verified FROM users WHERE email = $1',
-    [email]
+    [cleanEmail]
   );
 
   if (result.rows.length === 0) {
@@ -194,7 +180,7 @@ const refresh = async (refreshToken) => {
 
   // Check user exists and has a stored refresh token
   const result = await query(
-    'SELECT id, role, refresh_token FROM users WHERE id = $1',
+    'SELECT id, full_name, email, role, refresh_token FROM users WHERE id = $1',
     [decoded.user_id]
   );
 
@@ -208,10 +194,20 @@ const refresh = async (refreshToken) => {
     throw new AppError('Invalid refresh token.', 401, 'INVALID_REFRESH_TOKEN');
   }
 
-  // Issue new access token
-  const access_token = generateAccessToken(result.rows[0].id, result.rows[0].role);
+  const user = result.rows[0];
 
-  return { access_token };
+  // Issue new access token
+  const access_token = generateAccessToken(user.id, user.role);
+
+  return {
+    access_token,
+    user: {
+      id: user.id,
+      full_name: user.full_name,
+      email: user.email,
+      role: user.role,
+    },
+  };
 };
 
 /**
@@ -265,7 +261,7 @@ const forgotPassword = async ({ email }) => {
   const otp_expires_at = new Date(Date.now() + OTP_EXPIRY_MINUTES * 60 * 1000).toISOString();
 
   await query(
-    'UPDATE users SET otp_token = $1, otp_expires_at = $2 WHERE email = $3',
+    'UPDATE users SET otp_code = $1, otp_expires_at = $2 WHERE email = $3',
     [otp, otp_expires_at, email]
   );
 
@@ -279,7 +275,7 @@ const forgotPassword = async ({ email }) => {
  */
 const resetPassword = async ({ email, otp, new_password }) => {
   const result = await query(
-    'SELECT id, otp_token, otp_expires_at FROM users WHERE email = $1',
+    'SELECT id, otp_code, otp_expires_at FROM users WHERE email = $1',
     [email]
   );
 
@@ -289,7 +285,7 @@ const resetPassword = async ({ email, otp, new_password }) => {
 
   const user = result.rows[0];
 
-  if (user.otp_token !== otp) {
+  if (user.otp_code !== otp) {
     throw new AppError('Invalid OTP code.', 400, 'INVALID_OTP');
   }
 
@@ -300,7 +296,7 @@ const resetPassword = async ({ email, otp, new_password }) => {
   const password_hash = await bcrypt.hash(new_password, SALT_ROUNDS);
 
   await query(
-    `UPDATE users SET password_hash = $1, otp_token = NULL, otp_expires_at = NULL, refresh_token = NULL
+    `UPDATE users SET password_hash = $1, otp_code = NULL, otp_expires_at = NULL, refresh_token = NULL
      WHERE id = $2`,
     [password_hash, user.id]
   );

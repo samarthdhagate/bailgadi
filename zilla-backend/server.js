@@ -6,10 +6,15 @@ const { pool } = require('./src/config/db');
 
 const PORT = env.PORT;
 
+const { startMaintenanceJobs } = require('./src/services/maintenance.service');
+
 const server = app.listen(PORT, () => {
   console.log(`\n🦎 Zilla backend running on port ${PORT}`);
   console.log(`   Environment: ${env.NODE_ENV}`);
   console.log(`   Health check: http://localhost:${PORT}/health\n`);
+  
+  // Start background maintenance (reconciliation of stale reservations)
+  startMaintenanceJobs();
 });
 
 // Graceful shutdown

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Plus, Trash2, GripVertical, ChevronRight, MessageSquare, Type, Phone, Radio, CheckSquare, X } from 'lucide-react';
+import { Plus, Trash2, MessageSquare, Type, Phone, Radio, CheckSquare, X } from 'lucide-react';
 import Button from './Button';
-import Input from './Input';
 
 const QuestionBuilder = ({ questions = [], onChange }) => {
   const [isAdding, setIsAdding] = useState(false);
