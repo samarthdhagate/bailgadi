@@ -1,6 +1,6 @@
 const { Client } = require('pg');
 const bcrypt = require('bcryptjs');
-require('dotenv').config();
+require('dotenv').config({ path: 'zilla-backend/.env' });
 
 const TARGET_USER_COUNT = 500;
 
@@ -282,16 +282,33 @@ async function seed() {
     const passwordHash = await bcrypt.hash('password123', 10);
     const organiserSeeds = [];
 
-    // 1. Create an Organiser User
+    // 1. Create Core Test Users
+    console.log('Seeding core test users...');
+    
+    // Admin
+    await client.query(`
+      INSERT INTO users (full_name, email, password_hash, role, is_verified)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role, password_hash = EXCLUDED.password_hash
+    `, ['System Admin', 'admin@zilla.com', passwordHash, 'admin', true]);
+
+    // Customer
+    await client.query(`
+      INSERT INTO users (full_name, email, password_hash, role, is_verified)
+      VALUES ($1, $2, $3, $4, $5)
+      ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role, password_hash = EXCLUDED.password_hash
+    `, ['Demo Customer', 'customer@zilla.com', passwordHash, 'customer', true]);
+
+    // Organiser
     const userRes = await client.query(`
       INSERT INTO users (full_name, email, password_hash, role, is_verified)
       VALUES ($1, $2, $3, $4, $5)
-      ON CONFLICT (email) DO UPDATE SET email = EXCLUDED.email
+      ON CONFLICT (email) DO UPDATE SET role = EXCLUDED.role, password_hash = EXCLUDED.password_hash
       RETURNING id
     `, ['Demo Organiser', 'organiser@zilla.com', passwordHash, 'organiser', true]);
     
     const userId = userRes.rows[0].id;
-    console.log('Created Organiser user');
+    console.log('Core test users seeded (admin, customer, organiser @zilla.com)');
 
     let providerId = null;
     const providerRelation = await client.query("SELECT to_regclass('public.providers') AS relation");

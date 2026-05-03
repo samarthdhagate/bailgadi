@@ -23,7 +23,6 @@ import Button from '../../components/Button';
 import Input from '../../components/Input';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
-import SlotTimer from '../../components/SlotTimer';
 
 const loadRazorpayCheckout = () => {
   if (window.Razorpay) return Promise.resolve(true);
@@ -64,9 +63,6 @@ const BookingWizard = () => {
   const [paymentStatus, setPaymentStatus] = useState('');
   const [error, setError] = useState('');
   const [isRescheduling] = useState(!!existingBooking);
-  const [showTimer, setShowTimer] = useState(false);
-  const [lockedSlotTime, setLockedSlotTime] = useState(null);
-  const [reservationId, setReservationId] = useState(null);
   
   const [bookingData, setBookingData] = useState({
     serviceId: serviceId,
@@ -142,13 +138,6 @@ const BookingWizard = () => {
       return;
     }
 
-    // Step 1 → 2: Lock slot and show timer
-    if (step === 1) {
-      lockSlotAndAdvance();
-      return;
-    }
-
-    // Step 2 → Payment/Confirmation
     if (step === 2) {
       if (requiresPayment) {
         submitBooking();
@@ -160,39 +149,7 @@ const BookingWizard = () => {
     }
   };
 
-  /**
-   * Lock slot when transitioning from step 1 to step 2 (details page)
-   * Timer starts here and covers the details filling + payment time
-   */
-  const lockSlotAndAdvance = async () => {
-    if (isLoading || !bookingData.time) return;
-
-    setIsLoading(true);
-    setError('');
-    try {
-      const lockRes = await bookingService.lockSlot(serviceId, bookingData.time, bookingData.capacity);
-
-      // Lock successful, show timer and move to details step
-      if (lockRes.data?.locked) {
-        setLockedSlotTime(bookingData.time);
-        setShowTimer(true);
-        setReservationId(lockRes.data.reservation_id);
-        setStep(2);
-        setPaymentStatus('');
-      } else {
-        setError('Failed to lock slot. Please try again.');
-      }
-    } catch (err) {
-      console.error('Lock slot error:', err);
-      setError(err.response?.data?.error?.message || 'Failed to lock slot');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   const handlePaymentVerified = (verifyRes) => {
-    setShowTimer(false);
-    setLockedSlotTime(null);
     navigate('/confirmation', {
       state: {
         booking: {
@@ -238,76 +195,32 @@ const BookingWizard = () => {
     setPaymentStatus('');
     setError('');
     try {
-      // Slot is already locked from step 1→2 transition
-      // Just proceed with payment using the existing reservation
-      if (!reservationId) {
-        setError('Reservation not found. Please start over.');
-        setShowTimer(false);
-        setStep(1);
-        setIsLoading(false);
-        return;
-      }
+      setPaymentStatus(requiresPayment ? 'Reserving your slot...' : '');
+      const lockRes = await bookingService.lockSlot(serviceId, bookingData.time, bookingData.capacity);
 
-      setPaymentStatus(requiresPayment ? 'Creating Razorpay order...' : '');
+      let order = lockRes.data?.payment_order || null;
 
-      let order = null;
-
-      if (requiresPayment) {
-        try {
-          const orderRes = await bookingService.createPaymentOrder(reservationId);
-          if (orderRes?.success && orderRes?.data?.order_id) {
-            order = {
-              id: orderRes.data.order_id,
-              amount: orderRes.data.amount,
-              currency: orderRes.data.currency,
-              key_id: orderRes.data.key_id,
-              demo: orderRes.data.demo,
-              reservation_id: reservationId,
-            };
-          }
-        } catch (err) {
-          throw new Error('Failed to create payment order');
-        }
-  const submitBooking = async () => {
-    if (isLoading) return;
-
-    setIsLoading(true);
-    setPaymentStatus('');
-    setError('');
-    try {
-      // Slot is already locked from step 1→2 transition
-      // Just proceed with payment using the existing reservation
-      if (!reservationId) {
-        setError('Reservation not found. Please start over.');
-        setShowTimer(false);
-        setStep(1);
-        setIsLoading(false);
-        return;
-      }
-
-      setPaymentStatus(requiresPayment ? 'Creating Razorpay order...' : '');
-
-      let order = null;
-
-      if (requiresPayment) {
-        try {
-          const orderRes = await bookingService.createPaymentOrder(reservationId);
-          if (orderRes?.success && orderRes?.data?.order_id) {
-            order = {
-              id: orderRes.data.order_id,
-              amount: orderRes.data.amount,
-              currency: orderRes.data.currency,
-              key_id: orderRes.data.key_id,
-              demo: orderRes.data.demo,
-              reservation_id: reservationId,
-            };
-          }
-        } catch (err) {
-          throw new Error('Failed to create payment order');
+      // If backend lock response does not include a payment order, create one explicitly.
+      if (!order && requiresPayment && lockRes.data?.reservation_id) {
+        setPaymentStatus('Creating Razorpay order...');
+        const orderRes = await bookingService.createPaymentOrder(lockRes.data.reservation_id);
+        if (orderRes?.success && orderRes?.data?.order_id) {
+          order = {
+            id: orderRes.data.order_id,
+            amount: orderRes.data.amount,
+            currency: orderRes.data.currency,
+            key_id: orderRes.data.key_id,
+            demo: orderRes.data.demo,
+            reservation_id: lockRes.data.reservation_id,
+          };
         }
       }
 
       if (order) {
+        order = {
+          ...order,
+          reservation_id: order.reservation_id || lockRes.data?.reservation_id,
+        };
         if (order.demo) {
           setError('Razorpay is in demo mode. Add valid test keys and set RAZORPAY_DEMO_MODE=false on the backend.');
           await cancelPendingPayment(order, 'demo_mode_blocked');
@@ -390,10 +303,6 @@ const BookingWizard = () => {
         startTime: bookingData.time,
       });
       
-      setShowTimer(false);
-      setLockedSlotTime(null);
-      setReservationId(null);
-
       navigate('/confirmation', {
         state: {
           booking: {
@@ -410,17 +319,6 @@ const BookingWizard = () => {
       setPaymentStatus('');
       setIsLoading(false);
     }
-  };
-
-  /**
-   * Handle timer expiration - lock expired, reset to slot selection
-   */
-  const handleTimerExpired = () => {
-    setShowTimer(false);
-    setLockedSlotTime(null);
-    setReservationId(null);
-    setError('Your slot lock has expired. Please try booking again.');
-    setStep(1);
   };
 
   // --- Calendar Helpers ---
@@ -624,16 +522,6 @@ const BookingWizard = () => {
               <p className="text-gray-500 mt-2 font-medium">Please provide your contact information to confirm your booking.</p>
             </div>
 
-            {/* Timer - shown at top when slot is locked */}
-            {showTimer && lockedSlotTime && (
-              <SlotTimer 
-                serviceId={serviceId} 
-                startTime={lockedSlotTime}
-                isVisible={true}
-                onExpired={handleTimerExpired}
-              />
-            )}
-
             <div className="space-y-8 py-4">
               <div className="grid grid-cols-1 md:grid-cols-3 items-center gap-4">
                 <label className="font-bold text-gray-700">Full Name</label>
@@ -695,32 +583,13 @@ const BookingWizard = () => {
                   {paymentStatus}
                 </p>
               )}
-              {showTimer && lockedSlotTime && (
-                <div className="w-full max-w-md">
-                  <SlotTimer
-                    serviceId={serviceId}
-                    startTime={lockedSlotTime}
-                    isVisible={showTimer}
-                    onExpired={() => {
-                      setShowTimer(false);
-                      setError('Your slot lock has expired. Please try booking again.');
-                    }}
-                  />
-                </div>
-              )}
               {requiresPayment && (
                 <p className="max-w-md text-center text-xs font-bold text-gray-400">
                   Razorpay test mode: use UPI ID success@razorpay or a Razorpay test card. Real UPI apps can fail in test mode.
                 </p>
               )}
               <button 
-                onClick={() => {
-                  setStep(1);
-                  setShowTimer(false);
-                  setLockedSlotTime(null);
-                  setReservationId(null);
-                  setError('');
-                }}
+                onClick={() => setStep(1)}
                 className="text-gray-400 hover:text-primary font-bold transition-all uppercase tracking-widest text-xs"
               >
                 ← Back to selection

@@ -1,11 +1,11 @@
 const crypto = require('crypto');
 const { query, pool } = require('../config/db');
-const { redisSetNX, redisGet, redisDel, isRedisAvailable, redisTTL } = require('../config/redis');
+const { redisSetNX, redisGet, redisDel, isRedisAvailable } = require('../config/redis');
 const { env } = require('../config/env');
 const { AppError } = require('../middleware/error.middleware');
 const { createRazorpayOrder, verifyRazorpaySignature } = require('./payment.service');
 
-const LOCK_TTL_SECONDS = 120; // 2 minutes
+const LOCK_TTL_SECONDS = 600; // 10 minutes
 
 /**
  * Generate 8-character alphanumeric confirmation code.
@@ -493,46 +493,6 @@ const updateProviderBookingStatus = async (booking_id, user_id, status) => {
   return result.rows[0];
 };
 
-/**
- * Get remaining time for a slot lock.
- * Returns the TTL in seconds for the active Redis lock on a slot.
- * If no lock or slot doesn't exist, returns 0.
- */
-const getSlotTimerInfo = async (user_id, facility_id, start_time) => {
-  try {
-    const slotStart = new Date(start_time);
-    
-    // Find the slot
-    const slotResult = await query(
-      'SELECT id FROM time_slots WHERE facility_id = $1 AND slot_start = $2',
-      [facility_id, slotStart.toISOString()]
-    );
-
-    if (slotResult.rows.length === 0) {
-      return { locked: false, remaining_seconds: 0, lock_ttl: LOCK_TTL_SECONDS };
-    }
-
-    const slot = slotResult.rows[0];
-    const lockKey = `slot:lock:${slot.id}:${user_id}`;
-
-    if (!isRedisAvailable()) {
-      return { locked: false, remaining_seconds: 0, lock_ttl: LOCK_TTL_SECONDS };
-    }
-
-    // Get TTL using Redis TTL command (returns -1 if key doesn't exist, -2 if expired)
-    const ttl = await redisTTL(lockKey);
-
-    return {
-      locked: ttl > 0,
-      remaining_seconds: Math.max(0, ttl),
-      lock_ttl: LOCK_TTL_SECONDS,
-    };
-  } catch (err) {
-    // If error occurs, assume lock is expired
-    return { locked: false, remaining_seconds: 0, lock_ttl: LOCK_TTL_SECONDS };
-  }
-};
-
 module.exports = {
   lockSlot,
   createBooking,
@@ -545,6 +505,5 @@ module.exports = {
   updateProviderBookingStatus,
   verifyAndConfirmBooking,
   confirmBookingByOrderId,
-  releasePendingPaymentReservation,
-  getSlotTimerInfo
+  releasePendingPaymentReservation
 };

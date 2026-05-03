@@ -25,14 +25,6 @@ router.post(
   bookingController.lockSlot
 );
 
-// GET /api/bookings/timer — get remaining time for slot lock [auth: customer]
-router.get(
-  '/timer',
-  verifyToken,
-  requireRole('customer'),
-  bookingController.getSlotTimer
-);
-
 // POST /api/bookings — create booking [auth: customer]
 router.post(
   '/',

@@ -143,31 +143,6 @@ const verifyPayment = async (req, res, next) => {
   }
 };
 
-/**
- * Get remaining time for a slot lock
- * GET /api/bookings/timer?service_id=xxx&start_time=xxx
- */
-const getSlotTimer = async (req, res, next) => {
-  try {
-    const { service_id, start_time } = req.query;
-
-    if (!service_id || !start_time) {
-      return res.status(400).json({
-        success: false,
-        error: {
-          code: 'VALIDATION_ERROR',
-          message: 'service_id and start_time are required.',
-        },
-      });
-    }
-
-    const result = await bookingService.getSlotTimerInfo(req.user.user_id, service_id, start_time);
-    res.json({ success: true, data: result });
-  } catch (err) {
-    next(err);
-  }
-};
-
 module.exports = {
   lockSlot,
   createBooking,
@@ -179,5 +154,4 @@ module.exports = {
   confirmBooking,
   updateProviderBookingStatus,
   verifyPayment,
-  getSlotTimer,
 };

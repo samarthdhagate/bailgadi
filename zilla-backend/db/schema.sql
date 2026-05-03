@@ -111,6 +111,7 @@ CREATE TABLE facilities (
     CHECK (booking_mode IN ('slot', 'queue')),
   status           VARCHAR(20)   NOT NULL DEFAULT 'draft'
     CHECK (status IN ('draft', 'published', 'unpublished')),
+  location         TEXT,
   share_token      VARCHAR(64)   UNIQUE DEFAULT encode(gen_random_bytes(32), 'hex'),
   config           JSONB         NOT NULL DEFAULT '{}',
   config_version   INTEGER       NOT NULL DEFAULT 1,
