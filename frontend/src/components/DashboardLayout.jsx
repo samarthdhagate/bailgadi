@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, Calendar, User, Settings, LayoutDashboard, Briefcase, FileText } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
+import { LogOut, User, LayoutDashboard, Briefcase, FileText } from 'lucide-react';
+import { useAuth } from '../context/useAuth';
 
 const DashboardLayout = ({ children, title }) => {
   const { logout, user, role } = useAuth();

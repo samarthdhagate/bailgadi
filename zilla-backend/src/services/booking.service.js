@@ -98,7 +98,7 @@ const lockSlot = async (user_id, facility_id, start_time, attendee_count = 1) =>
           id: p.order_id,
           amount: Math.round(p.amount * 100),
           currency: p.currency,
-          key_id: process.env.RAZORPAY_KEY_ID
+          key_id: env.RAZORPAY_KEY_ID,
         };
       }
 
@@ -142,29 +142,39 @@ const lockSlot = async (user_id, facility_id, start_time, attendee_count = 1) =>
     );
     
     if (facilityPaymentRes.rows[0]?.advance_payment && reservation.frozen_price > 0) {
-      const amountInPaise = Math.round(reservation.frozen_price * 100);
-      const order = await createRazorpayOrder(amountInPaise, `res_${reservation.id}`);
-      
-      await dbClient.query(
-        `INSERT INTO payments (reservation_id, amount, currency, status, order_id)
-         VALUES ($1, $2, $3, $4, $5)`,
-        [reservation.id, reservation.frozen_price, 'INR', 'pending', order.id]
-      );
+      try {
+        const amountInPaise = Math.round(reservation.frozen_price * 100);
+        const order = await createRazorpayOrder(amountInPaise, `res_${reservation.id}`);
+        
+        await query(
+          `INSERT INTO payments (reservation_id, amount, currency, status, order_id)
+           VALUES ($1, $2, $3, $4, $5)`,
+          [reservation.id, reservation.frozen_price, 'INR', 'pending', order.id]
+        );
 
-      response.payment_order = {
-        id: order.id,
-        amount: order.amount,
-        currency: order.currency,
-        key_id: env.RAZORPAY_KEY_ID
-      };
+        response.payment_order = {
+          id: order.id,
+          amount: order.amount,
+          currency: order.currency,
+          key_id: env.RAZORPAY_KEY_ID
+        };
+      } catch (orderErr) {
+        console.error('Payment order creation failed, rolling back reservation:', orderErr);
+        // Explicitly release the reservation so slot is not blocked
+        await query(
+          "UPDATE reservations SET status = 'released' WHERE id = $1",
+          [reservation.id]
+        );
+        throw new AppError('Failed to initiate payment. Please try again.', 500, 'PAYMENT_INIT_FAILED');
+      }
     }
 
     return response;
   } catch (err) {
-    await dbClient.query('ROLLBACK');
+    if (dbClient) await dbClient.query('ROLLBACK');
     throw err;
   } finally {
-    dbClient.release();
+    if (dbClient) dbClient.release();
   }
 };
 
@@ -271,6 +281,18 @@ const createBooking = async (user_id, facility_id, start_time, notes) => {
     );
     const reservation = reservationRes.rows[0];
 
+    const pendingPayment = await dbClient.query(
+      `SELECT id FROM payments WHERE reservation_id = $1 AND status = 'pending' LIMIT 1`,
+      [reservation.id]
+    );
+    if (pendingPayment.rows.length > 0) {
+      throw new AppError(
+        'This booking requires payment. Complete Razorpay checkout, then verify payment.',
+        402,
+        'PAYMENT_REQUIRED'
+      );
+    }
+
     const confirmationCode = generateConfirmationCode();
     const bookingRes = await dbClient.query(
       `INSERT INTO bookings (customer_id, facility_id, slot_id, reservation_id, attendee_count, total_price, answers, confirmation_code)
@@ -372,12 +394,16 @@ const cancelBooking = async (booking_id, user_id, user_role) => {
 };
 
 const rescheduleBooking = async (booking_id, user_id, new_start_time) => {
-  // Use the stored procedure if possible, but let's implement it in JS for flexibility
-  // For brevity, we'll implement a basic version that leverages our existing logic
-  const bookingRes = await query('SELECT facility_id FROM bookings WHERE id = $1', [booking_id]);
+  const bookingRes = await query(
+    'SELECT facility_id, customer_id FROM bookings WHERE id = $1',
+    [booking_id]
+  );
   if (bookingRes.rows.length === 0) throw new AppError('Booking not found.', 404);
-  
-  const facility_id = bookingRes.rows[0].facility_id;
+
+  const { facility_id, customer_id } = bookingRes.rows[0];
+  if (customer_id !== user_id) {
+    throw new AppError('You do not have access to reschedule this booking.', 403, 'FORBIDDEN');
+  }
   
   // 1. Lock the new slot
   const lockResult = await lockSlot(user_id, facility_id, new_start_time);
@@ -423,5 +449,6 @@ module.exports = {
   cancelBooking,
   rescheduleBooking,
   confirmBooking,
-  verifyAndConfirmBooking
+  verifyAndConfirmBooking,
+  confirmBookingByOrderId,
 };

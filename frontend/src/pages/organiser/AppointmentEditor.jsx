@@ -1,10 +1,8 @@
 import React, { useState, useEffect, useReducer, useRef } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { Calendar, Trash2, Plus, ArrowRight, Save, Eye, Send, Upload, X, UserPlus, Users as UsersIcon, MapPin, Clock, ChevronRight, Settings2, Loader2 } from 'lucide-react';
+import { Calendar, Trash2, Plus, Save, Eye, Send, Upload, X, UserPlus, MapPin, Clock, ChevronRight, Loader2 } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
-import Card from '../../components/Card';
 import Button from '../../components/Button';
-import Input from '../../components/Input';
 import QuestionBuilder from '../../components/QuestionBuilder';
 import { organiserService } from '@services/organiser';
 

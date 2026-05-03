@@ -1,8 +1,8 @@
-import React, { createContext, useContext, useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { authService } from '@services/auth';
+import { AuthContext } from './auth-context';
 
-const AuthContext = createContext(null);
 const getStoredUser = () => {
   const token = localStorage.getItem('token');
   const role = localStorage.getItem('role');
@@ -27,19 +27,24 @@ const getStoredUser = () => {
 };
 
 export const AuthProvider = ({ children }) => {
-  const isDev = import.meta.env.MODE === 'development';
+  const devBypassEnabled =
+    import.meta.env.MODE === 'development' && import.meta.env.VITE_AUTH_BYPASS === 'true';
 
-  const [token, setToken] = useState(() => localStorage.getItem('token') || (isDev ? 'bypass-token' : null));
-  const [role, setRole] = useState(() => localStorage.getItem('role') || (isDev ? 'organiser' : null));
+  const [token, setToken] = useState(
+    () => localStorage.getItem('token') || (devBypassEnabled ? 'bypass-token' : null)
+  );
+  const [role, setRole] = useState(
+    () => localStorage.getItem('role') || (devBypassEnabled ? 'organiser' : null)
+  );
   const [user, setUser] = useState(() => {
     const stored = getStoredUser();
     if (stored) return stored;
-    if (isDev) {
+    if (devBypassEnabled) {
       return {
         id: 'bypass-id',
         name: 'Bypass Admin',
         email: 'admin@zilla.dev',
-        role: 'organiser'
+        role: 'organiser',
       };
     }
     return null;
@@ -97,12 +102,4 @@ export const AuthProvider = ({ children }) => {
       {children}
     </AuthContext.Provider>
   );
-};
-
-export const useAuth = () => {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
-  return context;
 };

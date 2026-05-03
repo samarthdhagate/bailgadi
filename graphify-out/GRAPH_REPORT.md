@@ -1,141 +1,141 @@
 # Graph Report - C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla  (2026-05-02)
 
 ## Corpus Check
-- Corpus is ~26,461 words - fits in a single context window. You may not need a graph.
+- Corpus is ~31,387 words - fits in a single context window. You may not need a graph.
 
 ## Summary
-- 387 nodes · 745 edges · 94 communities detected
+- 472 nodes · 853 edges · 130 communities detected
 - Extraction: 100% EXTRACTED · 0% INFERRED · 0% AMBIGUOUS
 - Token cost: 0 input · 0 output
 
 ## Structure Signals
-- Entity graph basis: 309 non-file, non-concept node(s)
-- Weakly connected components: 53
-- Singleton components: 41
-- Isolated nodes: 41
-- Largest component: 116 node(s) (38% of the entity graph basis)
-- Low-cohesion communities: 0
-- Largest low-cohesion community: none on the entity graph basis
+- Entity graph basis: 371 non-file, non-concept node(s)
+- Weakly connected components: 67
+- Singleton components: 51
+- Isolated nodes: 51
+- Largest component: 134 node(s) (36% of the entity graph basis)
+- Low-cohesion communities: 2
+- Largest low-cohesion community: 42 node(s) (cohesion 0.09)
 
 ## Workspace Bridges
-1. `App\(\)` - connects `Frontend Admin Dashboard`, `Frontend App`, `Frontend App — Admin`, `Frontend App — Layout`, `Frontend App — Navigate`, `Frontend App — Organiser`, `Frontend App — Settings`, `Frontend Auth Context`, `Frontend Auth Layout`, `Frontend Meetings`, `Frontend Reporting — Fetch`, `Frontend Resource Editor`, `Frontend Settings Page`, `Frontend User Editor`, `Frontend User Management — Fetch`; home: `Frontend App — App`; degree 16; score 9636.92
-  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/App.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/context/AuthContext.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/admin/UserManagement.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/AuthLayout.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/Meetings.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/Reporting.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/ResourceEditor.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/UserEditor.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/SettingsPage.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/routes/ProtectedRoute.jsx`
-2. `/ \(layout\)` - connects `Frontend App — App`, `Frontend App — Meetings`, `Frontend App — Reporting`, `Frontend App — Resource`, `Frontend App — Settings`, `Frontend App — User`; home: `Frontend App — Organiser`; degree 8; score 3211.25
+1. `App\(\)` - connects `Frontend App`, `Frontend App — Admin`, `Frontend App — Appointment`, `Frontend App — Dashboard`, `Frontend App — Landing`, `Frontend App — Layout`, `Frontend App — Navigate`, `Frontend Appointment Editor`, `Frontend Appointment List`, `Frontend Auth Context`, `Frontend Auth Layout`, `Frontend Booking Confirmation`, `Frontend Booking Wizard`, `Frontend Chatbot Frame`, `Frontend Landing Page — Landing`, `Frontend Login Page`, `Frontend My Bookings`, `Frontend Signup Page`; home: `Frontend App — App`; degree 20; score 15389.68
+  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/App.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/components/ChatWidget.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/context/AuthContext.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/AuthLayout.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/GoogleCallback.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/LoginPage.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/SignupPage.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/BookingConfirmation.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/BookingWizard.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/CustomerDashboard.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/MyBookings.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/LandingPage.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/AppointmentEditor.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/AppointmentList.jsx`
+2. `app` - connects `Zilla Backend Ai Routes`, `Zilla Backend Auth Routes`, `Zilla Backend Availability Routes`, `Zilla Backend Booking Routes`, `Zilla Backend Payment Routes`, `Zilla Backend Resource Routes`, `Zilla Backend Service Routes`; home: `Zilla Backend App`; degree 57; score 9063.59
+  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/app.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/ai.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/auth.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/availability.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/booking.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/payment.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/resource.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/service.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\ai.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\auth.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\availability.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\booking.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\payment.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\resource.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\service.routes.js`
+3. `/ \(layout\)` - connects `Frontend App`, `Frontend App — App`, `Frontend App — Editor`, `Frontend App — Meetings`, `Frontend App — Reporting`, `Frontend App — Resource`, `Frontend App — User`; home: `Frontend App — Appointment`; degree 8; score 4359.75
   source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/App.jsx`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\routes\\ProtectedRoute.jsx`
-3. `app` - connects `Zilla Backend Auth Routes`, `Zilla Backend Availability Routes`, `Zilla Backend Booking Routes`, `Zilla Backend Payment Routes`, `Zilla Backend Service Routes`; home: `Zilla Backend App`; degree 49; score 6407.16
-  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/app.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/auth.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/availability.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/booking.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/payment.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/service.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\auth.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\availability.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\booking.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\payment.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\service.routes.js`
-4. `verifyToken\(\)` - connects `Zilla Backend Availability Routes`, `Zilla Backend Booking Routes`, `Zilla Backend Payment Routes`, `Zilla Backend Service Routes`; home: `Zilla Backend App`; degree 36; score 3883.24
-  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/middleware/auth.middleware.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/availability.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/booking.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/payment.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/service.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\availability.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\booking.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\payment.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\service.routes.js`
-5. `validateRequest\(\)` - connects `Zilla Backend Auth Routes`, `Zilla Backend Booking Routes`, `Zilla Backend Payment Routes`, `Zilla Backend Service Routes`; home: `Zilla Backend App`; degree 34; score 3266.06
-  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/auth.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/booking.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/helpers/validation.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/payment.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/service.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\auth.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\booking.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\payment.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\service.routes.js`
-6. `Card\(\)` - connects `Frontend Meetings`, `Frontend Reporting — Fetch`, `Frontend Settings Page`, `Frontend User Management — Fetch`; home: `Frontend Admin Dashboard`; degree 4; score 2828.64
-  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/components/Card.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/admin/UserManagement.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/Meetings.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/Reporting.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/SettingsPage.jsx`
+4. `Button\(\)` - connects `Frontend Appointment Editor`, `Frontend Booking Confirmation`, `Frontend Booking Wizard`, `Frontend Login Page`, `Frontend Question Builder`, `Frontend Signup Page`; home: `Frontend Appointment List`; degree 8; score 1151.7
+  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/components/Button.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/components/QuestionBuilder.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/LoginPage.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/SignupPage.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/BookingConfirmation.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/BookingWizard.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/CustomerDashboard.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/AppointmentEditor.jsx`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/AppointmentList.jsx`
+5. `verifyToken\(\)` - connects `Zilla Backend Ai Routes`, `Zilla Backend Availability Routes`, `Zilla Backend Booking Routes`, `Zilla Backend Payment Routes`, `Zilla Backend Service Routes`; home: `Zilla Backend App`; degree 36; score 4315.64
+  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/middleware/auth.middleware.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/ai.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/availability.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/booking.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/payment.routes.js`, `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/zilla-backend/src/routes/service.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\ai.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\availability.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\booking.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\payment.routes.js`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\zilla-backend\\src\\routes\\service.routes.js`
+6. `/ \(layout\)` - connects `Frontend App`, `Frontend App — App`, `Frontend App — Booking`, `Frontend App — Bookings`, `Frontend App — Confirmation`; home: `Frontend App — Dashboard`; degree 6; score 2953.75
+  source files: `C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/App.jsx`, `C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\routes\\ProtectedRoute.jsx`
 
 ## God Nodes
-1. `app` - 50 edges
+1. `app` - 58 edges
 2. `verifyToken\(\)` - 37 edges
 3. `validateRequest\(\)` - 35 edges
-4. `App\(\)` - 17 edges
-5. `Button\(\)` - 15 edges
-6. `Card\(\)` - 15 edges
-7. `AppointmentEditor\(\)` - 13 edges
-8. `DashboardLayout\(\)` - 10 edges
-9. `Loader\(\)` - 10 edges
-10. `router` - 10 edges
+4. `App\(\)` - 22 edges
+5. `Button\(\)` - 18 edges
+6. `AppointmentEditor\(\)` - 16 edges
+7. `BookingWizard\(\)` - 14 edges
+8. `MyBookings\(\)` - 13 edges
+9. `router` - 13 edges
+10. `AppointmentList\(\)` - 12 edges
 
 ## Surprising Connections
-- `page /admin/AdminDashboard` --renders--> `AdminDashboard\(\)`  [EXTRACTED]
-  C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\admin\\AdminDashboard.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/admin/AdminDashboard.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /admin/AdminDashboard\` unexpectedly reaches hub \`AdminDashboard\(\)\`_
 - `page /SettingsPage` --renders--> `SettingsPage\(\)`  [EXTRACTED]
   C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\SettingsPage.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/SettingsPage.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /SettingsPage\` unexpectedly reaches hub \`SettingsPage\(\)\`_
-- `page /admin/UserManagement` --renders--> `UserManagement\(\)`  [EXTRACTED]
-  C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\admin\\UserManagement.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/admin/UserManagement.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /admin/UserManagement\` unexpectedly reaches hub \`UserManagement\(\)\`_
-- `page /organiser/Reporting` --renders--> `Reporting\(\)`  [EXTRACTED]
-  C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\organiser\\Reporting.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/organiser/Reporting.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /organiser/Reporting\` unexpectedly reaches hub \`Reporting\(\)\`_
-- `page /customer/BookingWizard` --renders--> `BookingWizard\(\)`  [EXTRACTED]
-  C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingWizard.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/BookingWizard.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /customer/BookingWizard\` unexpectedly reaches hub \`BookingWizard\(\)\`_
+- `page /auth/GoogleCallback` --renders--> `GoogleCallback\(\)`  [EXTRACTED]
+  C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\auth\\GoogleCallback.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/GoogleCallback.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /auth/GoogleCallback\` unexpectedly reaches hub \`GoogleCallback\(\)\`_
+- `page /auth/LoginPage` --renders--> `LoginPage\(\)`  [EXTRACTED]
+  C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\auth\\LoginPage.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/LoginPage.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /auth/LoginPage\` unexpectedly reaches hub \`LoginPage\(\)\`_
+- `page /auth/SignupPage` --renders--> `SignupPage\(\)`  [EXTRACTED]
+  C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\auth\\SignupPage.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/auth/SignupPage.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /auth/SignupPage\` unexpectedly reaches hub \`SignupPage\(\)\`_
+- `page /customer/BookingConfirmation` --renders--> `BookingConfirmation\(\)`  [EXTRACTED]
+  C:\\1\_PROGRAMMING\\0\_Projects\\Zilla\\Zilla\\frontend\\src\\pages\\customer\\BookingConfirmation.jsx → C:/1\_PROGRAMMING/0\_Projects/Zilla/Zilla/frontend/src/pages/customer/BookingConfirmation.jsx  _connects across different repos/directories; bridges separate communities; peripheral node \`page /customer/BookingConfirmation\` unexpectedly reaches hub \`BookingConfirmation\(\)\`_
 
 ## Semantic Anomalies
-- **[HIGH] Bridge node** - App\(\) bridges Frontend App — App and Zilla Backend App, Frontend Auth Context, Frontend Auth Layout, Frontend Admin Dashboard, Frontend Meetings, Frontend Reporting — Fetch, Frontend Resource Editor, Frontend User Editor, Frontend User Management — Fetch, Frontend Settings Page, Frontend App — Layout, Frontend App, Frontend App — Organiser, Frontend App — Admin, Frontend App — Settings, Frontend App — Navigate.
-  _High betweenness centrality \(9470.920\) across 17 communities makes this node a likely dependency chokepoint._
-- **[HIGH] Bridge node** - app bridges Zilla Backend App and Zilla Backend Auth Routes, Zilla Backend Service Routes, Zilla Backend Availability Routes, Zilla Backend Booking Routes, Zilla Backend Payment Routes.
-  _High betweenness centrality \(6308.162\) across 6 communities makes this node a likely dependency chokepoint._
-- **[HIGH] Bridge node** - verifyToken\(\) bridges Zilla Backend App and Zilla Backend Auth Middleware, Zilla Backend Availability Routes, Zilla Backend Booking Routes, Zilla Backend Payment Routes, Zilla Backend Service Routes.
-  _High betweenness centrality \(3807.237\) across 6 communities makes this node a likely dependency chokepoint._
-- **[HIGH] Cross-boundary edge** - / \(layout\) → ProtectedRoute\(\) crosses graph boundaries in an unexpected way.
-  _connects across different repos/directories; bridges separate communities_
-- **[HIGH] Cross-boundary edge** - page /admin/AdminDashboard → AdminDashboard\(\) crosses graph boundaries in an unexpected way.
-  _connects across different repos/directories; bridges separate communities; peripheral node \`page /admin/AdminDashboard\` unexpectedly reaches hub \`AdminDashboard\(\)\`_
+- **[HIGH] Bridge node** - App\(\) bridges Frontend App — App and Zilla Backend App, Frontend Auth Context, Frontend Auth Layout, Frontend Login Page, Frontend Signup Page, Frontend Appointment List, Frontend My Bookings, Frontend Booking Wizard, Frontend Booking Confirmation, Frontend Appointment Editor, Frontend Landing Page — Landing, Frontend Chatbot Frame, Frontend App — Layout, Frontend App — Dashboard, Frontend App — Appointment, Frontend App — Admin, Frontend App, Frontend App — Landing, Frontend App — Navigate.
+  _High betweenness centrality \(15189.682\) across 20 communities makes this node a likely dependency chokepoint._
+- **[HIGH] Bridge node** - app bridges Zilla Backend App and Zilla Backend Auth Routes, Zilla Backend Service Routes, Zilla Backend Availability Routes, Zilla Backend Booking Routes, Zilla Backend Payment Routes, Zilla Backend Resource Routes, Zilla Backend Ai Routes.
+  _High betweenness centrality \(8936.592\) across 8 communities makes this node a likely dependency chokepoint._
+- **[HIGH] Bridge node** - / \(layout\) bridges Frontend App — Appointment and Frontend App — App, Frontend App, Frontend App — Editor, Frontend App — Meetings, Frontend App — Reporting, Frontend App — Resource, Frontend App — User.
+  _High betweenness centrality \(4281.750\) across 8 communities makes this node a likely dependency chokepoint._
+- **[HIGH] Low-cohesion community** - Zilla Backend App is weakly connected for its size.
+  _Cohesion score 0.09 across 42 nodes suggests this community may mix unrelated responsibilities._
+- **[HIGH] Cross-boundary edge** - page /auth/GoogleCallback → GoogleCallback\(\) crosses graph boundaries in an unexpected way.
+  _connects across different repos/directories; bridges separate communities; peripheral node \`page /auth/GoogleCallback\` unexpectedly reaches hub \`GoogleCallback\(\)\`_
 
 ## Communities
 
 ### Community 0 - "Zilla Backend App"
-Cohesion (entity basis within full-graph community): 0.07
-Nodes (50): verifyToken\(\), app, GET /health, DELETE /api/services/:id, GET /api/availability, GET /api/availability/working-hours, GET /api/bookings/all, GET /api/bookings/my (+42 more)
-
-### Community 1 - "Frontend Admin Dashboard"
 Cohesion (entity basis within full-graph community): 0.06
-Nodes (15): AdminDashboard\(\), fetch\(\), reducer\(\), getStoredUser\(\), useAuth\(\), Button\(\), Card\(\), DashboardLayout\(\) (+7 more)
+Nodes (56): verifyToken\(\), app, GET /health, DELETE /api/services/:id, GET /api/auth/google, GET /api/auth/google/callback, GET /api/availability, GET /api/availability/working-hours (+48 more)
 
-### Community 2 - "Frontend Appointment Editor"
+### Community 1 - "Frontend Appointment List"
+Cohesion (entity basis within full-graph community): 0.1
+Nodes (19): reducer\(\), AppointmentList\(\), fetchAppointments\(\), handleDelete\(\), handleTogglePublish\(\), getStoredUser\(\), useAuth\(\), processQueue\(\) (+11 more)
+
+### Community 2 - "Zilla Backend Auth Routes"
+Cohesion (entity basis within full-graph community): 0.17
+Nodes (12): router, GET /google, GET /google/callback, POST /forgot-password, POST /google, POST /login, POST /logout, POST /refresh (+4 more)
+
+### Community 3 - "Frontend Appointment Editor"
 Cohesion (entity basis within full-graph community): 0.31
 Nodes (10): AppointmentEditor\(\), addAvailabilityLine\(\), addNewUser\(\), fetchService\(\), handleImageUpload\(\), handleSave\(\), removeAvailabilityLine\(\), toggleUserSelection\(\) (+2 more)
-
-### Community 3 - "Zilla Backend Auth Routes"
-Cohesion (entity basis within full-graph community): 0.22
-Nodes (9): router, POST /forgot-password, POST /login, POST /logout, POST /refresh, POST /reset-password, POST /signup, POST /verify-otp (+1 more)
 
 ### Community 4 - "Zilla Backend Booking Routes"
 Cohesion (entity basis within full-graph community): 0.22
 Nodes (9): router, GET /all, GET /my, GET /provider, PATCH /:id/cancel, PATCH /:id/confirm, PATCH /:id/reschedule, POST / (+1 more)
 
-### Community 5 - "Zilla Backend Booking Controller"
+### Community 5 - "Zilla Backend Auth Controller"
+Cohesion (entity basis within full-graph community): 0
+Nodes (8): forgotPassword\(\), initGoogleAuth\(\), login\(\), logout\(\), refresh\(\), resetPassword\(\), signup\(\), verifyOTP\(\)
+
+### Community 6 - "Zilla Backend Booking Controller"
 Cohesion (entity basis within full-graph community): 0
 Nodes (8): cancelBooking\(\), confirmBooking\(\), createBooking\(\), getAllBookings\(\), getMyBookings\(\), getProviderBookings\(\), lockSlot\(\), rescheduleBooking\(\)
 
-### Community 6 - "Zilla Backend Service Routes"
+### Community 7 - "Zilla Backend Service Routes"
 Cohesion (entity basis within full-graph community): 0.25
 Nodes (8): DELETE /:id, router, GET /, GET /:id, GET /my, PATCH /:id/publish, POST /, PUT /:id
 
-### Community 7 - "Zilla Backend Auth Controller"
-Cohesion (entity basis within full-graph community): 0
-Nodes (7): forgotPassword\(\), login\(\), logout\(\), refresh\(\), resetPassword\(\), signup\(\), verifyOTP\(\)
-
-### Community 8 - "Zilla Backend Booking Service"
-Cohesion (entity basis within full-graph community): 0
-Nodes (7): cancelBooking\(\), confirmBooking\(\), getAllBookings\(\), getMyBookings\(\), getProviderBookings\(\), lockSlot\(\), rescheduleBooking\(\)
-
-### Community 9 - "Zilla Backend Service Controller"
+### Community 8 - "Zilla Backend Service Controller"
 Cohesion (entity basis within full-graph community): 0
 Nodes (7): create\(\), getById\(\), listMine\(\), listPublished\(\), remove\(\), togglePublish\(\), update\(\)
 
-### Community 10 - "Frontend Question Builder"
+### Community 9 - "Frontend Question Builder"
 Cohesion (entity basis within full-graph community): 0.29
 Nodes (7): QuestionBuilder\(\), addOptionField\(\), addQuestion\(\), handleOptionChange\(\), removeOptionField\(\), removeQuestion\(\), updateQuestion\(\)
 
-### Community 11 - "Frontend Booking Wizard"
+### Community 10 - "Zilla Backend Redis"
+Cohesion (entity basis within full-graph community): 0.33
+Nodes (6): isRedisAvailable\(\), redisDel\(\), redisExists\(\), redisGet\(\), redisMGet\(\), redisSetNX\(\)
+
+### Community 11 - "Zilla Backend Booking Service"
+Cohesion (entity basis within full-graph community): 0
+Nodes (5): cancelBooking\(\), confirmBooking\(\), getAllBookings\(\), getMyBookings\(\), getProviderBookings\(\)
+
+### Community 12 - "Frontend Booking Wizard"
 Cohesion (entity basis within full-graph community): 0.47
 Nodes (6): BookingWizard\(\), fetchSlots\(\), init\(\), renderCalendar\(\), renderStep\(\), renderUnifiedSelection\(\)
 
-### Community 12 - "Zilla Backend Auth Service"
+### Community 13 - "Frontend Chatbot Frame"
+Cohesion (entity basis within full-graph community): 0.5
+Nodes (4): ChatbotFrame\(\), handleSend\(\), scrollToBottom\(\), ChatWidget\(\)
+
+### Community 14 - "Zilla Backend Auth Service"
 Cohesion (entity basis within full-graph community): 0
 Nodes (4): logout\(\), logoutByRefreshToken\(\), resetPassword\(\), verifyOTP\(\)
 
-### Community 13 - "Zilla Backend Availability Routes"
+### Community 15 - "Zilla Backend Availability Routes"
 Cohesion (entity basis within full-graph community): 0.5
 Nodes (4): router, GET /, GET /working-hours, POST /working-hours
 
-### Community 14 - "Frontend App"
+### Community 16 - "Frontend Login Page"
 Cohesion (entity basis within full-graph community): 0.4
-Nodes (5): / \(layout\), /booking/:serviceId, /bookings, /confirmation, /dashboard
-
-### Community 15 - "Zilla Backend Payment Routes"
-Cohesion (entity basis within full-graph community): 0.5
-Nodes (4): router, POST /create-order, POST /verify, POST /webhook
-
-### Community 16 - "Frontend Chatbot Frame"
-Cohesion (entity basis within full-graph community): 0.4
-Nodes (5): ChatbotFrame\(\), handleSend\(\), scrollToBottom\(\), CustomerDashboard\(\), fetchServices\(\)
+Nodes (5): LoginPage\(\), handleDemoAccess\(\), handleGoogleLogin\(\), handleGoogleSuccess\(\), handleSubmit\(\)
 
 ### Community 17 - "Zilla Backend Mailer"
 Cohesion (entity basis within full-graph community): 0.5
@@ -145,326 +145,488 @@ Nodes (4): sendBookingConfirmation\(\), sendCancellationNotice\(\), sendEmail\(\
 Cohesion (entity basis within full-graph community): 0.4
 Nodes (5): MyBookings\(\), formatDate\(\), formatTime\(\), getStatusIcon\(\), getStatusStyle\(\)
 
-### Community 19 - "Zilla Backend Redis"
-Cohesion (entity basis within full-graph community): 0
-Nodes (4): redisDel\(\), redisExists\(\), redisGet\(\), redisSetNX\(\)
-
-### Community 20 - "Zilla Backend Availability Controller"
+### Community 19 - "Zilla Backend Availability Controller"
 Cohesion (entity basis within full-graph community): 0
 Nodes (3): getSlots\(\), getWorkingHours\(\), setWorkingHours\(\)
 
-### Community 21 - "Zilla Backend Availability Service"
+### Community 20 - "Zilla Backend Availability Service"
 Cohesion (entity basis within full-graph community): 0
 Nodes (3): getAvailableSlots\(\), getWorkingHours\(\), setWorkingHours\(\)
 
-### Community 22 - "Frontend App — Layout"
-Cohesion (entity basis within full-graph community): 0.5
-Nodes (4): / \(layout\), /login, /signup, AuthLayout\(\)
-
-### Community 23 - "Frontend App — Settings"
+### Community 21 - "Frontend App"
 Cohesion (entity basis within full-graph community): 0.5
 Nodes (4): / \(layout\), /settings, SettingsPage\(\), ProtectedRoute\(\)
 
-### Community 24 - "Zilla Backend Notification Service"
+### Community 22 - "Zilla Backend Payment Routes"
+Cohesion (entity basis within full-graph community): 0.67
+Nodes (3): router, POST /verify, POST /webhook
+
+### Community 23 - "Zilla Backend Notification Service"
 Cohesion (entity basis within full-graph community): 0
 Nodes (3): sendBookingConfirmation\(\), sendCancellationNotice\(\), sendOTP\(\)
 
-### Community 25 - "Zilla Backend Overlap"
+### Community 24 - "Zilla Backend Overlap"
 Cohesion (entity basis within full-graph community): 0
 Nodes (3): countOverlapping\(\), hasOverlap\(\), intervalsOverlap\(\)
 
-### Community 26 - "Zilla Backend Payment Controller"
+### Community 25 - "Zilla Backend Payment Service"
 Cohesion (entity basis within full-graph community): 0
-Nodes (3): createOrder\(\), verifyPayment\(\), webhook\(\)
+Nodes (3): createRazorpayOrder\(\), verifyRazorpaySignature\(\), verifyWebhookSignature\(\)
 
-### Community 27 - "Zilla Backend Payment Service"
-Cohesion (entity basis within full-graph community): 0
-Nodes (3): createOrder\(\), handleWebhook\(\), verifyPayment\(\)
-
-### Community 28 - "Services Axios Instance"
-Cohesion (entity basis within full-graph community): 1
-Nodes (1): processQueue\(\)
-
-### Community 29 - "Frontend Appointment List"
+### Community 26 - "Frontend Settings Page"
 Cohesion (entity basis within full-graph community): 0.67
-Nodes (3): AppointmentList\(\), fetchAppointments\(\), handleTogglePublish\(\)
+Nodes (3): SettingsPage\(\), handlePasswordUpdate\(\), handleProfileUpdate\(\)
+
+### Community 27 - "Frontend Signup Page"
+Cohesion (entity basis within full-graph community): 0.5
+Nodes (4): SignupPage\(\), handleGoogleLogin\(\), handleGoogleSuccess\(\), handleSubmit\(\)
+
+### Community 28 - "Frontend Admin Dashboard"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): AdminDashboard\(\), fetch\(\)
+
+### Community 29 - "Zilla Backend Ai Routes"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): router, POST /chat
 
 ### Community 30 - "Zilla Backend Auth Service — Forgot"
 Cohesion (entity basis within full-graph community): 0.67
 Nodes (3): forgotPassword\(\), generateOTP\(\), signup\(\)
 
-### Community 31 - "Frontend Auth Context"
+### Community 31 - "Zilla Backend Auth Service — Access"
+Cohesion (entity basis within full-graph community): 0.67
+Nodes (3): generateAccessToken\(\), googleLogin\(\), refresh\(\)
+
+### Community 32 - "Frontend Auth Context"
 Cohesion (entity basis within full-graph community): 0.67
 Nodes (3): AuthProvider\(\), login\(\), logout\(\)
 
-### Community 32 - "Frontend Booking Confirmation"
+### Community 33 - "Zilla Backend Booking Service — Booking"
+Cohesion (entity basis within full-graph community): 0.67
+Nodes (3): confirmBookingByOrderId\(\), generateConfirmationCode\(\), verifyAndConfirmBooking\(\)
+
+### Community 34 - "Zilla Backend Booking Service — Booking \(2\)"
+Cohesion (entity basis within full-graph community): 0.67
+Nodes (3): createBooking\(\), lockSlot\(\), rescheduleBooking\(\)
+
+### Community 35 - "Frontend Booking Confirmation"
 Cohesion (entity basis within full-graph community): 0.67
 Nodes (3): BookingConfirmation\(\), generateGoogleCalendarUrl\(\), formatForGoogle\(\)
 
-### Community 33 - "Frontend App — Organiser"
+### Community 36 - "Frontend App — Dashboard"
 Cohesion (entity basis within full-graph community): 0.67
-Nodes (3): / \(layout\), /organiser, /organiser/editor/:id
+Nodes (3): / \(layout\), /dashboard, CustomerDashboard\(\)
 
-### Community 34 - "Frontend App — Admin"
+### Community 37 - "Frontend App — Appointment"
+Cohesion (entity basis within full-graph community): 0.67
+Nodes (3): / \(layout\), /organiser, AppointmentList\(\)
+
+### Community 38 - "Frontend App — Admin"
 Cohesion (entity basis within full-graph community): 0.67
 Nodes (3): / \(layout\), /admin, AdminDashboard\(\)
 
-### Community 35 - "Frontend Meetings"
+### Community 39 - "Frontend Meetings"
 Cohesion (entity basis within full-graph community): 0.67
 Nodes (3): page /organiser/Meetings, /organiser/Meetings, Meetings\(\)
 
-### Community 36 - "Frontend Resource Editor"
-Cohesion (entity basis within full-graph community): 0.67
-Nodes (3): page /organiser/ResourceEditor, /organiser/ResourceEditor, ResourceEditor\(\)
+### Community 40 - "Zilla Backend Resource Routes"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): router, GET /:facility\_id
 
-### Community 37 - "Frontend User Editor"
-Cohesion (entity basis within full-graph community): 0.67
-Nodes (3): page /organiser/UserEditor, /organiser/UserEditor, UserEditor\(\)
-
-### Community 38 - "Zilla Backend Error Middleware"
+### Community 41 - "Zilla Backend Error Middleware"
 Cohesion (entity basis within full-graph community): 0.67
 Nodes (3): AppError, .constructor\(\), Error
 
-### Community 39 - "Frontend Settings Page"
-Cohesion (entity basis within full-graph community): 0.67
-Nodes (3): SettingsPage\(\), handlePasswordUpdate\(\), handleProfileUpdate\(\)
+### Community 42 - "Zilla Backend Google Auth Service"
+Cohesion (entity basis within full-graph community): 0
+Nodes (2): getGoogleAuthUrl\(\), getGoogleUserInfo\(\)
 
-### Community 40 - "Frontend Top Calendar"
+### Community 43 - "Zilla Backend Maintenance Service"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): runReconciliation\(\), startMaintenanceJobs\(\)
+
+### Community 44 - "Zilla Backend Payment Controller"
+Cohesion (entity basis within full-graph community): 0
+Nodes (2): handleWebhook\(\), verifyPaymentAndConfirm\(\)
+
+### Community 45 - "Frontend Top Calendar"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): TopCalendar\(\), scroll\(\)
 
-### Community 41 - "Frontend App — App"
-Cohesion (entity basis within full-graph community): 1
-Nodes (2): App\(\), /
+### Community 46 - "Frontend Admin"
+Cohesion (entity basis within full-graph community): n/a
+Nodes (0): 
 
-### Community 42 - "Zilla Backend Auth Middleware"
+### Community 47 - "Zilla Backend Ai Controller"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): chat\(\)
+
+### Community 48 - "Frontend App — App"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): App\(\)
+
+### Community 49 - "Zilla Backend Auth Controller — Google"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): googleCallback\(\), googleLogin\(\)
+
+### Community 50 - "Zilla Backend Auth Middleware"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): requireRole\(\)
 
-### Community 43 - "Zilla Backend Auth Service — Access"
-Cohesion (entity basis within full-graph community): 1
-Nodes (2): generateAccessToken\(\), refresh\(\)
-
-### Community 44 - "Zilla Backend Auth Service — Generate"
+### Community 51 - "Zilla Backend Auth Service — Generate"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): generateRefreshToken\(\), login\(\)
 
-### Community 45 - "Frontend Auth Layout"
+### Community 52 - "Frontend Auth Layout"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): AuthLayout\(\)
 
-### Community 46 - "Zilla Backend Booking Service — Booking"
-Cohesion (entity basis within full-graph community): 1
-Nodes (2): createBooking\(\), generateConfirmationCode\(\)
-
-### Community 47 - "Frontend Booking Wizard — Booking"
+### Community 53 - "Frontend Booking Wizard — Booking"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): handleNext\(\), submitBooking\(\)
 
-### Community 48 - "Frontend App — Navigate"
+### Community 54 - "Frontend App — Navigate"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): Navigate, /\*
 
-### Community 49 - "Frontend App — Admin \(2\)"
+### Community 55 - "Frontend App — Layout"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): / \(layout\), AuthLayout\(\)
+
+### Community 56 - "Frontend App — Landing"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): /, LandingPage\(\)
+
+### Community 57 - "Frontend App — Admin \(2\)"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): /admin/users, UserManagement\(\)
 
-### Community 50 - "Frontend App — Meetings"
+### Community 58 - "Frontend App — Callback"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): /auth/callback, GoogleCallback\(\)
+
+### Community 59 - "Frontend App — Booking"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): /booking/:serviceId, BookingWizard\(\)
+
+### Community 60 - "Frontend App — Bookings"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): /bookings, MyBookings\(\)
+
+### Community 61 - "Frontend App — Confirmation"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): /confirmation, BookingConfirmation\(\)
+
+### Community 62 - "Frontend App — Login"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): /login, LoginPage\(\)
+
+### Community 63 - "Frontend App — Editor"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): /organiser/editor/:id, AppointmentEditor\(\)
+
+### Community 64 - "Frontend App — Meetings"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): /organiser/meetings, Meetings\(\)
 
-### Community 51 - "Frontend App — Reporting"
+### Community 65 - "Frontend App — Reporting"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): /organiser/reporting, Reporting\(\)
 
-### Community 52 - "Frontend App — Resource"
+### Community 66 - "Frontend App — Resource"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): /organiser/resource/:id, ResourceEditor\(\)
 
-### Community 53 - "Frontend App — User"
+### Community 67 - "Frontend App — User"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): /organiser/user/:id, UserEditor\(\)
 
-### Community 54 - "Frontend Admin Dashboard — Admin"
+### Community 68 - "Frontend App — Signup"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): /signup, SignupPage\(\)
+
+### Community 69 - "Frontend Admin Dashboard — Admin"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /admin/AdminDashboard, /admin/AdminDashboard
 
-### Community 55 - "Frontend User Management"
+### Community 70 - "Frontend User Management"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /admin/UserManagement, /admin/UserManagement
 
-### Community 56 - "Frontend Auth Layout — Auth"
+### Community 71 - "Frontend Auth Layout — Auth"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /auth/AuthLayout, /auth/AuthLayout
 
-### Community 57 - "Frontend Login Page"
+### Community 72 - "Frontend Google Callback"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): page /auth/GoogleCallback, /auth/GoogleCallback
+
+### Community 73 - "Frontend Login Page — Page"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /auth/LoginPage, /auth/LoginPage
 
-### Community 58 - "Frontend Signup Page"
+### Community 74 - "Frontend Signup Page — Page"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /auth/SignupPage, /auth/SignupPage
 
-### Community 59 - "Frontend Booking Confirmation — Booking"
+### Community 75 - "Frontend Booking Confirmation — Booking"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /customer/BookingConfirmation, /customer/BookingConfirmation
 
-### Community 60 - "Frontend Booking Wizard — Booking \(2\)"
+### Community 76 - "Frontend Booking Wizard — Booking \(2\)"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /customer/BookingWizard, /customer/BookingWizard
 
-### Community 61 - "Frontend Customer Dashboard"
+### Community 77 - "Frontend Customer Dashboard"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /customer/CustomerDashboard, /customer/CustomerDashboard
 
-### Community 62 - "Frontend My Bookings — Bookings"
+### Community 78 - "Frontend My Bookings — Bookings"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /customer/MyBookings, /customer/MyBookings
 
-### Community 63 - "Frontend Landing Page"
+### Community 79 - "Frontend Landing Page"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /LandingPage, /LandingPage
 
-### Community 64 - "Frontend Appointment Editor — Appointment"
+### Community 80 - "Frontend Appointment Editor — Appointment"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /organiser/AppointmentEditor, /organiser/AppointmentEditor
 
-### Community 65 - "Frontend Appointment List — Appointment"
+### Community 81 - "Frontend Appointment List — Appointment"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /organiser/AppointmentList, /organiser/AppointmentList
 
-### Community 66 - "Frontend Reporting"
+### Community 82 - "Frontend Reporting"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /organiser/Reporting, /organiser/Reporting
 
-### Community 67 - "Frontend Settings Page — Page"
+### Community 83 - "Frontend Resource Editor"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): page /organiser/ResourceEditor, /organiser/ResourceEditor
+
+### Community 84 - "Frontend User Editor"
+Cohesion (entity basis within full-graph community): 1
+Nodes (2): page /organiser/UserEditor, /organiser/UserEditor
+
+### Community 85 - "Frontend Settings Page — Page"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): page /SettingsPage, /SettingsPage
 
-### Community 68 - "Scratch Check Pg"
+### Community 86 - "Zilla Backend Check Db"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): checkUsers\(\)
+
+### Community 87 - "Scratch Check Pg"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): checkPostgres\(\)
 
-### Community 69 - "Zilla Backend Db"
+### Community 88 - "Zilla Backend Check Tables"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): check\(\)
+
+### Community 89 - "Zilla Backend Db"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): query\(\)
 
-### Community 70 - "Zilla Backend Error Middleware — Error"
+### Community 90 - "Zilla Backend Error Middleware — Error"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): errorHandler\(\)
 
-### Community 71 - "Scratch Init Db"
+### Community 91 - "Zilla Backend Fix Constraints"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): fixConstraints\(\)
+
+### Community 92 - "Zilla Backend Fix Db"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): fixServices\(\)
+
+### Community 93 - "Scratch Init Db"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): initDb\(\)
 
-### Community 72 - "Frontend Landing Page — Landing"
+### Community 94 - "Zilla Backend Inspect Db"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): inspectTable\(\)
+
+### Community 95 - "Frontend Landing Page — Landing"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): LandingPage\(\)
 
-### Community 73 - "Frontend My Bookings — Bookings \(2\)"
+### Community 96 - "Zilla Backend Logger"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): formatMessage\(\)
+
+### Community 97 - "Zilla Backend Migrate Db"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): migrate\(\)
+
+### Community 98 - "Zilla Backend Migrate Google"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): migrate\(\)
+
+### Community 99 - "Zilla Backend Migrate Payments"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): fixConstraints\(\)
+
+### Community 100 - "Frontend My Bookings — Bookings \(2\)"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): fetchBookings\(\), handleCancel\(\)
 
-### Community 74 - "Frontend Reporting — Fetch"
+### Community 101 - "Frontend Protected Route"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): ProtectedRoute\(\)
+
+### Community 102 - "Frontend Reporting — Fetch"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): Reporting\(\), fetch\(\)
 
-### Community 75 - "Zilla Backend Seed Db"
+### Community 103 - "Zilla Backend Resource Controller"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): listByFacility\(\)
+
+### Community 104 - "Frontend Resource Editor — Editor"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): ResourceEditor\(\)
+
+### Community 105 - "Zilla Backend Scan Redis"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): testRedisManual\(\)
+
+### Community 106 - "Zilla Backend Seed Comprehensive"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): seed\(\)
 
-### Community 76 - "Zilla Backend Server"
+### Community 107 - "Zilla Backend Seed Db"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): seed\(\)
+
+### Community 108 - "Zilla Backend Seed Pro"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): seed\(\)
+
+### Community 109 - "Zilla Backend Seed V5"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): seed\(\)
+
+### Community 110 - "Zilla Backend Server"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): shutdown\(\)
 
-### Community 77 - "Zilla Backend Setup Db"
+### Community 111 - "Zilla Backend Setup Db"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): setup\(\)
 
-### Community 78 - "Frontend Signup Page — Handle"
-Cohesion (entity basis within full-graph community): 1
-Nodes (2): SignupPage\(\), handleSubmit\(\)
-
-### Community 79 - "Zilla Backend Slot Generator"
+### Community 112 - "Zilla Backend Slot Generator"
 Cohesion (entity basis within full-graph community): 1
 Nodes (1): generateSlots\(\)
 
-### Community 80 - "Frontend User Management — Fetch"
+### Community 113 - "Zilla Backend Test Conn"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): testConnections\(\)
+
+### Community 114 - "Zilla Backend Test Google"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): test\(\)
+
+### Community 115 - "Frontend User Editor — Editor"
+Cohesion (entity basis within full-graph community): 1
+Nodes (1): UserEditor\(\)
+
+### Community 116 - "Frontend User Management — Fetch"
 Cohesion (entity basis within full-graph community): 1
 Nodes (2): UserManagement\(\), fetch\(\)
 
-### Community 81 - "12676946 3840 2160 30fps Mp4"
+### Community 117 - "12676946 3840 2160 30fps Mp4"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 82 - "Card1 Png"
+### Community 118 - "Card1 Png"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 83 - "Card2 Png"
+### Community 119 - "Card2 Png"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 84 - "Env Js"
+### Community 120 - "Env Js"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 85 - "Eslint Config Js"
+### Community 121 - "Eslint Config Js"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 86 - "Favicon SVG"
+### Community 122 - "Favicon SVG"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 87 - "Hero Png"
+### Community 123 - "Hero Png"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 88 - "Icons SVG"
+### Community 124 - "Icons SVG"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 89 - "Postcss Config Js"
+### Community 125 - "Postcss Config Js"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 90 - "Rate Limit Middleware Js"
+### Community 126 - "Rate Limit Middleware Js"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 91 - "Tailwind Config Js"
+### Community 127 - "Tailwind Config Js"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 92 - "Vite SVG"
+### Community 128 - "Vite SVG"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
-### Community 93 - "Zilla Logo Png"
+### Community 129 - "Zilla Logo Png"
 Cohesion (entity basis within full-graph community): n/a
 Nodes (0): 
 
 ## Knowledge Gaps
-- **136 weakly connected node(s):** `AdminDashboard\(\)`, `Button\(\)`, `ErrorMessage\(\)`, `Input\(\)`, `Loader\(\)` (+131 more)
+- **172 weakly connected node(s):** `AdminDashboard\(\)`, `ErrorMessage\(\)`, `fetch\(\)`, `/admin/AdminDashboard`, `requireRole\(\)` (+167 more)
   These have ≤1 connection - possible missing edges or undocumented components.
-- **Thin community `Frontend App — App`** (2 nodes): `App\(\)`, `/`
+- **Thin community `Frontend Admin`** (2 nodes): `admin.js`, `UserManagement.jsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Ai Controller`** (2 nodes): `ai.controller.js`, `chat\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — App`** (2 nodes): `App\(\)`, `main.jsx`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Auth Controller — Google`** (2 nodes): `googleCallback\(\)`, `googleLogin\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Zilla Backend Auth Middleware`** (2 nodes): `auth.middleware.js`, `requireRole\(\)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Zilla Backend Auth Service — Access`** (2 nodes): `generateAccessToken\(\)`, `refresh\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Zilla Backend Auth Service — Generate`** (2 nodes): `generateRefreshToken\(\)`, `login\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Auth Layout`** (2 nodes): `AuthLayout.jsx`, `AuthLayout\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Zilla Backend Booking Service — Booking`** (2 nodes): `createBooking\(\)`, `generateConfirmationCode\(\)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Booking Wizard — Booking`** (2 nodes): `handleNext\(\)`, `submitBooking\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend App — Navigate`** (2 nodes): `Navigate`, `/\*`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Layout`** (2 nodes): `/ \(layout\)`, `AuthLayout\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Landing`** (2 nodes): `/`, `LandingPage\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend App — Admin \(2\)`** (2 nodes): `/admin/users`, `UserManagement\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Callback`** (2 nodes): `/auth/callback`, `GoogleCallback\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Booking`** (2 nodes): `/booking/:serviceId`, `BookingWizard\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Bookings`** (2 nodes): `/bookings`, `MyBookings\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Confirmation`** (2 nodes): `/confirmation`, `BookingConfirmation\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Login`** (2 nodes): `/login`, `LoginPage\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Editor`** (2 nodes): `/organiser/editor/:id`, `AppointmentEditor\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend App — Meetings`** (2 nodes): `/organiser/meetings`, `Meetings\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -474,15 +636,19 @@ Nodes (0):
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend App — User`** (2 nodes): `/organiser/user/:id`, `UserEditor\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend App — Signup`** (2 nodes): `/signup`, `SignupPage\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Admin Dashboard — Admin`** (2 nodes): `page /admin/AdminDashboard`, `/admin/AdminDashboard`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend User Management`** (2 nodes): `page /admin/UserManagement`, `/admin/UserManagement`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Auth Layout — Auth`** (2 nodes): `page /auth/AuthLayout`, `/auth/AuthLayout`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Frontend Login Page`** (2 nodes): `page /auth/LoginPage`, `/auth/LoginPage`
+- **Thin community `Frontend Google Callback`** (2 nodes): `page /auth/GoogleCallback`, `/auth/GoogleCallback`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Frontend Signup Page`** (2 nodes): `page /auth/SignupPage`, `/auth/SignupPage`
+- **Thin community `Frontend Login Page — Page`** (2 nodes): `page /auth/LoginPage`, `/auth/LoginPage`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend Signup Page — Page`** (2 nodes): `page /auth/SignupPage`, `/auth/SignupPage`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Booking Confirmation — Booking`** (2 nodes): `page /customer/BookingConfirmation`, `/customer/BookingConfirmation`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -500,31 +666,71 @@ Nodes (0):
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Reporting`** (2 nodes): `page /organiser/Reporting`, `/organiser/Reporting`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend Resource Editor`** (2 nodes): `page /organiser/ResourceEditor`, `/organiser/ResourceEditor`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend User Editor`** (2 nodes): `page /organiser/UserEditor`, `/organiser/UserEditor`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Settings Page — Page`** (2 nodes): `page /SettingsPage`, `/SettingsPage`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Check Db`** (2 nodes): `check\_db.js`, `checkUsers\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Scratch Check Pg`** (2 nodes): `check\_pg.js`, `checkPostgres\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Check Tables`** (2 nodes): `check\_tables.js`, `check\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Zilla Backend Db`** (2 nodes): `db.js`, `query\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Zilla Backend Error Middleware — Error`** (2 nodes): `error.middleware.js`, `errorHandler\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Fix Constraints`** (2 nodes): `fix\_constraints.js`, `fixConstraints\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Fix Db`** (2 nodes): `fix\_db.js`, `fixServices\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Scratch Init Db`** (2 nodes): `init\_db.js`, `initDb\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Inspect Db`** (2 nodes): `inspect\_db.js`, `inspectTable\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Landing Page — Landing`** (2 nodes): `LandingPage.jsx`, `LandingPage\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Logger`** (2 nodes): `logger.js`, `formatMessage\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Migrate Db`** (2 nodes): `migrate\_db.js`, `migrate\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Migrate Google`** (2 nodes): `migrate\_google.js`, `migrate\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Migrate Payments`** (2 nodes): `migrate\_payments.js`, `fixConstraints\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend My Bookings — Bookings \(2\)`** (2 nodes): `fetchBookings\(\)`, `handleCancel\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend Protected Route`** (2 nodes): `ProtectedRoute.jsx`, `ProtectedRoute\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend Reporting — Fetch`** (2 nodes): `Reporting\(\)`, `fetch\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Resource Controller`** (2 nodes): `resource.controller.js`, `listByFacility\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend Resource Editor — Editor`** (2 nodes): `ResourceEditor.jsx`, `ResourceEditor\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Scan Redis`** (2 nodes): `scan\_redis.js`, `testRedisManual\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Seed Comprehensive`** (2 nodes): `seed\_comprehensive.js`, `seed\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Zilla Backend Seed Db`** (2 nodes): `seed\_db.js`, `seed\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Seed Pro`** (2 nodes): `seed\_pro.js`, `seed\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Seed V5`** (2 nodes): `seed\_v5.js`, `seed\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Zilla Backend Server`** (2 nodes): `server.js`, `shutdown\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Zilla Backend Setup Db`** (2 nodes): `setup\_db.js`, `setup\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
-- **Thin community `Frontend Signup Page — Handle`** (2 nodes): `SignupPage\(\)`, `handleSubmit\(\)`
-  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Zilla Backend Slot Generator`** (2 nodes): `slotGenerator.js`, `generateSlots\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Test Conn`** (2 nodes): `test\_conn.js`, `testConnections\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Zilla Backend Test Google`** (2 nodes): `test\_google.js`, `test\(\)`
+  Too small to be a meaningful cluster - may be noise or needs more connections extracted.
+- **Thin community `Frontend User Editor — Editor`** (2 nodes): `UserEditor.jsx`, `UserEditor\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
 - **Thin community `Frontend User Management — Fetch`** (2 nodes): `UserManagement\(\)`, `fetch\(\)`
   Too small to be a meaningful cluster - may be noise or needs more connections extracted.
@@ -558,11 +764,15 @@ Nodes (0):
 ## Suggested Questions
 _Questions this graph is uniquely positioned to answer:_
 
-- **Why does \`App\(\)\` connect \`Frontend App — App\` to \`Zilla Backend App\`, \`Frontend Auth Context\`, \`Frontend Auth Layout\`, \`Frontend Admin Dashboard\`, \`Frontend Meetings\`, \`Frontend Reporting — Fetch\`, \`Frontend Resource Editor\`, \`Frontend User Editor\`, \`Frontend User Management — Fetch\`, \`Frontend Settings Page\`, \`Frontend App — Layout\`, \`Frontend App\`, \`Frontend App — Organiser\`, \`Frontend App — Admin\`, \`Frontend App — Settings\`, \`Frontend App — Navigate\`?**
-  _High betweenness centrality \(9470.920\) - this node is a cross-community bridge._
-- **Why does \`app\` connect \`Zilla Backend App\` to \`Zilla Backend Auth Routes\`, \`Zilla Backend Service Routes\`, \`Zilla Backend Availability Routes\`, \`Zilla Backend Booking Routes\`, \`Zilla Backend Payment Routes\`?**
-  _High betweenness centrality \(6308.162\) - this node is a cross-community bridge._
-- **Why does \`verifyToken\(\)\` connect \`Zilla Backend App\` to \`Zilla Backend Auth Middleware\`, \`Zilla Backend Availability Routes\`, \`Zilla Backend Booking Routes\`, \`Zilla Backend Payment Routes\`, \`Zilla Backend Service Routes\`?**
-  _High betweenness centrality \(3807.237\) - this node is a cross-community bridge._
-- **What connects \`AdminDashboard\(\)\`, \`Button\(\)\`, \`ErrorMessage\(\)\` to the rest of the system?**
-  _136 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Why does \`App\(\)\` connect \`Frontend App — App\` to \`Zilla Backend App\`, \`Frontend Auth Context\`, \`Frontend Auth Layout\`, \`Frontend Login Page\`, \`Frontend Signup Page\`, \`Frontend Appointment List\`, \`Frontend My Bookings\`, \`Frontend Booking Wizard\`, \`Frontend Booking Confirmation\`, \`Frontend Appointment Editor\`, \`Frontend Landing Page — Landing\`, \`Frontend Chatbot Frame\`, \`Frontend App — Layout\`, \`Frontend App — Dashboard\`, \`Frontend App — Appointment\`, \`Frontend App — Admin\`, \`Frontend App\`, \`Frontend App — Landing\`, \`Frontend App — Navigate\`?**
+  _High betweenness centrality \(15189.682\) - this node is a cross-community bridge._
+- **Why does \`app\` connect \`Zilla Backend App\` to \`Zilla Backend Auth Routes\`, \`Zilla Backend Service Routes\`, \`Zilla Backend Availability Routes\`, \`Zilla Backend Booking Routes\`, \`Zilla Backend Payment Routes\`, \`Zilla Backend Resource Routes\`, \`Zilla Backend Ai Routes\`?**
+  _High betweenness centrality \(8936.592\) - this node is a cross-community bridge._
+- **Why does \`AppointmentEditor\(\)\` connect \`Frontend Appointment Editor\` to \`Frontend App — App\`, \`Frontend Appointment List\`, \`Frontend Question Builder\`, \`Frontend Appointment Editor — Appointment\`, \`Zilla Backend App\`?**
+  _High betweenness centrality \(5037.013\) - this node is a cross-community bridge._
+- **What connects \`AdminDashboard\(\)\`, \`ErrorMessage\(\)\`, \`fetch\(\)\` to the rest of the system?**
+  _172 weakly-connected nodes found - possible documentation gaps or missing edges._
+- **Should \`Zilla Backend App\` be split into smaller, more focused modules?**
+  _Cohesion score 0.09 across 42 entity nodes - this community may mix unrelated responsibilities._
+- **Should \`Zilla Backend App\` be split into smaller, more focused modules?**
+  _Cohesion score 0.13 across 15 entity nodes - this community may mix unrelated responsibilities._

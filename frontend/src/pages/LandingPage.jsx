@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ChevronDown, ArrowRight } from 'lucide-react';
 
 const screenshots = [
   {

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MapPin, Clock, ArrowRight, Search, Filter, Sparkles, Calendar as CalendarIcon, Bell } from 'lucide-react';
+import { Clock, ArrowRight, Search, Sparkles, Bell } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -82,8 +82,50 @@ const CustomerDashboard = () => {
 
         {/* Middle Column: Services List */}
         <div className="flex-1 flex flex-col gap-6 overflow-y-auto pr-4 scrollbar-hide">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2">
-            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em]">Available Services</h2>
+          {/* Hero Greeting */}
+          <div className="relative mb-4 p-8 rounded-[40px] bg-gradient-to-br from-gray-900 to-gray-800 text-white overflow-hidden shadow-2xl">
+             <div className="absolute top-0 right-0 w-64 h-64 bg-primary/20 blur-[100px] -mr-32 -mt-32"></div>
+             <div className="relative z-10">
+                <h1 className="text-4xl font-black tracking-tighter mb-2">Welcome back, Traveler.</h1>
+                <p className="text-gray-400 font-medium italic">Discover premium experiences and book your next session in seconds.</p>
+             </div>
+             <Sparkles className="absolute bottom-8 right-8 w-12 h-12 text-primary/30 floating" />
+          </div>
+
+          {/* Featured Services (Horizontal) */}
+          <div className="flex flex-col gap-4">
+             <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] px-2 flex items-center gap-2">
+                <div className="w-1.5 h-1.5 rounded-full bg-primary" />
+                Featured Experiences
+             </h2>
+             <div className="flex gap-6 overflow-x-auto pb-4 scrollbar-hide px-2">
+                {services.filter(s => s.advance_payment).slice(0, 3).map(service => (
+                   <div 
+                    key={`feat-${service.id}`}
+                    onClick={() => navigate(`/booking/${service.id}`)}
+                    className="w-72 flex-shrink-0 group cursor-pointer"
+                   >
+                      <div className="relative h-48 rounded-[32px] overflow-hidden mb-4 shadow-xl group-hover:scale-[1.02] transition-transform duration-300">
+                         <img 
+                           src={service.image || `https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?q=80&w=800&auto=format&fit=crop`} 
+                           className="w-full h-full object-cover grayscale-[0.2] group-hover:grayscale-0 transition-all duration-300" 
+                         />
+                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+                         <div className="absolute bottom-4 left-6">
+                            <span className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-1 block">{service.type || 'Premium'}</span>
+                            <h4 className="text-lg font-black text-white tracking-tight">{service.name}</h4>
+                         </div>
+                      </div>
+                   </div>
+                ))}
+             </div>
+          </div>
+
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 px-2 mt-4">
+            <h2 className="text-[10px] font-black text-gray-400 uppercase tracking-[0.2em] flex items-center gap-2">
+               <div className="w-1.5 h-1.5 rounded-full bg-gray-300" />
+               All Services
+            </h2>
             
             <div className="flex items-center gap-4">
               <div className="relative flex-1 md:w-64">

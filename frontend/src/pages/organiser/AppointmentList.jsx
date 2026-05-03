@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, Plus, Filter, MoreHorizontal, Calendar as CalendarIcon, Clock, Share2, Edit3, Trash2, Bell } from 'lucide-react';
+import { Plus, Filter, Calendar as CalendarIcon, Clock, Share2, Edit3, Trash2, Bell } from 'lucide-react';
 import DashboardLayout from '../../components/DashboardLayout';
 import Card from '../../components/Card';
 import Button from '../../components/Button';
@@ -36,17 +36,6 @@ const AppointmentList = () => {
 
     fetchAppointments();
   }, []);
-
-  const handleTogglePublish = async (id) => {
-    try {
-      const res = await organiserService.togglePublish(id);
-      setAppointments(prev =>
-        prev.map(app => app.id === id ? { ...app, is_published: res.data?.is_published } : app)
-      );
-    } catch (err) {
-      alert(err.response?.data?.error?.message || 'Failed to update.');
-    }
-  };
 
   const handleDelete = async (id) => {
     if (!window.confirm('Are you sure you want to delete this service?')) return;

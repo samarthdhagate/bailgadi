@@ -1,9 +1,9 @@
 import React, { useEffect } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useAuth } from '../../context/AuthContext';
+import { useNavigate } from 'react-router-dom';
+import { useAuth } from '../../context/useAuth';
+import { authService } from '@services/auth';
 
 const GoogleCallback = () => {
-  const [searchParams] = useSearchParams();
   const { login } = useAuth();
   const navigate = useNavigate();
 

@@ -1,16 +1,20 @@
-const { GoogleGenerativeAI } = require("@google/generative-ai");
+const { GoogleGenerativeAI } = require('@google/generative-ai');
+const { env } = require('../config/env');
 
-/**
- * AI Controller for Zilla Assistant.
- * Uses Google Gemini API for real-time intelligence.
- */
+let cachedModel = null;
 
-// Initialize Gemini with the API Key from environment variables
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
-const model = genAI.getGenerativeModel({ 
-  model: "gemini-flash-latest",
-  systemInstruction: "You are Zilla AI, a premium assistant for Zilla, a SaaS booking platform. You help users manage appointments and navigate the platform. Keep responses concise and professional."
-});
+function getModel() {
+  if (!env.GEMINI_API_KEY) return null;
+  if (!cachedModel) {
+    const genAI = new GoogleGenerativeAI(env.GEMINI_API_KEY);
+    cachedModel = genAI.getGenerativeModel({
+      model: 'gemini-flash-latest',
+      systemInstruction:
+        'You are Zilla AI, a premium assistant for Zilla, a SaaS booking platform. You help users manage appointments and navigate the platform. Keep responses concise and professional.',
+    });
+  }
+  return cachedModel;
+}
 
 const chat = async (req, res, next) => {
   try {
@@ -20,20 +24,23 @@ const chat = async (req, res, next) => {
     if (!message) {
       return res.status(400).json({
         success: false,
-        error: { message: 'Message is required.' }
+        error: { message: 'Message is required.' },
       });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
+    if (!env.GEMINI_API_KEY) {
       return res.status(500).json({
         success: false,
-        error: { message: 'AI API Key is not configured.' }
+        error: { message: 'AI API Key is not configured.' },
       });
     }
 
-    // Generate content using Gemini
+    const model = getModel();
+
     const result = await model.generateContent([
-      { text: `User Name: ${user.name || 'User'}, User Role: ${user.role || 'Guest'}. Message: ${message}` }
+      {
+        text: `User ID: ${user?.user_id ?? 'unknown'}, Role: ${user?.role ?? 'Guest'}. Message: ${message}`,
+      },
     ]);
 
     const responseText = result.response.text();
@@ -43,10 +50,9 @@ const chat = async (req, res, next) => {
       data: {
         content: responseText,
         role: 'bot',
-        timestamp: new Date().toISOString()
-      }
+        timestamp: new Date().toISOString(),
+      },
     });
-
   } catch (err) {
     console.error('Gemini AI Error:', err);
     next(err);
@@ -54,5 +60,5 @@ const chat = async (req, res, next) => {
 };
 
 module.exports = {
-  chat
+  chat,
 };

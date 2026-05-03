@@ -5,7 +5,6 @@ import {
   ChevronRight, 
   Calendar, 
   Clock, 
-  Users, 
   CreditCard, 
   CheckCircle,
   ShieldCheck,
@@ -22,14 +21,12 @@ import {
   endOfWeek, 
   isSameMonth, 
   isSameDay, 
-  addDays, 
   eachDayOfInterval, 
   isPast,
   isToday
 } from 'date-fns';
 import { bookingService } from '@services/booking';
 import Button from '../../components/Button';
-import Card from '../../components/Card';
 import Input from '../../components/Input';
 import Loader from '../../components/Loader';
 import ErrorMessage from '../../components/ErrorMessage';
@@ -43,7 +40,7 @@ const BookingWizard = () => {
   const [step, setStep] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [isRescheduling, setIsRescheduling] = useState(!!existingBooking);
+  const isRescheduling = !!existingBooking;
   
   const [bookingData, setBookingData] = useState({
     serviceId: serviceId,
@@ -63,6 +60,9 @@ const BookingWizard = () => {
   const [slots, setSlots] = useState([]);
   const [service, setService] = useState(null);
 
+  const requiresPaidCheckout =
+    Boolean(service?.advance_payment) && Number(service?.price ?? 0) > 0;
+
   useEffect(() => {
     const init = async () => {
       setIsLoading(true);
@@ -74,9 +74,11 @@ const BookingWizard = () => {
         // Fetch resources (mocked for now in service, but let's set some defaults)
         const resData = await bookingService.getResources(serviceId);
         setResources(resData.data || []);
-        if (resData.data?.length > 0 && !bookingData.resourceId) {
-          setBookingData(prev => ({ ...prev, resourceId: resData.data[0].id }));
-        }
+        setBookingData(prev =>
+          resData.data?.length > 0 && !prev.resourceId
+            ? { ...prev, resourceId: resData.data[0].id }
+            : prev
+        );
       } catch (err) {
         setError('Failed to load service details');
       } finally {
@@ -111,7 +113,7 @@ const BookingWizard = () => {
     }
 
     if (step === 2) {
-      if (Number(service?.price) > 0) {
+      if (requiresPaidCheckout) {
         setStep(3);
       } else {
         submitBooking();
@@ -146,7 +148,7 @@ const BookingWizard = () => {
       // 1. Lock the slot
       const lockRes = await bookingService.lockSlot(serviceId, bookingData.time, bookingData.capacity);
 
-      const { payment_order, reservation_id } = lockRes.data;
+      const { payment_order } = lockRes.data;
 
       // 2. Handle Payment if required
       if (payment_order) {
@@ -504,7 +506,7 @@ const BookingWizard = () => {
                 disabled={!bookingData.userDetails.name || !bookingData.userDetails.email}
                 className="px-20 py-5 text-xl min-w-[300px] rounded-2xl shadow-2xl shadow-primary/30"
               >
-                {Number(service?.price) > 0 ? 'Proceed to payment' : 'Confirm Appointment'}
+                {requiresPaidCheckout ? 'Proceed to payment' : 'Confirm Appointment'}
               </Button>
               <button 
                 onClick={() => setStep(1)}
@@ -657,7 +659,7 @@ const BookingWizard = () => {
           </button>
 
           <div className="flex items-center gap-6">
-            {[1, 2, 3].filter(s => s < 3 || service?.price > 0).map((s) => (
+            {[1, 2, 3].filter(s => s < 3 || requiresPaidCheckout).map((s) => (
               <div key={s} className="flex items-center gap-3">
                 <div className={`w-8 h-8 rounded-xl flex items-center justify-center font-black text-xs transition-all duration-500 ${
                   step === s ? 'bg-primary text-white shadow-xl shadow-primary/30 scale-110' : 
@@ -665,7 +667,7 @@ const BookingWizard = () => {
                 }`}>
                   {step > s ? <CheckCircle className="w-4 h-4" /> : s}
                 </div>
-                {s < (service?.price > 0 ? 3 : 2) && (
+                {s < (requiresPaidCheckout ? 3 : 2) && (
                   <div className={`w-12 h-1 rounded-full transition-all duration-700 ${
                     step > s ? 'bg-green-200' : 'bg-gray-100'
                   }`} />

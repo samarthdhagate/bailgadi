@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import Input from '../../components/Input';
 import Button from '../../components/Button';
-import { useAuth } from '../../context/AuthContext';
+import { useAuth } from '../../context/useAuth';
 import ErrorMessage from '../../components/ErrorMessage';
 import { authService } from '@services/auth';
 import { GoogleLogin } from '@react-oauth/google';
@@ -79,29 +79,6 @@ const LoginPage = () => {
       setError(message);
     } finally {
       setIsLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setError('');
-    try {
-      const response = await authService.getGoogleAuthUrl();
-      if (response.success && response.data?.url) {
-        window.location.href = response.data.url;
-        return;
-      }
-      const msg =
-        typeof response?.error?.message === 'string'
-          ? response.error.message
-          : 'Could not start Google Sign-In.';
-      setError(msg);
-    } catch (err) {
-      const apiMsg = err.response?.data?.error?.message;
-      setError(
-        typeof apiMsg === 'string' && apiMsg.length > 0
-          ? apiMsg
-          : 'Could not initiate Google login. Check that the backend is reachable and Google OAuth env vars are set.'
-      );
     }
   };
 
